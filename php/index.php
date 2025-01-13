@@ -41,20 +41,82 @@ if (!getCurrentUsername()) {
 // Header einbinden
 require_once __DIR__ . '/includes/header.php';
 
+// Suchparameter
+$search = trim($_GET['search'] ?? '');
+$searchCondition = '';
+$searchParams = [];
+
+if ($search !== '') {
+    $searchCondition = "WHERE (
+        t.ticket_number LIKE :search 
+        OR t.title LIKE :search 
+        OR t.ki_summary LIKE :search
+    )";
+    $searchParams[':search'] = "%$search%";
+}
+
 // Hole alle Tickets
 $db = Database::getInstance()->getConnection();
-$stmt = $db->query("
+$query = "
     SELECT t.*, ts.name as status_name, 
            (SELECT COUNT(*) FROM comments WHERE ticket_id = t.id) as comment_count
     FROM tickets t
     JOIN ticket_status ts ON t.status_id = ts.id
+    $searchCondition
     ORDER BY t.created_at DESC
-");
-$tickets = $stmt->fetchAll();
+";
+
+try {
+    $stmt = $db->prepare($query);
+    $stmt->execute($searchParams);
+    $tickets = $stmt->fetchAll();
+} catch (PDOException $e) {
+    ErrorLogger::getInstance()->logError("Fehler beim Laden der Tickets", $e);
+    $tickets = [];
+}
 ?>
 
 <div class="container mt-4">
-    <h1>Ticket-Übersicht</h1>
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Ticket-Übersicht</h1>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="get" class="d-flex">
+                <div class="input-group">
+                    <input type="text" 
+                           class="form-control" 
+                           placeholder="Suche nach Ticket-Nr., Titel oder Inhalt..." 
+                           name="search"
+                           value="<?= htmlspecialchars($search) ?>"
+                           aria-label="Suchbegriff">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    <?php if ($search !== ''): ?>
+                        <a href="<?= $basePath ?>/index.php" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="<?= $basePath ?>/create_ticket.php" class="btn btn-success">
+                <i class="bi bi-plus-lg"></i> Neues Ticket
+            </a>
+        </div>
+    </div>
+
+    <?php if ($search !== '' && empty($tickets)): ?>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            Keine Tickets gefunden für "<?= htmlspecialchars($search) ?>".
+        </div>
+    <?php endif; ?>
 
     <div class="row">
         <?php foreach ($tickets as $ticket): ?>

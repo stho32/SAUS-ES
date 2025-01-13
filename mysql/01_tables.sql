@@ -13,6 +13,7 @@ CREATE TABLE tickets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ticket_number VARCHAR(20) NOT NULL UNIQUE,
     title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
     ki_summary TEXT,
     ki_interim TEXT,
     status_id INT NOT NULL,

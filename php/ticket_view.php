@@ -8,8 +8,9 @@ require_once 'includes/auth.php';
 // Prüfe Authentifizierung
 $partnerLink = $_GET['partner'] ?? null;
 $partner = $partnerLink ? isPartnerLink($partnerLink) : null;
+$isMasterLink = isset($_SESSION['master_code']);
 
-if (!$partner && !isset($_SESSION['master_code'])) {
+if (!$partner && !$isMasterLink) {
     header('Location: error.php?type=unauthorized');
     exit;
 }
@@ -26,7 +27,8 @@ try {
     // Hole Ticket-Details mit Partner-Liste
     $stmt = $db->prepare("
         SELECT t.*, ts.name as status_name, 
-               (SELECT partner_list FROM partners WHERE ticket_id = t.id LIMIT 1) as partner_list
+               (SELECT partner_list FROM partners WHERE ticket_id = t.id LIMIT 1) as partner_list,
+               (SELECT partner_link FROM partners WHERE ticket_id = t.id LIMIT 1) as partner_link
         FROM tickets t
         JOIN ticket_status ts ON t.status_id = ts.id
         WHERE t.id = ?
@@ -51,6 +53,10 @@ try {
     $stmt->execute([getCurrentUsername(), $ticketId]);
     $comments = $stmt->fetchAll();
 
+    // Hole alle verfügbaren Status
+    $stmt = $db->query("SELECT * FROM ticket_status ORDER BY name");
+    $allStatus = $stmt->fetchAll();
+
 } catch (Exception $e) {
     header('Location: error.php?type=error&message=' . urlencode($e->getMessage()));
     exit;
@@ -58,22 +64,71 @@ try {
 
 // Template-Rendering
 $pageTitle = htmlspecialchars($ticket['title']);
-require_once 'templates/header.php';
+require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center">
-        <h1><?= htmlspecialchars($ticket['title']) ?></h1>
-        <span class="badge bg-<?= $ticket['status_name'] === 'offen' ? 'success' : 'secondary' ?>">
-            <?= htmlspecialchars($ticket['status_name']) ?>
-        </span>
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="mb-0"><?= htmlspecialchars($ticket['title']) ?></h1>
+            <div class="text-muted">
+                Ticket #<?= htmlspecialchars($ticket['ticket_number']) ?>
+                <span class="mx-2">•</span>
+                Erstellt: <?= formatDateTime($ticket['created_at']) ?>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge bg-<?= $ticket['status_name'] === 'offen' ? 'success' : 'secondary' ?> fs-6">
+                <?= htmlspecialchars($ticket['status_name']) ?>
+            </span>
+            <?php if ($isMasterLink): ?>
+            <a href="ticket_edit.php?id=<?= $ticketId ?>" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-pencil"></i> Bearbeiten
+            </a>
+            <?php endif; ?>
+            <?php if (!$partner): ?>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <?php if ($ticket['partner_link']): ?>
+                    <li>
+                        <button class="dropdown-item" onclick="copyPartnerLink('<?= htmlspecialchars($ticket['partner_link']) ?>')">
+                            <i class="bi bi-link-45deg"></i> Partner-Link kopieren
+                        </button>
+                    </li>
+                    <?php endif; ?>
+                    <li>
+                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#partnerModal">
+                            <i class="bi bi-people"></i> Partner verwalten
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <?php endif; ?>
+        </div>
     </div>
 
-    <?php if ($ticket['partner_list']): ?>
-    <div class="alert alert-info">
-        <strong>Partner:</strong> <?= htmlspecialchars($ticket['partner_list']) ?>
+    <?php if ($ticket['ki_summary']): ?>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">
+                <i class="bi bi-robot"></i> KI-Zusammenfassung
+            </h5>
+            <p class="card-text"><?= nl2br(htmlspecialchars($ticket['ki_summary'])) ?></p>
+        </div>
     </div>
     <?php endif; ?>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Beschreibung</h5>
+            <div class="ticket-description">
+                <?= nl2br(htmlspecialchars($ticket['description'])) ?>
+            </div>
+        </div>
+    </div>
 
     <div class="card mb-4">
         <div class="card-header">
@@ -81,12 +136,18 @@ require_once 'templates/header.php';
                 <h5 class="mb-0">Kommentare</h5>
                 <?php if (!$partner): ?>
                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCommentModal">
-                    Kommentar hinzufügen
+                    <i class="bi bi-plus-lg"></i> Kommentar hinzufügen
                 </button>
                 <?php endif; ?>
             </div>
         </div>
         <div class="card-body">
+            <?php if (empty($comments)): ?>
+            <p class="text-muted text-center my-4">
+                <i class="bi bi-chat-square-text"></i><br>
+                Noch keine Kommentare vorhanden
+            </p>
+            <?php else: ?>
             <?php foreach ($comments as $comment): ?>
             <div class="comment mb-4">
                 <div class="d-flex justify-content-between">
@@ -99,14 +160,16 @@ require_once 'templates/header.php';
                     <?php if (!$partner): ?>
                     <div class="btn-group" role="group">
                         <button type="button" 
-                                class="btn btn-sm btn-outline-success <?= $comment['user_vote'] === 'up' ? 'active' : '' ?>"
+                                class="btn btn-sm btn-outline-<?= $comment['user_vote'] === 'up' ? 'success' : 'secondary' ?>"
                                 onclick="voteComment(<?= $comment['id'] ?>, 'up')">
-                            👍 <span class="vote-count"><?= $comment['up_votes'] ?></span>
+                            <i class="bi bi-hand-thumbs-up"></i> 
+                            <span class="vote-count"><?= $comment['up_votes'] ?></span>
                         </button>
                         <button type="button" 
-                                class="btn btn-sm btn-outline-danger <?= $comment['user_vote'] === 'down' ? 'active' : '' ?>"
+                                class="btn btn-sm btn-outline-<?= $comment['user_vote'] === 'down' ? 'danger' : 'secondary' ?>"
                                 onclick="voteComment(<?= $comment['id'] ?>, 'down')">
-                            👎 <span class="vote-count"><?= $comment['down_votes'] ?></span>
+                            <i class="bi bi-hand-thumbs-down"></i>
+                            <span class="vote-count"><?= $comment['down_votes'] ?></span>
                         </button>
                     </div>
                     <?php endif; ?>
@@ -116,30 +179,37 @@ require_once 'templates/header.php';
                 </div>
             </div>
             <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
-
-    <?php if (!$partner): ?>
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Partner-Link erstellen</h5>
-        </div>
-        <div class="card-body">
-            <form id="partnerForm" class="row g-3">
-                <div class="col-md-6">
-                    <label for="partnerName" class="form-label">Partner Name</label>
-                    <input type="text" class="form-control" id="partnerName" required>
-                </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary">Partner-Link generieren</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <?php endif; ?>
 </div>
 
-<!-- Modal für neuen Kommentar -->
+<!-- Partner Modal -->
+<div class="modal fade" id="partnerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Partner verwalten</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="partnerForm">
+                    <div class="mb-3">
+                        <label for="partnerList" class="form-label">Partner-Liste</label>
+                        <textarea class="form-control" id="partnerList" rows="3"
+                            placeholder="Liste der Partner (z.B. Name, Abteilung)"><?= htmlspecialchars($ticket['partner_list'] ?? '') ?></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" onclick="savePartners()">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Comment Modal -->
 <div class="modal fade" id="addCommentModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -157,14 +227,109 @@ require_once 'templates/header.php';
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                <button type="button" class="btn btn-primary" onclick="submitComment()">Kommentar speichern</button>
+                <button type="button" class="btn btn-primary" onclick="addComment()">Speichern</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-const ticketId = <?= $ticketId ?>;
+async function copyPartnerLink(link) {
+    try {
+        await navigator.clipboard.writeText(window.location.origin + window.location.pathname + '?partner=' + link);
+        alert('Partner-Link wurde in die Zwischenablage kopiert!');
+    } catch (err) {
+        alert('Fehler beim Kopieren des Links: ' + err);
+    }
+}
+
+async function updateTicket(field, value) {
+    try {
+        const response = await fetch('api/update_ticket.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ticketId: <?= $ticketId ?>,
+                field: field,
+                value: value
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Netzwerkfehler');
+        }
+        
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Unbekannter Fehler');
+        }
+    } catch (error) {
+        alert('Fehler beim Speichern: ' + error.message);
+        location.reload(); // Lade die Seite neu, um die alten Werte wiederherzustellen
+    }
+}
+
+async function savePartners() {
+    const partnerList = document.getElementById('partnerList').value;
+    
+    try {
+        const response = await fetch('api/update_partners.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ticketId: <?= $ticketId ?>,
+                partnerList: partnerList
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Netzwerkfehler');
+        }
+        
+        const result = await response.json();
+        if (result.success) {
+            location.reload();
+        } else {
+            throw new Error(result.message || 'Unbekannter Fehler');
+        }
+    } catch (error) {
+        alert('Fehler beim Speichern: ' + error.message);
+    }
+}
+
+async function addComment() {
+    const content = document.getElementById('commentContent').value;
+    
+    try {
+        const response = await fetch('api/add_comment.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ticketId: <?= $ticketId ?>,
+                content: content
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Netzwerkfehler');
+        }
+        
+        const result = await response.json();
+        if (result.success) {
+            location.reload();
+        } else {
+            throw new Error(result.message || 'Unbekannter Fehler');
+        }
+    } catch (error) {
+        alert('Fehler beim Speichern: ' + error.message);
+    }
+}
 
 async function voteComment(commentId, voteType) {
     try {
@@ -174,74 +339,25 @@ async function voteComment(commentId, voteType) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                comment_id: commentId,
-                vote_type: voteType
+                commentId: commentId,
+                voteType: voteType
             })
         });
         
-        if (!response.ok) throw new Error('Fehler beim Abstimmen');
+        if (!response.ok) {
+            throw new Error('Netzwerkfehler');
+        }
         
-        // Aktualisiere die Ansicht
-        location.reload();
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-async function submitComment() {
-    const content = document.getElementById('commentContent').value;
-    if (!content) return;
-
-    try {
-        const response = await fetch('api/add_comment.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                ticket_id: ticketId,
-                content: content
-            })
-        });
-
-        if (!response.ok) throw new Error('Fehler beim Speichern des Kommentars');
-
-        // Schließe Modal und aktualisiere die Ansicht
-        bootstrap.Modal.getInstance(document.getElementById('addCommentModal')).hide();
-        location.reload();
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-// Partner-Link-Formular
-document.getElementById('partnerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const partnerName = document.getElementById('partnerName').value;
-    
-    try {
-        const response = await fetch('api/create_partner.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                ticket_id: ticketId,
-                partner_name: partnerName
-            })
-        });
-
-        if (!response.ok) throw new Error('Fehler beim Erstellen des Partner-Links');
-
-        const data = await response.json();
-        if (data.success) {
-            alert(`Partner-Link erstellt: ${window.location.origin}/ticket_view.php?partner=${data.partner_link}`);
+        const result = await response.json();
+        if (result.success) {
             location.reload();
+        } else {
+            throw new Error(result.message || 'Unbekannter Fehler');
         }
     } catch (error) {
-        alert(error.message);
+        alert('Fehler beim Abstimmen: ' + error.message);
     }
-});
+}
 </script>
 
-<?php require_once 'templates/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>
