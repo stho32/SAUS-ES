@@ -1,0 +1,93 @@
+/* Custom Styles für SAUS-ES */
+
+/* Allgemeine Anpassungen */
+body {
+    background-color: #f8f9fa;
+}
+
+/* Navbar Anpassungen */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+/* Card Anpassungen */
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Status Badge Anpassungen */
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.8em;
+}
+
+/* Kommentar-Bereich */
+.comment {
+    border-left: 3px solid #007bff;
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+}
+
+.comment-meta {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+/* Vote Buttons */
+.vote-button {
+    border: none;
+    background: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: color 0.2s ease-in-out;
+}
+
+.vote-button:hover {
+    color: #007bff;
+}
+
+.vote-button.active {
+    color: #007bff;
+}
+
+/* Partner Link Box */
+.partner-link-box {
+    background-color: #e9ecef;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    margin: 1rem 0;
+}
+
+/* Ticket Status */
+.ticket-status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* KI Zusammenfassung Box */
+.ki-summary {
+    background-color: #f8f9fa;
+    border-left: 3px solid #28a745;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+/* Mobile Anpassungen */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+}

@@ -1,0 +1,37 @@
+# Aktiviere RewriteEngine
+RewriteEngine On
+
+# Verhindere Zugriff auf .git, .env und andere sensible Dateien
+RedirectMatch 403 /\..*$
+
+# Verhindere direkten Zugriff auf die includes Directory
+RedirectMatch 403 ^/includes/.*$
+
+# Setze Sicherheitsheader
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# PHP Fehlerbehandlung
+php_flag display_errors off
+php_value error_reporting E_ALL & ~E_NOTICE
+
+# Maximale Upload-Größe
+php_value upload_max_filesize 10M
+php_value post_max_size 10M
+
+# Session Sicherheit
+php_value session.cookie_httponly 1
+php_value session.cookie_secure 1
+php_value session.use_only_cookies 1
+
+# Zeichensatz
+AddDefaultCharset UTF-8
+
+# Komprimierung aktivieren
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json
+</IfModule>
