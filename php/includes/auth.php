@@ -59,3 +59,16 @@ function getCurrentUsername(): ?string {
 function setCurrentUsername(string $username): void {
     $_SESSION['username'] = $username;
 }
+
+function logout(): void {
+    // Lösche alle Session-Variablen
+    $_SESSION = array();
+
+    // Lösche das Session-Cookie
+    if (isset($_COOKIE[session_name()])) {
+        setcookie(session_name(), '', time()-3600, '/');
+    }
+
+    // Zerstöre die Session
+    session_destroy();
+}
