@@ -32,7 +32,7 @@ if (substr($basePath, -8) === '/includes') {
                         <a class="nav-link" href="<?= $basePath ?>/index.php">Übersicht</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $basePath ?>/ticket_create.php">Neues Ticket</a>
+                        <a class="nav-link" href="<?= $basePath ?>/create_ticket.php">Neues Ticket</a>
                     </li>
                 </ul>
                 <?php if (getCurrentUsername()): ?>

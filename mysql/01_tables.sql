@@ -58,6 +58,7 @@ CREATE TABLE partners (
     ticket_id INT NULL,
     partner_name VARCHAR(50) NULL,
     partner_link VARCHAR(255) NOT NULL UNIQUE,
+    partner_list TEXT NULL,
     is_master BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticket_id) REFERENCES tickets(id)
