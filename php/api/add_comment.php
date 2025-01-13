@@ -30,11 +30,10 @@ if (!$ticketId || empty($content) || !$username) {
 $db = Database::getInstance()->getConnection();
 
 try {
-    // Prüfe ob Ticket existiert und nicht geschlossen ist
+    // Prüfe ob Ticket existiert
     $stmt = $db->prepare("
-        SELECT t.id, ts.name as status_name
+        SELECT t.id
         FROM tickets t
-        JOIN ticket_status ts ON t.status_id = ts.id
         WHERE t.id = ?
     ");
     $stmt->execute([$ticketId]);
@@ -42,10 +41,6 @@ try {
 
     if (!$ticket) {
         throw new RuntimeException('Ticket nicht gefunden');
-    }
-
-    if ($ticket['status_name'] === 'geschlossen' || $ticket['status_name'] === 'archiviert') {
-        throw new RuntimeException('Ticket ist bereits geschlossen');
     }
 
     // Füge neuen Kommentar hinzu
