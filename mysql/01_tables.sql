@@ -5,6 +5,8 @@ CREATE TABLE ticket_status (
     description TEXT,
     sort_order INT NOT NULL DEFAULT 0,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+    is_closed BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
