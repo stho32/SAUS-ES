@@ -1,7 +1,11 @@
 <?php
+declare(strict_types=1);
+
 session_start();
 
-function validateMasterLink($linkCode) {
+function validateMasterLink(?string $linkCode): bool {
+    if (!$linkCode) return false;
+    
     $db = Database::getInstance()->getConnection();
     $stmt = $db->prepare("
         SELECT * FROM master_links 
@@ -23,7 +27,7 @@ function validateMasterLink($linkCode) {
     return false;
 }
 
-function requireMasterLink() {
+function requireMasterLink(): bool {
     $linkCode = $_GET['master_code'] ?? $_SESSION['master_code'] ?? null;
     
     if ($linkCode && validateMasterLink($linkCode)) {
@@ -36,20 +40,22 @@ function requireMasterLink() {
     exit;
 }
 
-function isPartnerLink($partnerLink) {
+function isPartnerLink(?string $partnerLink): ?array {
+    if (!$partnerLink) return null;
+    
     $db = Database::getInstance()->getConnection();
     $stmt = $db->prepare("
         SELECT * FROM partners 
         WHERE partner_link = ?
     ");
     $stmt->execute([$partnerLink]);
-    return $stmt->fetch();
+    return $stmt->fetch() ?: null;
 }
 
-function getCurrentUsername() {
+function getCurrentUsername(): ?string {
     return $_SESSION['username'] ?? null;
 }
 
-function setCurrentUsername($username) {
+function setCurrentUsername(string $username): void {
     $_SESSION['username'] = $username;
 }

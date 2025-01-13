@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 require_once '../includes/Database.php';
 require_once '../includes/functions.php';
 require_once '../includes/auth.php';
@@ -14,13 +16,14 @@ if (!isset($_SESSION['master_code'])) {
 
 // Hole POST-Daten
 $data = json_decode(file_get_contents('php://input'), true);
-$ticketId = $data['ticket_id'] ?? null;
+
+$ticketId = isset($data['ticket_id']) ? (int)$data['ticket_id'] : null;
 $voteType = $data['vote_type'] ?? null;
 $username = getCurrentUsername();
 
-if (!$ticketId || !$voteType || !$username) {
+if (!$ticketId || !$voteType || !$username || !in_array($voteType, ['up', 'down'], true)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Fehlende Parameter']);
+    echo json_encode(['success' => false, 'message' => 'Ungültige Parameter']);
     exit;
 }
 
@@ -38,22 +41,30 @@ try {
     $ticket = $stmt->fetch();
 
     if (!$ticket) {
-        throw new Exception('Ticket nicht gefunden');
+        throw new RuntimeException('Ticket nicht gefunden');
     }
 
     if ($ticket['status_name'] === 'geschlossen' || $ticket['status_name'] === 'archiviert') {
-        throw new Exception('Ticket ist bereits geschlossen');
+        throw new RuntimeException('Ticket ist bereits geschlossen');
     }
 
-    // Lösche vorherige Stimme des Benutzers
-    $stmt = $db->prepare("DELETE FROM votes WHERE ticket_id = ? AND username = ?");
-    $stmt->execute([$ticketId, $username]);
+    $db->beginTransaction();
 
-    // Füge neue Stimme hinzu
-    $stmt = $db->prepare("INSERT INTO votes (ticket_id, username, value) VALUES (?, ?, ?)");
-    $stmt->execute([$ticketId, $username, $voteType]);
+    try {
+        // Lösche vorherige Stimme des Benutzers
+        $stmt = $db->prepare("DELETE FROM votes WHERE ticket_id = ? AND username = ?");
+        $stmt->execute([$ticketId, $username]);
 
-    echo json_encode(['success' => true]);
+        // Füge neue Stimme hinzu
+        $stmt = $db->prepare("INSERT INTO votes (ticket_id, username, value) VALUES (?, ?, ?)");
+        $stmt->execute([$ticketId, $username, $voteType]);
+
+        $db->commit();
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        $db->rollBack();
+        throw $e;
+    }
 
 } catch (Exception $e) {
     http_response_code(400);

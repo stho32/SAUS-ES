@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
+
 class Database {
-    private static $instance = null;
-    private $connection;
+    private static ?self $instance = null;
+    private PDO $connection;
 
     private function __construct() {
         $config = require __DIR__ . '/../config.php';
@@ -19,18 +21,26 @@ class Database {
                 ]
             );
         } catch (PDOException $e) {
-            die("Verbindungsfehler: " . $e->getMessage());
+            throw new RuntimeException("Verbindungsfehler: " . $e->getMessage());
         }
     }
 
-    public static function getInstance() {
+    public static function getInstance(): self {
         if (self::$instance === null) {
             self::$instance = new self();
         }
         return self::$instance;
     }
 
-    public function getConnection() {
+    public function getConnection(): PDO {
         return $this->connection;
+    }
+    
+    // Verhindere Klonen der Instanz
+    private function __clone() {}
+    
+    // Verhindere Unserialisierung der Instanz
+    public function __wakeup() {
+        throw new RuntimeException("Cannot unserialize singleton");
     }
 }

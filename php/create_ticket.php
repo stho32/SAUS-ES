@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 require_once 'includes/Database.php';
 require_once 'includes/functions.php';
 require_once 'includes/auth.php';
@@ -31,7 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Hole den "offen" Status
             $stmt = $db->prepare("SELECT id FROM ticket_status WHERE name = 'offen' LIMIT 1");
             $stmt->execute();
-            $statusId = $stmt->fetchColumn();
+            $statusId = (int)$stmt->fetchColumn();
+            
+            if (!$statusId) {
+                throw new RuntimeException('Status "offen" nicht gefunden');
+            }
             
             // Erstelle das Ticket
             $ticketNumber = generateTicketNumber();
@@ -44,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $kiSummary = $description; // Vorläufig nur die Beschreibung
             
             $stmt->execute([$ticketNumber, $title, $kiSummary, $statusId]);
-            $ticketId = $db->lastInsertId();
+            $ticketId = (int)$db->lastInsertId();
             
             // Erstelle den ersten Kommentar mit der Beschreibung
             $stmt = $db->prepare("
@@ -60,84 +66,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
         } catch (Exception $e) {
             $db->rollBack();
-            $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+            $error = 'Ein Fehler ist aufgetreten: ' . $e->getMessage();
         }
     }
 }
-?>
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAUS-ES - Neues Ticket erstellen</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="assets/css/style.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">SAUS-ES</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php">Übersicht</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="create_ticket.php">Neues Ticket</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="completed_tickets.php">Abgeschlossene Tickets</a>
-                    </li>
-                </ul>
-                <div class="ms-auto">
-                    <span class="navbar-text">
-                        Angemeldet als: <?= htmlspecialchars($currentUsername) ?>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </nav>
 
-    <div class="container mt-4">
-        <h1>Neues Ticket erstellen</h1>
-        
-        <?php if ($error): ?>
-            <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-        <?php endif; ?>
-        
-        <?php if ($message): ?>
-            <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
-        <?php endif; ?>
-        
-        <div class="card">
-            <div class="card-body">
-                <form method="post">
-                    <div class="mb-3">
-                        <label for="title" class="form-label">Titel *</label>
-                        <input type="text" class="form-control" id="title" name="title" required
-                               value="<?= htmlspecialchars($_POST['title'] ?? '') ?>">
+// Template-Rendering
+$pageTitle = 'Neues Ticket erstellen';
+require_once 'templates/header.php';
+?>
+
+<div class="container mt-4">
+    <h1><?= htmlspecialchars($pageTitle) ?></h1>
+    
+    <?php if ($error): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
+    
+    <?php if ($message): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
+    <?php endif; ?>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Titel *</label>
+                    <input type="text" class="form-control" id="title" name="title" required
+                           maxlength="255"
+                           value="<?= htmlspecialchars($_POST['title'] ?? '') ?>">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Beschreibung *</label>
+                    <textarea class="form-control" id="description" name="description" 
+                              rows="5" required maxlength="65535"><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
+                    <div class="form-text">
+                        Beschreiben Sie das Thema ausführlich. Eine KI-Zusammenfassung wird automatisch erstellt.
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Beschreibung *</label>
-                        <textarea class="form-control" id="description" name="description" rows="5" required><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
-                        <div class="form-text">
-                            Beschreiben Sie das Thema ausführlich. Eine KI-Zusammenfassung wird automatisch erstellt.
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">Ticket erstellen</button>
-                    <a href="index.php" class="btn btn-secondary">Abbrechen</a>
-                </form>
-            </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Ticket erstellen</button>
+                <a href="index.php" class="btn btn-secondary">Abbrechen</a>
+            </form>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/main.js"></script>
-</body>
-</html>
+<?php require_once 'templates/footer.php'; ?>
