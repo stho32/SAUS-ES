@@ -41,30 +41,12 @@ if (!getCurrentUsername()) {
 // Header einbinden
 require_once __DIR__ . '/includes/header.php';
 
-// Suchparameter
-$search = trim($_GET['search'] ?? '');
-$searchCondition = '';
-$searchParams = [];
-
-if ($search !== '') {
-    $searchCondition = "WHERE (
-        t.ticket_number LIKE :search 
-        OR t.title LIKE :search 
-        OR t.ki_summary LIKE :search
-    )";
-    $searchParams[':search'] = "%$search%";
-}
-
 // Hole alle Status für den Filter
 $db = Database::getInstance()->getConnection();
 $stmt = $db->query("SELECT * FROM ticket_status WHERE is_active = 1 ORDER BY sort_order, name");
 $allStatus = $stmt->fetchAll();
 
 // Bestimme aktive Filter
-$showArchived = isset($_GET['archived']) && $_GET['archived'] === '1';
-$showClosed = isset($_GET['closed']) && $_GET['closed'] === '1';
-
-// Wenn keine Filter gesetzt sind, setze Standardfilter
 $isFirstVisit = !isset($_GET['filter_applied']);
 $selectedStatus = [];
 
@@ -92,25 +74,10 @@ $sql = "
 $params = [];
 
 // Füge Filter hinzu
-if (!$showArchived) {
-    $sql .= " AND ts.is_archived = 0";
-}
-if (!$showClosed) {
-    $sql .= " AND ts.is_closed = 0";
-}
 if (!empty($selectedStatus)) {
     $placeholders = str_repeat('?,', count($selectedStatus) - 1) . '?';
     $sql .= " AND ts.id IN ($placeholders)";
     $params = array_merge($params, $selectedStatus);
-}
-
-if ($search !== '') {
-    $sql .= " AND (
-        t.ticket_number LIKE :search 
-        OR t.title LIKE :search 
-        OR t.ki_summary LIKE :search
-    )";
-    $params[':search'] = "%$search%";
 }
 
 $sql .= " ORDER BY t.created_at DESC";
@@ -135,7 +102,7 @@ $tickets = $stmt->fetchAll();
         <div class="card-body">
             <form method="get" class="row g-3">
                 <input type="hidden" name="filter_applied" value="1">
-                <div class="col-md-6">
+                <div class="col-12">
                     <label class="form-label">Status-Filter</label>
                     <div class="d-flex gap-3 flex-wrap">
                         <?php foreach ($allStatus as $status): ?>
@@ -148,36 +115,15 @@ $tickets = $stmt->fetchAll();
                                    <?= in_array($status['id'], $selectedStatus) ? 'checked' : '' ?>>
                             <label class="form-check-label" for="status_<?= $status['id'] ?>">
                                 <?= htmlspecialchars($status['name']) ?>
+                                <?php if ($status['is_archived']): ?>
+                                <span class="badge bg-secondary">Archiviert</span>
+                                <?php endif; ?>
+                                <?php if ($status['is_closed']): ?>
+                                <span class="badge bg-secondary">Geschlossen</span>
+                                <?php endif; ?>
                             </label>
                         </div>
                         <?php endforeach; ?>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Weitere Filter</label>
-                    <div class="d-flex gap-3">
-                        <div class="form-check">
-                            <input class="form-check-input" 
-                                   type="checkbox" 
-                                   name="archived" 
-                                   value="1"
-                                   id="show_archived"
-                                   <?= $showArchived ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="show_archived">
-                                Archivierte anzeigen
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" 
-                                   type="checkbox" 
-                                   name="closed" 
-                                   value="1"
-                                   id="show_closed"
-                                   <?= $showClosed ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="show_closed">
-                                Geschlossene anzeigen
-                            </label>
-                        </div>
                     </div>
                 </div>
                 <div class="col-12">

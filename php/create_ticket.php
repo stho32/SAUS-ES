@@ -15,102 +15,114 @@ if (!$currentUsername) {
     exit;
 }
 
-$message = '';
-$error = '';
+$error = null;
+$success = false;
+$pageTitle = 'Neues Ticket erstellen';
 
+// Hole alle Status für das Formular
+$db = Database::getInstance()->getConnection();
+$stmt = $db->query("SELECT * FROM ticket_status WHERE is_active = 1 AND NOT is_archived AND NOT is_closed ORDER BY sort_order, name");
+$allStatus = $stmt->fetchAll();
+
+// Verarbeite POST-Request
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = trim($_POST['title'] ?? '');
-    $description = trim($_POST['description'] ?? '');
-    
-    if (empty($title) || empty($description)) {
-        $error = 'Bitte füllen Sie alle Pflichtfelder aus.';
-    } else {
-        $db = Database::getInstance()->getConnection();
-        
-        try {
-            $db->beginTransaction();
-            
-            // Hole den "offen" Status
-            $stmt = $db->prepare("SELECT id FROM ticket_status WHERE name = 'offen' LIMIT 1");
-            $stmt->execute();
-            $statusId = (int)$stmt->fetchColumn();
-            
-            if (!$statusId) {
-                throw new RuntimeException('Status "offen" nicht gefunden');
-            }
-            
-            // Erstelle das Ticket
-            $ticketNumber = generateTicketNumber();
-            $stmt = $db->prepare("
-                INSERT INTO tickets (ticket_number, title, ki_summary, status_id)
-                VALUES (?, ?, ?, ?)
-            ");
-            
-            // TODO: Hier KI-Zusammenfassung generieren
-            $kiSummary = $description; // Vorläufig nur die Beschreibung
-            
-            $stmt->execute([$ticketNumber, $title, $kiSummary, $statusId]);
-            $ticketId = (int)$db->lastInsertId();
-            
-            // Erstelle den ersten Kommentar mit der Beschreibung
-            $stmt = $db->prepare("
-                INSERT INTO comments (ticket_id, username, content)
-                VALUES (?, ?, ?)
-            ");
-            $stmt->execute([$ticketId, $currentUsername, $description]);
-            
-            $db->commit();
-            
-            header("Location: ticket_view.php?id=$ticketId");
-            exit;
-            
-        } catch (Exception $e) {
-            $db->rollBack();
-            $error = 'Ein Fehler ist aufgetreten: ' . $e->getMessage();
+    try {
+        $title = trim($_POST['title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $statusId = $_POST['status'] ?? null;
+
+        // Validiere Eingaben
+        if (empty($title)) {
+            throw new Exception("Bitte geben Sie einen Titel ein.");
         }
+        if (empty($description)) {
+            throw new Exception("Bitte geben Sie eine Beschreibung ein.");
+        }
+        if (!$statusId) {
+            throw new Exception("Bitte wählen Sie einen Status aus.");
+        }
+
+        // Generiere Ticket-Nummer
+        $ticketNumber = generateTicketNumber();
+
+        // Speichere Ticket
+        $stmt = $db->prepare("
+            INSERT INTO tickets (ticket_number, title, description, status_id, created_by) 
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        
+        $stmt->execute([$ticketNumber, $title, $description, $statusId, $currentUsername]);
+        $ticketId = $db->lastInsertId();
+
+        // Leite zur Ticket-Ansicht weiter
+        header("Location: ticket_view.php?id=$ticketId");
+        exit;
+
+    } catch (Exception $e) {
+        $error = $e->getMessage();
     }
 }
 
-// Template-Rendering
-$pageTitle = 'Neues Ticket erstellen';
-require_once 'templates/header.php';
+require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
-    <h1><?= htmlspecialchars($pageTitle) ?></h1>
-    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0"><?= htmlspecialchars($pageTitle) ?></h1>
+        </div>
+        <div>
+            <a href="index.php" class="btn btn-outline-secondary">
+                <i class="bi bi-x-lg"></i> Abbrechen
+            </a>
+        </div>
+    </div>
+
     <?php if ($error): ?>
-        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i> <?= htmlspecialchars($error) ?>
+    </div>
     <?php endif; ?>
-    
-    <?php if ($message): ?>
-        <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
-    <?php endif; ?>
-    
+
     <div class="card">
         <div class="card-body">
-            <form method="post">
+            <form method="post" class="needs-validation" novalidate>
                 <div class="mb-3">
-                    <label for="title" class="form-label">Titel *</label>
-                    <input type="text" class="form-control" id="title" name="title" required
-                           maxlength="255"
-                           value="<?= htmlspecialchars($_POST['title'] ?? '') ?>">
+                    <label for="title" class="form-label">Titel</label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="title" 
+                           name="title" 
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Beschreibung</label>
+                    <textarea class="form-control" 
+                              id="description" 
+                              name="description" 
+                              rows="5"
+                              required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status" required>
+                        <option value="">Bitte wählen...</option>
+                        <?php foreach ($allStatus as $status): ?>
+                        <option value="<?= $status['id'] ?>">
+                            <?= htmlspecialchars($status['name']) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 
-                <div class="mb-3">
-                    <label for="description" class="form-label">Beschreibung *</label>
-                    <textarea class="form-control" id="description" name="description" 
-                              rows="5" required maxlength="65535"><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
-                    <div class="form-text">
-                        Beschreiben Sie das Thema ausführlich. Eine KI-Zusammenfassung wird automatisch erstellt.
-                    </div>
-                </div>
-                
-                <button type="submit" class="btn btn-primary">Ticket erstellen</button>
-                <a href="index.php" class="btn btn-secondary">Abbrechen</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Ticket erstellen
+                </button>
             </form>
         </div>
     </div>
 </div>
 
-<?php require_once 'templates/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>

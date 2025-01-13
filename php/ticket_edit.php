@@ -49,7 +49,10 @@ require_once 'includes/header.php';
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><?= $pageTitle ?></h1>
+        <div>
+            <h1 class="mb-0">Ticket bearbeiten</h1>
+            <small class="text-muted">Ticket #<?= htmlspecialchars($ticket['ticket_number']) ?></small>
+        </div>
         <div>
             <a href="ticket_view.php?id=<?= $ticketId ?>" class="btn btn-outline-secondary">
                 <i class="bi bi-x-lg"></i> Abbrechen

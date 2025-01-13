@@ -68,45 +68,20 @@ require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="mb-0"><?= htmlspecialchars($ticket['title']) ?></h1>
-            <div class="text-muted">
-                Ticket #<?= htmlspecialchars($ticket['ticket_number']) ?>
-                <span class="mx-2">•</span>
-                Erstellt: <?= formatDateTime($ticket['created_at']) ?>
-            </div>
+            <small class="text-muted">Ticket #<?= htmlspecialchars($ticket['ticket_number']) ?></small>
         </div>
         <div class="d-flex gap-2">
-            <span class="badge bg-<?= $ticket['status_name'] === 'offen' ? 'success' : 'secondary' ?> fs-6">
-                <?= htmlspecialchars($ticket['status_name']) ?>
-            </span>
             <?php if ($isMasterLink): ?>
-            <a href="ticket_edit.php?id=<?= $ticketId ?>" class="btn btn-outline-primary btn-sm">
+            <a href="ticket_edit.php?id=<?= $ticket['id'] ?>" class="btn btn-primary">
                 <i class="bi bi-pencil"></i> Bearbeiten
             </a>
             <?php endif; ?>
-            <?php if (!$partner): ?>
-            <div class="dropdown">
-                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-three-dots"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <?php if ($ticket['partner_link']): ?>
-                    <li>
-                        <button class="dropdown-item" onclick="copyPartnerLink('<?= htmlspecialchars($ticket['partner_link']) ?>')">
-                            <i class="bi bi-link-45deg"></i> Partner-Link kopieren
-                        </button>
-                    </li>
-                    <?php endif; ?>
-                    <li>
-                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#partnerModal">
-                            <i class="bi bi-people"></i> Partner verwalten
-                        </button>
-                    </li>
-                </ul>
-            </div>
-            <?php endif; ?>
+            <a href="index.php" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück
+            </a>
         </div>
     </div>
 
@@ -311,7 +286,7 @@ async function addComment() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                ticketId: <?= $ticketId ?>,
+                ticket_id: <?= $ticketId ?>,
                 content: content
             })
         });
