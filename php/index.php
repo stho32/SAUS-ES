@@ -3,6 +3,20 @@ declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/Database.php';
 
+// Funktion zur Berechnung der Aktivitätsklasse
+function getActivityClass(string $lastActivity): string {
+    $lastActivityDate = new DateTime($lastActivity);
+    $today = new DateTime();
+    $diff = $today->diff($lastActivityDate);
+    $daysDiff = (int)$diff->format('%r%a');  // Negative Zahl für Vergangenheit
+
+    if ($daysDiff > 14) {
+        return 'activity-old';
+    }
+
+    return 'activity-' . abs($daysDiff);
+}
+
 // Prüfe Master-Link
 requireMasterLink();
 
@@ -65,7 +79,8 @@ if ($isFirstVisit) {
 // Baue SQL-Query
 $sql = "
     SELECT t.*, ts.name as status_name, ts.is_archived, ts.is_closed,
-           (SELECT COUNT(*) FROM comments WHERE ticket_id = t.id) as comment_count
+           (SELECT COUNT(*) FROM comments WHERE ticket_id = t.id) as comment_count,
+           GREATEST(t.created_at, COALESCE((SELECT MAX(created_at) FROM comments WHERE ticket_id = t.id), t.created_at)) as last_activity
     FROM tickets t
     JOIN ticket_status ts ON t.status_id = ts.id
     WHERE 1=1
@@ -152,7 +167,7 @@ $tickets = $stmt->fetchAll();
                     <th>Ticket-Nr.</th>
                     <th>Titel</th>
                     <th>Status</th>
-                    <th>Erstellt am</th>
+                    <th>Letzte Aktivität</th>
                     <th>Kommentare</th>
                     <th>KI-Zusammenfassung</th>
                 </tr>
@@ -169,25 +184,26 @@ $tickets = $stmt->fetchAll();
                 </tr>
                 <?php else: ?>
                     <?php foreach ($tickets as $ticket): ?>
+                    <?php $activityClass = getActivityClass($ticket['last_activity']); ?>
                     <tr>
-                        <td>
+                        <td class="<?= $activityClass ?>">
                             <a href="ticket_view.php?id=<?= $ticket['id'] ?>">
                                 <?= htmlspecialchars($ticket['ticket_number']) ?>
                             </a>
                         </td>
-                        <td><?= htmlspecialchars($ticket['title']) ?></td>
-                        <td>
+                        <td class="<?= $activityClass ?>"><?= htmlspecialchars($ticket['title']) ?></td>
+                        <td class="<?= $activityClass ?>">
                             <span class="badge bg-<?= $ticket['status_name'] === 'offen' ? 'success' : 'secondary' ?>">
                                 <?= htmlspecialchars($ticket['status_name']) ?>
                             </span>
                         </td>
-                        <td><?= (new DateTime($ticket['created_at']))->format('d.m.Y H:i') ?></td>
-                        <td>
+                        <td class="<?= $activityClass ?>"><?= (new DateTime($ticket['last_activity']))->format('d.m.Y H:i') ?></td>
+                        <td class="<?= $activityClass ?>">
                             <span class="badge bg-info">
                                 <?= $ticket['comment_count'] ?>
                             </span>
                         </td>
-                        <td>
+                        <td class="<?= $activityClass ?>">
                             <?php if ($ticket['ki_summary']): ?>
                                 <small class="text-muted">
                                     <?= nl2br(htmlspecialchars(substr($ticket['ki_summary'], 0, 100))) ?>

@@ -18,6 +18,24 @@ if (substr($basePath, -8) === '/includes') {
     <link href="<?= $basePath ?>/assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?= $basePath ?>/assets/css/bootstrap-icons.css" rel="stylesheet">
     <link href="<?= $basePath ?>/assets/css/style.css" rel="stylesheet">
+    <style>
+        .activity-0 { background-color: #e6ffe6 !important; }  /* Hellgrün */
+        .activity-1 { background-color: #e8ffe3 !important; }
+        .activity-2 { background-color: #ebffe0 !important; }
+        .activity-3 { background-color: #edffdd !important; }
+        .activity-4 { background-color: #f0ffda !important; }
+        .activity-5 { background-color: #f2ffd7 !important; }
+        .activity-6 { background-color: #f5ffd4 !important; }
+        .activity-7 { background-color: #f7ffd1 !important; }
+        .activity-8 { background-color: #fafcce !important; }
+        .activity-9 { background-color: #fcf9cb !important; }
+        .activity-10 { background-color: #fff6c8 !important; }
+        .activity-11 { background-color: #fff3c5 !important; }
+        .activity-12 { background-color: #fff0c2 !important; }
+        .activity-13 { background-color: #ffedbf !important; }
+        .activity-14 { background-color: #ffeabc !important; }
+        .activity-old { background-color: #ffe6e6 !important; }  /* Hellrot */
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
