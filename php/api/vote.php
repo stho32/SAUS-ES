@@ -17,11 +17,11 @@ if (!isset($_SESSION['master_code'])) {
 // Hole POST-Daten
 $data = json_decode(file_get_contents('php://input'), true);
 
-$ticketId = isset($data['ticket_id']) ? (int)$data['ticket_id'] : null;
+$commentId = isset($data['comment_id']) ? (int)$data['comment_id'] : null;
 $voteType = $data['vote_type'] ?? null;
 $username = getCurrentUsername();
 
-if (!$ticketId || !$voteType || !$username || !in_array($voteType, ['up', 'down'], true)) {
+if (!$commentId || !$voteType || !$username || !in_array($voteType, ['up', 'down'], true)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Ungültige Parameter']);
     exit;
@@ -30,21 +30,22 @@ if (!$ticketId || !$voteType || !$username || !in_array($voteType, ['up', 'down'
 $db = Database::getInstance()->getConnection();
 
 try {
-    // Prüfe ob Ticket existiert und nicht geschlossen ist
+    // Prüfe ob Kommentar existiert und Ticket nicht geschlossen ist
     $stmt = $db->prepare("
-        SELECT t.id, ts.name as status_name
-        FROM tickets t
+        SELECT c.id, ts.name as status_name
+        FROM comments c
+        JOIN tickets t ON c.ticket_id = t.id
         JOIN ticket_status ts ON t.status_id = ts.id
-        WHERE t.id = ?
+        WHERE c.id = ?
     ");
-    $stmt->execute([$ticketId]);
-    $ticket = $stmt->fetch();
+    $stmt->execute([$commentId]);
+    $comment = $stmt->fetch();
 
-    if (!$ticket) {
-        throw new RuntimeException('Ticket nicht gefunden');
+    if (!$comment) {
+        throw new RuntimeException('Kommentar nicht gefunden');
     }
 
-    if ($ticket['status_name'] === 'geschlossen' || $ticket['status_name'] === 'archiviert') {
+    if ($comment['status_name'] === 'geschlossen' || $comment['status_name'] === 'archiviert') {
         throw new RuntimeException('Ticket ist bereits geschlossen');
     }
 
@@ -52,12 +53,12 @@ try {
 
     try {
         // Lösche vorherige Stimme des Benutzers
-        $stmt = $db->prepare("DELETE FROM votes WHERE ticket_id = ? AND username = ?");
-        $stmt->execute([$ticketId, $username]);
+        $stmt = $db->prepare("DELETE FROM comment_votes WHERE comment_id = ? AND username = ?");
+        $stmt->execute([$commentId, $username]);
 
         // Füge neue Stimme hinzu
-        $stmt = $db->prepare("INSERT INTO votes (ticket_id, username, value) VALUES (?, ?, ?)");
-        $stmt->execute([$ticketId, $username, $voteType]);
+        $stmt = $db->prepare("INSERT INTO comment_votes (comment_id, username, value) VALUES (?, ?, ?)");
+        $stmt->execute([$commentId, $username, $voteType]);
 
         $db->commit();
         echo json_encode(['success' => true]);

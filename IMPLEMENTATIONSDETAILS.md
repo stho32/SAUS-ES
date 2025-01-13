@@ -1,106 +1,205 @@
-# Übersicht der benötigten PHP-Dateien und Datenbanktabellen
+# Implementierungsdetails
 
-## PHP-Dateien (Beispiel-Struktur)
+## Datenbankstruktur
 
-1. **index.php**  
-   - Zeigt eine Übersicht aller Tickets (mit Ticketnummer, Titel, Status etc.).  
-   - Verlinkt zur Erstellung neuer Tickets (z. B. `create_ticket.php`) und zur Detailansicht eines Tickets (z. B. `ticket_view.php`).  
+### Tabellen
 
-2. **create_ticket.php**  
-   - Formularseite zum Anlegen eines neuen Tickets (Titel, Beschreibung, KI-Zusammenfassung etc.).  
-   - Speichert das neue Ticket in der Datenbank.
+1. **tickets**
+   - `id`: Primärschlüssel
+   - `ticket_number`: Eindeutige Ticketnummer (YYYYMMDD-XXXX)
+   - `title`: Tickettitel
+   - `ki_summary`: KI-generierte Zusammenfassung
+   - `ki_interim`: Optionale Zwischenzusammenfassung
+   - `status_id`: Referenz auf ticket_status
+   - `created_at`: Erstellungszeitpunkt
+   - `updated_at`: Letzter Änderungszeitpunkt
 
-3. **ticket_view.php**  
-   - Zeigt Details eines Tickets inkl. KI-Zusammenfassung, Zwischenzusammenfassung (KI), Kommentare, Abstimmung.  
-   - Bietet Möglichkeiten zum:
-     - Erstellen neuer Kommentare  
-     - Abgeben von Bewertungen (Daumen hoch/runter)  
-     - Einsehen/Erstellen von Diskussionspartner-Links  
+2. **comments**
+   - `id`: Primärschlüssel
+   - `ticket_id`: Referenz auf tickets
+   - `username`: Benutzername des Kommentators
+   - `content`: Kommentarinhalt
+   - `created_at`: Erstellungszeitpunkt
 
-4. **completed_tickets.php**  
-   - Listet alle abgeschlossenen Tickets in absteigender Reihenfolge nach Datum.  
-   - Dient nur zur Anzeige, kein weiteres Bearbeiten dieser Tickets.
+3. **comment_votes**
+   - `id`: Primärschlüssel
+   - `comment_id`: Referenz auf comments
+   - `username`: Benutzername des Abstimmenden
+   - `value`: 'up' oder 'down'
+   - `created_at`: Abstimmungszeitpunkt
 
-5. **(Optional) partner_link.php**  
-   - Wird aufgerufen, wenn ein Diskussionspartner-Link generiert oder abgerufen wird.  
-   - Stellt sicher, dass das Kürzel des Diskussionspartners im Link hinterlegt ist und nur eingeschränkte Rechte (Kommentare abgeben, Thumbs bewerten) vorhanden sind.
+4. **ticket_status**
+   - `id`: Primärschlüssel
+   - `name`: Statusname (offen, geschlossen, archiviert)
+   - `description`: Statusbeschreibung
 
-> Je nach Projektstruktur können einige dieser Seiten zusammengelegt werden oder zusätzliche Verwaltungsseiten für Moderatoren entstehen. Das obige Beispiel dient als einfache Aufteilung, um die Hauptfunktionen abzudecken.
+5. **master_links**
+   - `id`: Primärschlüssel
+   - `link_code`: Eindeutiger Link-Code
+   - `is_active`: Aktiv/Inaktiv-Status
+   - `last_used_at`: Letzte Verwendung
+   - `created_at`: Erstellungszeitpunkt
 
----
+6. **partners**
+   - `id`: Primärschlüssel
+   - `ticket_id`: Referenz auf tickets
+   - `partner_link`: Eindeutiger Partner-Link
+   - `partner_name`: Name des Partners
+   - `partner_list`: Komma-separierte Liste aller Partner
+   - `created_at`: Erstellungszeitpunkt
 
-## Mögliche MySQL-Datenbanktabellen
+### Views
 
-### 1. Tabelle: `ticket_status`
-Enthält die möglichen Status für Tickets.
+1. **comment_statistics**
+   - Aggregierte Statistiken pro Kommentar
+   - Up/Down-Votes und Gesamtstimmen
+   - Automatisch aktualisiert durch Trigger
 
-| Feld          | Typ          | Beschreibung                                                |
-|---------------|--------------|-------------------------------------------------------------|
-| `id`          | INT (PK, AI) | Primärschlüssel, automatisch increment                     |
-| `name`        | VARCHAR(50)  | Kurzname des Status (z.B. 'open', 'closed')                |
-| `description` | TEXT         | Ausführliche Beschreibung des Status                        |
-| `sort_order`  | INT         | Reihenfolge für die Anzeige/Verarbeitung                    |
-| `is_active`   | BOOLEAN     | Gibt an, ob dieser Status aktiv/verfügbar ist               |
-| `created_at`  | DATETIME    | Erstellungsdatum des Status                                 |
+### Funktionen
 
-### 2. Tabelle: `tickets`
-Enthält die Grundinformationen zu jedem Ticket.
+1. **get_ticket_partners(ticket_id)**
+   - Gibt formatierte Partner-Liste zurück
+   - Automatisch sortiert nach Erstellungsdatum
 
-| Feld               | Typ          | Beschreibung                                                      |
-|--------------------|--------------|-------------------------------------------------------------------|
-| `id`               | INT (PK, AI) | Primärschlüssel, automatisch increment                           |
-| `ticket_number`    | VARCHAR(...) | Eindeutige Ticketnummer oder -kennung                             |
-| `title`            | VARCHAR(...) | Kurze Beschreibung oder Titel des Tickets                         |
-| `ki_summary`       | TEXT         | KI-generierte Einführung                                          |
-| `ki_interim`       | TEXT         | KI-generierte Zwischenzusammenfassung                             |
-| `status_id`        | INT          | Verweis auf `ticket_status.id` (Fremdschlüssel)                   |
-| `created_at`       | DATETIME     | Erstellungsdatum                                                  |
-| `closed_at`        | DATETIME     | Datum, an dem das Ticket abgeschlossen wurde (kann NULL sein)     |
+2. **has_sufficient_positive_votes(ticket_id, min_votes)**
+   - Prüft ob genügend positive Stimmen vorhanden sind
+   - Berücksichtigt nur Kommentare mit mehr Up- als Down-Votes
 
-### 3. Tabelle: `comments`
-Speichert die Kommentare zum jeweiligen Ticket.
+### Trigger
 
-| Feld             | Typ          | Beschreibung                                       |
-|------------------|--------------|----------------------------------------------------|
-| `id`             | INT (PK, AI) | Primärschlüssel                                    |
-| `ticket_id`      | INT          | Verweis auf `tickets.id` (Fremdschlüssel)          |
-| `username`       | VARCHAR(...) | Namenskürzel des Kommentators                      |
-| `content`        | TEXT         | Inhalt des Kommentars                              |
-| `created_at`     | DATETIME     | Zeitstempel der Kommentar-Erstellung               |
+1. **update_partner_list_insert**
+   - Aktualisiert Partner-Liste bei neuem Partner
+   - Sortiert Partner chronologisch
 
-### 4. Tabelle: `votes`
-Erfasst die Abstimmungen (Daumen hoch/runter) pro Ticket.
+2. **update_partner_list_update**
+   - Aktualisiert Partner-Liste bei Änderungen
+   - Behandelt Ticket-Wechsel
 
-| Feld          | Typ          | Beschreibung                                         |
-|---------------|--------------|------------------------------------------------------|
-| `id`          | INT (PK, AI) | Primärschlüssel                                      |
-| `ticket_id`   | INT          | Verweis auf `tickets.id` (Fremdschlüssel)            |
-| `username`    | VARCHAR(...) | Namenskürzel des Abstimmenden                        |
-| `value`       | ENUM(...)    | z. B. `'up'` oder `'down'`                           |
-| `created_at`  | DATETIME     | Zeitpunkt der Stimmabgabe                            |
+3. **update_partner_list_delete**
+   - Aktualisiert Partner-Liste bei Löschung
+   - Entfernt Partner aus der Liste
 
-### 5. Tabelle: `partners` 
-Ermöglicht das Anlegen von Diskussionspartnern, die eingeschränkte Rechte haben.  
-*(Diese Tabelle ist optional, falls man Diskussionspartner **ticket-spezifisch** verwaltet. Ansonsten könnte man nur einen generischen Link pro Kürzel generieren.)*
+## Frontend-Technologien
 
-| Feld             | Typ          | Beschreibung                                                          |
-|------------------|--------------|-----------------------------------------------------------------------|
-| `id`             | INT (PK, AI) | Primärschlüssel                                                       |
-| `ticket_id`      | INT          | Verweis auf `tickets.id` (falls die Partnerschaft nur ein Ticket betrifft) |
-| `partner_name`   | VARCHAR(...) | Namenskürzel oder Anzeigename                                        |
-| `partner_link`   | VARCHAR(...) | Eindeutiger Link/Token, der das Kürzel fix hinterlegt                |
-| `created_at`     | DATETIME     | Zeitpunkt der Erstellung                                              |
+### Mobile-First-Design
 
-> **Hinweis**: Bei Bedarf kann man noch eine Benutzer- oder Moderatorentabelle einführen, um Rollen und Berechtigungen differenziert zu handhaben. In sehr einfachen Szenarien genügt es jedoch, Namenskürzel und eventuelle Rollen in denselben Tabellen oder in einem zusätzlichen Feld zu pflegen.
+#### Viewport-Konfiguration
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#007bff">
+```
 
----
+#### CSS-Breakpoints
+```scss
+// Mobile First - Standard Breakpoints
+$breakpoints: (
+  'sm': '576px',   // Smartphones (landscape)
+  'md': '768px',   // Tablets
+  'lg': '992px',   // Desktops
+  'xl': '1200px'   // Large Desktops
+);
 
-## Entscheidungs-Logik & Abschluss
-- Ein Ticket kann vom Moderator erst dann auf „abgeschlossen“ gesetzt werden, wenn mindestens 4 Personen abgestimmt haben.  
-- Die DB-Felder `status` in `tickets` (von `open` auf `closed`) und `closed_at` stellen den Abschluss in der Datenbank dar.  
-- In der PHP-Anwendung wird beim Ändern des Status auf „closed“ geprüft, ob tatsächlich mindestens 4 gültige Abstimmungen vorhanden sind.
+// Beispiel Media Query Mixin
+@mixin respond-to($breakpoint) {
+  @media (min-width: map-get($breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+```
 
----
+#### Touch-Optimierung
+```scss
+// Touch Targets
+.btn, .nav-link, .form-control {
+  min-height: 44px;  // iOS Standard
+  min-width: 44px;   // iOS Standard
+  padding: 12px 16px;
+  margin: 8px 0;
+}
 
-### Zusammenfassung
-Mit diesen **5 PHP-Dateien** (bzw. 4 + optionaler `partner_link.php`) deckst du eine minimale Interaktionsbasis ab (Übersicht, Erstellung, Detailansicht mit Kommentaren und Votes, abgeschlossene Tickets, Diskussionspartner-Verwaltung). Die **5 Tabellen** (`ticket_status`, `tickets`, `comments`, `votes`, `partners`) bilden ein schlankes Grundgerüst für die Datenhaltung und erlauben, die geforderten Features (z. B. Zwischenzusammenfassung, Abstimmungs-Logik, Diskussionspartner) umzusetzen.
+// Remove Hover on Touch Devices
+@media (hover: none) {
+  .btn:hover {
+    background-color: inherit;
+  }
+}
+```
+
+#### Performance-Optimierung
+```apache
+# Apache Konfiguration für Caching
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+</IfModule>
+```
+
+### Framework
+   - Bootstrap 5.3
+   - Responsive Design
+   - Mobile-First Ansatz
+
+### JavaScript
+   - Asynchrone API-Calls
+   - Dynamische UI-Updates
+   - Modal-Dialoge
+
+### CSS
+   - Custom Styling
+   - Dark/Light Mode Support
+   - Barrierefreiheit
+
+## API-Endpunkte
+
+### Ticket-Management
+- `GET /ticket_view.php`: Ticket-Details mit Kommentaren
+- `POST /create_ticket.php`: Neues Ticket erstellen
+
+### Kommentar-System
+- `POST /api/add_comment.php`: Kommentar hinzufügen
+- `POST /api/vote.php`: Für Kommentar abstimmen
+- `GET /api/get_votes.php`: Abstimmungszahlen abrufen
+
+### Partner-Management
+- `POST /api/create_partner.php`: Partner-Link erstellen
+
+## Sicherheitsmaßnahmen
+
+1. **Authentifizierung**
+   - Session-basierte Authentifizierung
+   - Master-Link-Validierung
+   - Partner-Link-Überprüfung
+
+2. **Datenbankzugriff**
+   - Prepared Statements
+   - Transaktionssicherheit
+   - Strikte Typisierung
+
+3. **Eingabevalidierung**
+   - Server-seitige Validierung
+   - XSS-Schutz
+   - SQL-Injection-Prävention
+
+4. **Zugriffskontrolle**
+   - Rollenbasierte Berechtigungen
+   - Partner-spezifische Einschränkungen
+   - Aktions-Logging
+
+## Performance-Optimierungen
+
+1. **Datenbank**
+   - Optimierte Indizes
+   - Materialisierte Views
+   - Effiziente Trigger
+
+2. **Caching**
+   - Server-seitiges Caching
+   - Browser-Caching
+   - API-Response-Caching
+
+3. **Code**
+   - Strict Types
+   - Optimierte Queries
+   - Lazy Loading

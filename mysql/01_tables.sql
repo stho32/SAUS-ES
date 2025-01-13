@@ -31,15 +31,15 @@ CREATE TABLE comments (
     FOREIGN KEY (ticket_id) REFERENCES tickets(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Erstelle votes Tabelle
-CREATE TABLE votes (
+-- Erstelle comment_votes Tabelle
+CREATE TABLE comment_votes (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    ticket_id INT NOT NULL,
+    comment_id INT NOT NULL,
     username VARCHAR(50) NOT NULL,
     value ENUM('up', 'down') NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (ticket_id) REFERENCES tickets(id),
-    UNIQUE KEY unique_vote (ticket_id, username)
+    FOREIGN KEY (comment_id) REFERENCES comments(id),
+    UNIQUE KEY unique_comment_vote (comment_id, username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Erstelle master_links Tabelle
@@ -62,3 +62,50 @@ CREATE TABLE partners (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticket_id) REFERENCES tickets(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- View für Kommentar-Statistiken
+CREATE OR REPLACE VIEW comment_statistics AS
+SELECT 
+    c.id as comment_id,
+    c.ticket_id,
+    COUNT(CASE WHEN cv.value = 'up' THEN 1 END) as up_votes,
+    COUNT(CASE WHEN cv.value = 'down' THEN 1 END) as down_votes,
+    COUNT(cv.id) as total_votes
+FROM comments c
+LEFT JOIN comment_votes cv ON c.id = cv.comment_id
+GROUP BY c.id, c.ticket_id;
+
+-- Funktionen für Partner-Listen und Abstimmungsauswertung
+DELIMITER //
+
+CREATE OR REPLACE FUNCTION get_ticket_partners(p_ticket_id INT) 
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+    DECLARE partner_list TEXT;
+    
+    SELECT GROUP_CONCAT(DISTINCT partner_name ORDER BY created_at SEPARATOR ', ')
+    INTO partner_list
+    FROM partners
+    WHERE ticket_id = p_ticket_id
+    AND partner_name IS NOT NULL;
+    
+    RETURN COALESCE(partner_list, '');
+END//
+
+CREATE OR REPLACE FUNCTION has_sufficient_positive_votes(p_ticket_id INT, p_min_votes INT) 
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE total_positive_votes INT;
+    
+    SELECT COUNT(DISTINCT c.id) INTO total_positive_votes
+    FROM comments c
+    JOIN comment_statistics cs ON c.id = cs.comment_id
+    WHERE c.ticket_id = p_ticket_id
+    AND cs.up_votes > cs.down_votes;
+    
+    RETURN total_positive_votes >= p_min_votes;
+END//
+
+DELIMITER ;

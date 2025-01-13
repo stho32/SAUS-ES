@@ -1,0 +1,66 @@
+<?php
+declare(strict_types=1);
+
+require_once '../includes/Database.php';
+require_once '../includes/functions.php';
+require_once '../includes/auth.php';
+
+header('Content-Type: application/json');
+
+// Prüfe Authentifizierung
+if (!isset($_SESSION['master_code'])) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'Nicht autorisiert']);
+    exit;
+}
+
+// Hole POST-Daten
+$data = json_decode(file_get_contents('php://input'), true);
+
+$ticketId = isset($data['ticket_id']) ? (int)$data['ticket_id'] : null;
+$content = trim($data['content'] ?? '');
+$username = getCurrentUsername();
+
+if (!$ticketId || empty($content) || !$username) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Ungültige Parameter']);
+    exit;
+}
+
+$db = Database::getInstance()->getConnection();
+
+try {
+    // Prüfe ob Ticket existiert und nicht geschlossen ist
+    $stmt = $db->prepare("
+        SELECT t.id, ts.name as status_name
+        FROM tickets t
+        JOIN ticket_status ts ON t.status_id = ts.id
+        WHERE t.id = ?
+    ");
+    $stmt->execute([$ticketId]);
+    $ticket = $stmt->fetch();
+
+    if (!$ticket) {
+        throw new RuntimeException('Ticket nicht gefunden');
+    }
+
+    if ($ticket['status_name'] === 'geschlossen' || $ticket['status_name'] === 'archiviert') {
+        throw new RuntimeException('Ticket ist bereits geschlossen');
+    }
+
+    // Füge neuen Kommentar hinzu
+    $stmt = $db->prepare("
+        INSERT INTO comments (ticket_id, username, content)
+        VALUES (?, ?, ?)
+    ");
+    $stmt->execute([$ticketId, $username, $content]);
+    
+    echo json_encode(['success' => true]);
+
+} catch (Exception $e) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
+}
