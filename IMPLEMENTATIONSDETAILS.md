@@ -1,4 +1,3 @@
-```markdown
 # Übersicht der benötigten PHP-Dateien und Datenbanktabellen
 
 ## PHP-Dateien (Beispiel-Struktur)
@@ -32,7 +31,19 @@
 
 ## Mögliche MySQL-Datenbanktabellen
 
-### 1. Tabelle: `tickets`
+### 1. Tabelle: `ticket_status`
+Enthält die möglichen Status für Tickets.
+
+| Feld          | Typ          | Beschreibung                                                |
+|---------------|--------------|-------------------------------------------------------------|
+| `id`          | INT (PK, AI) | Primärschlüssel, automatisch increment                     |
+| `name`        | VARCHAR(50)  | Kurzname des Status (z.B. 'open', 'closed')                |
+| `description` | TEXT         | Ausführliche Beschreibung des Status                        |
+| `sort_order`  | INT         | Reihenfolge für die Anzeige/Verarbeitung                    |
+| `is_active`   | BOOLEAN     | Gibt an, ob dieser Status aktiv/verfügbar ist               |
+| `created_at`  | DATETIME    | Erstellungsdatum des Status                                 |
+
+### 2. Tabelle: `tickets`
 Enthält die Grundinformationen zu jedem Ticket.
 
 | Feld               | Typ          | Beschreibung                                                      |
@@ -42,13 +53,11 @@ Enthält die Grundinformationen zu jedem Ticket.
 | `title`            | VARCHAR(...) | Kurze Beschreibung oder Titel des Tickets                         |
 | `ki_summary`       | TEXT         | KI-generierte Einführung                                          |
 | `ki_interim`       | TEXT         | KI-generierte Zwischenzusammenfassung                             |
-| `status`           | VARCHAR(...) | z. B. `open`, `closed` oder ähnlich                               |
+| `status_id`        | INT          | Verweis auf `ticket_status.id` (Fremdschlüssel)                   |
 | `created_at`       | DATETIME     | Erstellungsdatum                                                  |
 | `closed_at`        | DATETIME     | Datum, an dem das Ticket abgeschlossen wurde (kann NULL sein)     |
 
----
-
-### 2. Tabelle: `comments`
+### 3. Tabelle: `comments`
 Speichert die Kommentare zum jeweiligen Ticket.
 
 | Feld             | Typ          | Beschreibung                                       |
@@ -59,9 +68,7 @@ Speichert die Kommentare zum jeweiligen Ticket.
 | `content`        | TEXT         | Inhalt des Kommentars                              |
 | `created_at`     | DATETIME     | Zeitstempel der Kommentar-Erstellung               |
 
----
-
-### 3. Tabelle: `votes`
+### 4. Tabelle: `votes`
 Erfasst die Abstimmungen (Daumen hoch/runter) pro Ticket.
 
 | Feld          | Typ          | Beschreibung                                         |
@@ -72,9 +79,7 @@ Erfasst die Abstimmungen (Daumen hoch/runter) pro Ticket.
 | `value`       | ENUM(...)    | z. B. `'up'` oder `'down'`                           |
 | `created_at`  | DATETIME     | Zeitpunkt der Stimmabgabe                            |
 
----
-
-### 4. Tabelle: `partners` 
+### 5. Tabelle: `partners` 
 Ermöglicht das Anlegen von Diskussionspartnern, die eingeschränkte Rechte haben.  
 *(Diese Tabelle ist optional, falls man Diskussionspartner **ticket-spezifisch** verwaltet. Ansonsten könnte man nur einen generischen Link pro Kürzel generieren.)*
 
@@ -98,4 +103,4 @@ Ermöglicht das Anlegen von Diskussionspartnern, die eingeschränkte Rechte habe
 ---
 
 ### Zusammenfassung
-Mit diesen **5 PHP-Dateien** (bzw. 4 + optionaler `partner_link.php`) deckst du eine minimale Interaktionsbasis ab (Übersicht, Erstellung, Detailansicht mit Kommentaren und Votes, abgeschlossene Tickets, Diskussionspartner-Verwaltung). Die **4 Tabellen** (`tickets`, `comments`, `votes`, `partners`) bilden ein schlankes Grundgerüst für die Datenhaltung und erlauben, die geforderten Features (z. B. Zwischenzusammenfassung, Abstimmungs-Logik, Diskussionspartner) umzusetzen.
+Mit diesen **5 PHP-Dateien** (bzw. 4 + optionaler `partner_link.php`) deckst du eine minimale Interaktionsbasis ab (Übersicht, Erstellung, Detailansicht mit Kommentaren und Votes, abgeschlossene Tickets, Diskussionspartner-Verwaltung). Die **5 Tabellen** (`ticket_status`, `tickets`, `comments`, `votes`, `partners`) bilden ein schlankes Grundgerüst für die Datenhaltung und erlauben, die geforderten Features (z. B. Zwischenzusammenfassung, Abstimmungs-Logik, Diskussionspartner) umzusetzen.
