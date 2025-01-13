@@ -47,11 +47,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Speichere Ticket
         $stmt = $db->prepare("
-            INSERT INTO tickets (ticket_number, title, description, status_id, created_by) 
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO tickets (ticket_number, title, description, status_id) 
+            VALUES (?, ?, ?, ?)
         ");
         
-        $stmt->execute([$ticketNumber, $title, $description, $statusId, $currentUsername]);
+        $stmt->execute([$ticketNumber, $title, $description, $statusId]);
         $ticketId = $db->lastInsertId();
 
         // Leite zur Ticket-Ansicht weiter
