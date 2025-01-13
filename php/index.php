@@ -145,46 +145,61 @@ $tickets = $stmt->fetchAll();
     </div>
 
     <!-- Ticket-Liste -->
-    <div class="row">
-        <?php foreach ($tickets as $ticket): ?>
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <h5 class="card-title">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Ticket-Nr.</th>
+                    <th>Titel</th>
+                    <th>Status</th>
+                    <th>Erstellt am</th>
+                    <th>Kommentare</th>
+                    <th>KI-Zusammenfassung</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($tickets)): ?>
+                <tr>
+                    <td colspan="6" class="text-center py-3">
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle"></i> 
+                            Keine Tickets gefunden. Passen Sie die Filter an oder erstellen Sie ein neues Ticket.
+                        </div>
+                    </td>
+                </tr>
+                <?php else: ?>
+                    <?php foreach ($tickets as $ticket): ?>
+                    <tr>
+                        <td>
                             <a href="ticket_view.php?id=<?= $ticket['id'] ?>">
                                 <?= htmlspecialchars($ticket['ticket_number']) ?>
                             </a>
-                        </h5>
-                        <span class="badge bg-<?= $ticket['status_name'] === 'offen' ? 'success' : 'secondary' ?>">
-                            <?= htmlspecialchars($ticket['status_name']) ?>
-                        </span>
-                    </div>
-                    <h6 class="card-subtitle mb-2 text-muted">
-                        <?= htmlspecialchars($ticket['title']) ?>
-                    </h6>
-                    <?php if ($ticket['ki_summary']): ?>
-                        <p class="card-text"><?= nl2br(htmlspecialchars($ticket['ki_summary'])) ?></p>
-                    <?php endif; ?>
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <small class="text-muted">
-                            Erstellt: <?= (new DateTime($ticket['created_at']))->format('d.m.Y H:i') ?>
-                        </small>
-                        <span class="badge bg-info">
-                            <?= $ticket['comment_count'] ?> Kommentar(e)
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <?php endforeach; ?>
-
-        <?php if (empty($tickets)): ?>
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> 
-            Keine Tickets gefunden. Passen Sie die Filter an oder erstellen Sie ein neues Ticket.
-        </div>
-        <?php endif; ?>
+                        </td>
+                        <td><?= htmlspecialchars($ticket['title']) ?></td>
+                        <td>
+                            <span class="badge bg-<?= $ticket['status_name'] === 'offen' ? 'success' : 'secondary' ?>">
+                                <?= htmlspecialchars($ticket['status_name']) ?>
+                            </span>
+                        </td>
+                        <td><?= (new DateTime($ticket['created_at']))->format('d.m.Y H:i') ?></td>
+                        <td>
+                            <span class="badge bg-info">
+                                <?= $ticket['comment_count'] ?>
+                            </span>
+                        </td>
+                        <td>
+                            <?php if ($ticket['ki_summary']): ?>
+                                <small class="text-muted">
+                                    <?= nl2br(htmlspecialchars(substr($ticket['ki_summary'], 0, 100))) ?>
+                                    <?= strlen($ticket['ki_summary']) > 100 ? '...' : '' ?>
+                                </small>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 
