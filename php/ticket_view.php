@@ -135,7 +135,7 @@ require_once 'includes/header.php';
                 </div>
             </div>
         </div>
-        <div class="card-body">
+        <div class="card-body comments-container">
             <?php if (empty($comments)): ?>
             <p class="text-muted text-center my-4">
                 <i class="bi bi-chat-square-text"></i><br>
@@ -419,7 +419,24 @@ async function toggleCommentVisibility(commentId, visible) {
 
 // Toggle für Kommentar-Sichtbarkeit
 document.getElementById('showAllComments').addEventListener('change', function() {
-    document.querySelector('.card-body').classList.toggle('show-all-comments', this.checked);
+    document.querySelector('.comments-container').classList.toggle('show-all-comments', this.checked);
+});
+
+// Initialisiere den Zustand basierend auf localStorage
+document.addEventListener('DOMContentLoaded', function() {
+    const showAllComments = localStorage.getItem('showAllComments') === 'true';
+    const checkbox = document.getElementById('showAllComments');
+    const container = document.querySelector('.comments-container');
+    
+    checkbox.checked = showAllComments;
+    if (showAllComments) {
+        container.classList.add('show-all-comments');
+    }
+});
+
+// Speichere den Zustand im localStorage
+document.getElementById('showAllComments').addEventListener('change', function() {
+    localStorage.setItem('showAllComments', this.checked);
 });
 </script>
 
