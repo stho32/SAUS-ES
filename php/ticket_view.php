@@ -157,6 +157,13 @@ require_once 'includes/header.php';
             <?php endif; ?>
         </div>
     </div>
+    <?php if (!$partner): ?>
+    <div class="text-center mb-4">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCommentModal">
+            <i class="bi bi-plus-lg"></i> Neuen Kommentar hinzufügen
+        </button>
+    </div>
+    <?php endif; ?>
 </div>
 
 <!-- Partner Modal -->
