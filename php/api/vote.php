@@ -70,13 +70,21 @@ try {
     $db->beginTransaction();
 
     try {
+        // Prüfe ob bereits eine Stimme existiert
+        $stmt = $db->prepare("SELECT value FROM comment_votes WHERE comment_id = ? AND username = ?");
+        $stmt->execute([$commentId, $username]);
+        $existingVote = $stmt->fetch();
+
         // Lösche vorherige Stimme des Benutzers
         $stmt = $db->prepare("DELETE FROM comment_votes WHERE comment_id = ? AND username = ?");
         $stmt->execute([$commentId, $username]);
 
-        // Füge neue Stimme hinzu
-        $stmt = $db->prepare("INSERT INTO comment_votes (comment_id, username, value) VALUES (?, ?, ?)");
-        $stmt->execute([$commentId, $username, $voteType]);
+        // Wenn keine vorherige Stimme existiert oder sie anders war als die neue, füge neue Stimme hinzu
+        if (!$existingVote || $existingVote['value'] !== $voteType) {
+            // Füge neue Stimme hinzu
+            $stmt = $db->prepare("INSERT INTO comment_votes (comment_id, username, value) VALUES (?, ?, ?)");
+            $stmt->execute([$commentId, $username, $voteType]);
+        }
 
         $db->commit();
         echo json_encode(['success' => true]);

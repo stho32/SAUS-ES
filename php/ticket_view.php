@@ -161,15 +161,17 @@ require_once 'includes/header.php';
                     <?php if (!$partner): ?>
                     <div class="btn-group" role="group">
                         <button type="button" 
-                                class="btn btn-sm btn-outline-<?= $comment['user_vote'] === 'up' ? 'success' : 'secondary' ?>"
-                                onclick="voteComment(<?= $comment['id'] ?>, 'up')">
-                            <i class="bi bi-hand-thumbs-up"></i> 
+                                class="btn btn-sm <?= $comment['user_vote'] === 'up' ? 'btn-outline-success voted-up' : 'btn-outline-secondary' ?>"
+                                onclick="voteComment(<?= $comment['id'] ?>, 'up')"
+                                title="<?= $comment['user_vote'] === 'up' ? 'Dafür-Stimme zurücknehmen' : 'Dafür stimmen' ?>">
+                            <i class="bi bi-hand-thumbs-up<?= $comment['user_vote'] === 'up' ? '-fill' : '' ?>"></i> 
                             <span class="vote-count"><?= $comment['up_votes'] ?></span>
                         </button>
                         <button type="button" 
-                                class="btn btn-sm btn-outline-<?= $comment['user_vote'] === 'down' ? 'danger' : 'secondary' ?>"
-                                onclick="voteComment(<?= $comment['id'] ?>, 'down')">
-                            <i class="bi bi-hand-thumbs-down"></i>
+                                class="btn btn-sm <?= $comment['user_vote'] === 'down' ? 'btn-outline-danger voted-down' : 'btn-outline-secondary' ?>"
+                                onclick="voteComment(<?= $comment['id'] ?>, 'down')"
+                                title="<?= $comment['user_vote'] === 'down' ? 'Dagegen-Stimme zurücknehmen' : 'Dagegen stimmen' ?>">
+                            <i class="bi bi-hand-thumbs-down<?= $comment['user_vote'] === 'down' ? '-fill' : '' ?>"></i>
                             <span class="vote-count"><?= $comment['down_votes'] ?></span>
                         </button>
                         <button type="button"
@@ -377,11 +379,8 @@ async function voteComment(commentId, voteType) {
             })
         });
         
-        if (!response.ok) {
-            throw new Error('Netzwerkfehler');
-        }
-        
         const result = await response.json();
+        
         if (result.success) {
             location.reload();
         } else {
@@ -448,6 +447,24 @@ document.getElementById('showAllComments').addEventListener('change', function()
 
 .show-all-comments .comment-hidden {
     display: block;
+}
+
+.btn-outline-secondary.voted-up,
+.btn-outline-success.voted-up {
+    background-color: #d1e7dd;
+    border-color: #198754;
+    color: #198754;
+}
+
+.btn-outline-secondary.voted-down,
+.btn-outline-danger.voted-down {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.vote-count {
+    margin-left: 4px;
 }
 </style>
 
