@@ -80,7 +80,8 @@ if ($isFirstVisit) {
 $sql = "
     SELECT t.*, ts.name as status_name, ts.is_archived, ts.is_closed,
            (SELECT COUNT(*) FROM comments WHERE ticket_id = t.id) as comment_count,
-           GREATEST(t.created_at, COALESCE((SELECT MAX(created_at) FROM comments WHERE ticket_id = t.id), t.created_at)) as last_activity
+           GREATEST(t.created_at, COALESCE((SELECT MAX(created_at) FROM comments WHERE ticket_id = t.id), t.created_at)) as last_activity,
+           (SELECT username FROM comments WHERE ticket_id = t.id ORDER BY created_at DESC LIMIT 1) as last_commenter
     FROM tickets t
     JOIN ticket_status ts ON t.status_id = ts.id
     WHERE 1=1
@@ -169,7 +170,7 @@ $tickets = $stmt->fetchAll();
                     <th>Status</th>
                     <th>Letzte Aktivität</th>
                     <th>Kommentare</th>
-                    <th>KI-Zusammenfassung</th>
+                    <th>Letzter Kommentar von</th>
                 </tr>
             </thead>
             <tbody>
@@ -198,19 +199,8 @@ $tickets = $stmt->fetchAll();
                             </span>
                         </td>
                         <td class="<?= $activityClass ?>"><?= (new DateTime($ticket['last_activity']))->format('d.m.Y H:i') ?></td>
-                        <td class="<?= $activityClass ?>">
-                            <span class="badge bg-info">
-                                <?= $ticket['comment_count'] ?>
-                            </span>
-                        </td>
-                        <td class="<?= $activityClass ?>">
-                            <?php if ($ticket['ki_summary']): ?>
-                                <small class="text-muted">
-                                    <?= nl2br(htmlspecialchars(substr($ticket['ki_summary'], 0, 100))) ?>
-                                    <?= strlen($ticket['ki_summary']) > 100 ? '...' : '' ?>
-                                </small>
-                            <?php endif; ?>
-                        </td>
+                        <td class="<?= $activityClass ?>"><?= $ticket['comment_count'] ?></td>
+                        <td class="<?= $activityClass ?>"><?= $ticket['last_commenter'] ? htmlspecialchars($ticket['last_commenter']) : '-' ?></td>
                     </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
