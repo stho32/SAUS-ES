@@ -207,6 +207,17 @@ $tickets = $stmt->fetchAll();
             </tbody>
         </table>
     </div>
+
+    <?php if (!empty($tickets)): ?>
+    <div class="text-muted text-end mt-2">
+        <small>
+            <?= count($tickets) ?> Ticket<?= count($tickets) !== 1 ? 's' : '' ?> angezeigt
+            <?php if (!empty($selectedStatus)): ?>
+            (gefiltert)
+            <?php endif; ?>
+        </small>
+    </div>
+    <?php endif; ?>
 </div>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
