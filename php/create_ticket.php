@@ -27,6 +27,8 @@ $allStatus = $stmt->fetchAll();
 // Verarbeite POST-Request
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
+        $db->beginTransaction();
+
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $statusId = $_POST['status'] ?? null;
@@ -42,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Bitte wählen Sie einen Status aus.");
         }
 
-        // Generiere Ticket-Nummer
-        $ticketNumber = generateTicketNumber();
+        // Generiere Ticket-Nummer (wird für Kompatibilität beibehalten)
+        $ticketNumber = 'T' . date('Ym') . str_pad((string)rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
         // Speichere Ticket
         $stmt = $db->prepare("
@@ -54,11 +56,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$ticketNumber, $title, $description, $statusId]);
         $ticketId = $db->lastInsertId();
 
+        $db->commit();
+
         // Leite zur Ticket-Ansicht weiter
         header("Location: ticket_view.php?id=$ticketId");
         exit;
 
     } catch (Exception $e) {
+        $db->rollBack();
         $error = $e->getMessage();
     }
 }

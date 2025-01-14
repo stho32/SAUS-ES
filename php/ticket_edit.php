@@ -43,7 +43,7 @@ try {
     exit;
 }
 
-$pageTitle = "Ticket #" . htmlspecialchars($ticket['ticket_number']) . " bearbeiten";
+$pageTitle = "Ticket #" . $ticket['id'] . " bearbeiten";
 require_once 'includes/header.php';
 ?>
 
@@ -51,7 +51,7 @@ require_once 'includes/header.php';
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="mb-0">Ticket bearbeiten</h1>
-            <small class="text-muted">Ticket #<?= htmlspecialchars($ticket['ticket_number']) ?></small>
+            <small class="text-muted">Ticket #<?= $ticket['id'] ?></small>
         </div>
         <div>
             <a href="ticket_view.php?id=<?= $ticketId ?>" class="btn btn-outline-secondary">
@@ -77,7 +77,8 @@ require_once 'includes/header.php';
                             <input type="text" 
                                    class="form-control" 
                                    id="ticketNumber" 
-                                   value="<?= htmlspecialchars($ticket['ticket_number']) ?>"
+                                   name="ticket_number" 
+                                   value="#<?= $ticket['id'] ?>"
                                    readonly>
                             <div class="form-text">Die Ticket-Nummer kann nicht geändert werden.</div>
                         </div>

@@ -84,7 +84,7 @@ require_once 'includes/header.php';
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="mb-0"><?= htmlspecialchars($ticket['title']) ?></h1>
-            <small class="text-muted">Ticket #<?= htmlspecialchars($ticket['ticket_number']) ?></small>
+            <small class="text-muted">Ticket #<?= $ticket['id'] ?></small>
         </div>
         <div class="d-flex gap-2">
             <?php if ($isMasterLink): ?>

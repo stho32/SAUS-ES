@@ -71,13 +71,17 @@ $tickets = $stmt->fetchAll();
                 <div class="col-md-6 mb-4">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><?= htmlspecialchars($ticket['ticket_number']) ?></h5>
-                            <span class="badge bg-secondary">
-                                <?= htmlspecialchars($ticket['status_name']) ?>
-                            </span>
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-0">#<?= $ticket['id'] ?></h5>
+                                    <small class="text-muted"><?= htmlspecialchars($ticket['title']) ?></small>
+                                </div>
+                                <span class="badge bg-secondary">
+                                    <?= htmlspecialchars($ticket['status_name']) ?>
+                                </span>
+                            </div>
                         </div>
                         <div class="card-body">
-                            <h6 class="card-title"><?= htmlspecialchars($ticket['title']) ?></h6>
                             <p class="card-text small">
                                 Abgeschlossen am: <?= formatDateTime($ticket['closed_at']) ?>
                             </p>

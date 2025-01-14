@@ -189,7 +189,7 @@ $tickets = $stmt->fetchAll();
                     <tr>
                         <td class="<?= $activityClass ?>">
                             <a href="ticket_view.php?id=<?= $ticket['id'] ?>">
-                                <?= htmlspecialchars($ticket['ticket_number']) ?>
+                                #<?= $ticket['id'] ?>
                             </a>
                         </td>
                         <td class="<?= $activityClass ?>"><?= htmlspecialchars($ticket['title']) ?></td>
