@@ -53,7 +53,10 @@ try {
                    SELECT GROUP_CONCAT(username)
                    FROM comment_votes
                    WHERE comment_id = c.id AND value = 'down'
-               ) as downvoters
+               ) as downvoters,
+               c.is_visible,
+               c.hidden_by,
+               c.hidden_at
         FROM comments c
         LEFT JOIN comment_statistics cs ON c.id = cs.comment_id
         LEFT JOIN comment_votes cv ON c.id = cv.comment_id AND cv.username = ?
@@ -119,11 +122,17 @@ require_once 'includes/header.php';
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Kommentare</h5>
-                <?php if (!$partner): ?>
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCommentModal">
-                    <i class="bi bi-plus-lg"></i> Kommentar hinzufügen
-                </button>
-                <?php endif; ?>
+                <div class="d-flex gap-2">
+                    <?php if (!$partner): ?>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="showAllComments">
+                        <label class="form-check-label" for="showAllComments">Alle Kommentare anzeigen</label>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCommentModal">
+                        <i class="bi bi-plus-lg"></i> Kommentar hinzufügen
+                    </button>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
         <div class="card-body">
@@ -134,12 +143,19 @@ require_once 'includes/header.php';
             </p>
             <?php else: ?>
             <?php foreach ($comments as $comment): ?>
-            <div class="comment mb-4">
+            <div class="comment mb-4 <?= !$comment['is_visible'] ? 'comment-hidden' : '' ?>" 
+                 data-visible="<?= $comment['is_visible'] ? 'true' : 'false' ?>">
                 <div class="d-flex justify-content-between">
                     <div>
                         <strong><?= htmlspecialchars($comment['username']) ?></strong>
                         <small class="text-muted">
                             <?= formatDateTime($comment['created_at']) ?>
+                            <?php if (!$comment['is_visible']): ?>
+                            <span class="text-danger">
+                                (Ausgeblendet von <?= htmlspecialchars($comment['hidden_by']) ?> 
+                                am <?= formatDateTime($comment['hidden_at']) ?>)
+                            </span>
+                            <?php endif; ?>
                         </small>
                     </div>
                     <?php if (!$partner): ?>
@@ -155,6 +171,11 @@ require_once 'includes/header.php';
                                 onclick="voteComment(<?= $comment['id'] ?>, 'down')">
                             <i class="bi bi-hand-thumbs-down"></i>
                             <span class="vote-count"><?= $comment['down_votes'] ?></span>
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                onclick="toggleCommentVisibility(<?= $comment['id'] ?>, <?= $comment['is_visible'] ? 'false' : 'true' ?>)">
+                            <i class="bi bi-eye<?= $comment['is_visible'] ? '-slash' : '' ?>"></i>
                         </button>
                     </div>
                     <?php endif; ?>
@@ -370,6 +391,47 @@ async function voteComment(commentId, voteType) {
         alert('Fehler beim Abstimmen: ' + error.message);
     }
 }
+
+async function toggleCommentVisibility(commentId, visible) {
+    try {
+        const response = await fetch('api/toggle_comment_visibility.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                commentId: commentId,
+                visible: visible
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            location.reload();
+        } else {
+            throw new Error(result.message || 'Unbekannter Fehler');
+        }
+    } catch (error) {
+        alert('Fehler beim Ändern der Sichtbarkeit: ' + error.message);
+    }
+}
+
+// Toggle für Kommentar-Sichtbarkeit
+document.getElementById('showAllComments').addEventListener('change', function() {
+    document.querySelector('.card-body').classList.toggle('show-all-comments', this.checked);
+});
 </script>
+
+<style>
+.comment-hidden {
+    opacity: 0.5;
+    display: none;
+}
+
+.show-all-comments .comment-hidden {
+    display: block;
+}
+</style>
 
 <?php require_once 'includes/footer.php'; ?>
