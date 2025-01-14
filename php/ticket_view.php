@@ -40,10 +40,20 @@ try {
         throw new RuntimeException('Ticket nicht gefunden');
     }
 
-    // Hole alle Kommentare mit Voting-Statistiken
+    // Hole alle Kommentare mit Voting-Statistiken und Voting-Details
     $stmt = $db->prepare("
         SELECT c.*, cs.up_votes, cs.down_votes,
-               COALESCE(cv.value, 'none') as user_vote
+               COALESCE(cv.value, 'none') as user_vote,
+               (
+                   SELECT GROUP_CONCAT(username)
+                   FROM comment_votes
+                   WHERE comment_id = c.id AND value = 'up'
+               ) as upvoters,
+               (
+                   SELECT GROUP_CONCAT(username)
+                   FROM comment_votes
+                   WHERE comment_id = c.id AND value = 'down'
+               ) as downvoters
         FROM comments c
         LEFT JOIN comment_statistics cs ON c.id = cs.comment_id
         LEFT JOIN comment_votes cv ON c.id = cv.comment_id AND cv.username = ?
@@ -152,6 +162,26 @@ require_once 'includes/header.php';
                 <div class="mt-2">
                     <?= nl2br(htmlspecialchars($comment['content'])) ?>
                 </div>
+                <?php 
+                $upvoters = $comment['upvoters'] ? explode(',', $comment['upvoters']) : [];
+                $downvoters = $comment['downvoters'] ? explode(',', $comment['downvoters']) : [];
+                if (!empty($upvoters) || !empty($downvoters)): 
+                ?>
+                <div class="text-end mt-2">
+                    <small class="text-muted">
+                        <?php
+                        $parts = [];
+                        if (!empty($upvoters)) {
+                            $parts[] = 'dafür: ' . implode(', ', array_map('htmlspecialchars', $upvoters));
+                        }
+                        if (!empty($downvoters)) {
+                            $parts[] = 'dagegen: ' . implode(', ', array_map('htmlspecialchars', $downvoters));
+                        }
+                        echo implode(' / ', $parts);
+                        ?>
+                    </small>
+                </div>
+                <?php endif; ?>
             </div>
             <?php endforeach; ?>
             <?php endif; ?>

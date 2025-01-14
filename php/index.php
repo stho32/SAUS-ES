@@ -96,7 +96,7 @@ if (!empty($selectedStatus)) {
     $params = array_merge($params, $selectedStatus);
 }
 
-$sql .= " ORDER BY t.created_at DESC";
+$sql .= " ORDER BY last_activity DESC";
 
 // Führe Query aus
 $stmt = $db->prepare($sql);
