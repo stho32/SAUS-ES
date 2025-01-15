@@ -79,7 +79,6 @@ try {
 $pageTitle = htmlspecialchars($ticket['title']);
 require_once 'includes/header.php';
 ?>
-
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -108,7 +107,6 @@ require_once 'includes/header.php';
         </div>
     </div>
     <?php endif; ?>
-
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title mb-3">Beschreibung</h5>
@@ -144,12 +142,16 @@ require_once 'includes/header.php';
             <?php else: ?>
             <?php foreach ($comments as $comment): ?>
             <div class="comment mb-4 <?= !$comment['is_visible'] ? 'comment-hidden' : '' ?>" 
+                 id="comment-<?= $comment['id'] ?>"
                  data-visible="<?= $comment['is_visible'] ? 'true' : 'false' ?>">
                 <div class="d-flex justify-content-between">
                     <div>
                         <strong><?= htmlspecialchars($comment['username']) ?></strong>
                         <small class="text-muted">
                             <?= formatDateTime($comment['created_at']) ?>
+                            <?php if ($comment['is_edited']): ?>
+                                (bearbeitet am <?= formatDateTime($comment['updated_at']) ?>)
+                            <?php endif; ?>
                             <?php if (!$comment['is_visible']): ?>
                             <span class="text-danger">
                                 (Ausgeblendet von <?= htmlspecialchars($comment['hidden_by']) ?> 
@@ -179,11 +181,20 @@ require_once 'includes/header.php';
                                 onclick="toggleCommentVisibility(<?= $comment['id'] ?>, <?= $comment['is_visible'] ? 'false' : 'true' ?>)">
                             <i class="bi bi-eye<?= $comment['is_visible'] ? '-slash' : '' ?>"></i>
                         </button>
+                        <?php if ($comment['username'] === getCurrentUsername()): ?>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-primary"
+                                onclick="startEditComment(<?= $comment['id'] ?>)">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <?php endif; ?>
                     </div>
                     <?php endif; ?>
                 </div>
                 <div class="mt-2">
-                    <?= nl2br(htmlspecialchars($comment['content'])) ?>
+                    <div class="comment-text" id="comment-text-<?= $comment['id'] ?>">
+                        <?= nl2br(htmlspecialchars($comment['content'])) ?>
+                    </div>
                 </div>
                 <?php 
                 $upvoters = $comment['upvoters'] ? explode(',', $comment['upvoters']) : [];
@@ -414,6 +425,74 @@ async function toggleCommentVisibility(commentId, visible) {
     } catch (error) {
         alert('Fehler beim Ändern der Sichtbarkeit: ' + error.message);
     }
+}
+
+// Kommentar-Bearbeitung
+async function startEditComment(commentId) {
+    const commentDiv = document.getElementById(`comment-text-${commentId}`);
+    const content = commentDiv.innerText;
+    
+    // Erstelle Bearbeitungsformular
+    commentDiv.innerHTML = `
+        <div class="edit-comment-form">
+            <textarea class="form-control mb-2">${content}</textarea>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm" onclick="saveComment(${commentId})">
+                    <i class="bi bi-check-lg"></i> Speichern
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="cancelEdit(${commentId}, '${content.replace(/'/g, "\\'")}')">
+                    <i class="bi bi-x-lg"></i> Abbrechen
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+async function saveComment(commentId) {
+    const commentDiv = document.getElementById(`comment-text-${commentId}`);
+    const content = commentDiv.querySelector('textarea').value;
+    
+    try {
+        const response = await fetch('api/edit_comment.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                commentId: commentId,
+                content: content
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Aktualisiere den Kommentar
+            commentDiv.innerHTML = nl2br(escapeHtml(content));
+            // Zeige Erfolgsmeldung
+            showAlert('success', 'Kommentar wurde aktualisiert');
+        } else {
+            throw new Error(data.error || 'Fehler beim Speichern des Kommentars');
+        }
+    } catch (error) {
+        showAlert('danger', error.message);
+    }
+}
+
+function cancelEdit(commentId, originalContent) {
+    const commentDiv = document.getElementById(`comment-text-${commentId}`);
+    commentDiv.innerHTML = nl2br(escapeHtml(originalContent));
+}
+
+// Hilfsfunktionen
+function nl2br(str) {
+    return str.replace(/\n/g, '<br>');
+}
+    
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Toggle für Kommentar-Sichtbarkeit
