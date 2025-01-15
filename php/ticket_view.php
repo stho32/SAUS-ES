@@ -430,17 +430,17 @@ async function toggleCommentVisibility(commentId, visible) {
 // Kommentar-Bearbeitung
 async function startEditComment(commentId) {
     const commentDiv = document.getElementById(`comment-text-${commentId}`);
-    const content = commentDiv.innerText;
+    const content = commentDiv.innerText.trim();
     
     // Erstelle Bearbeitungsformular
     commentDiv.innerHTML = `
         <div class="edit-comment-form">
-            <textarea class="form-control mb-2">${content}</textarea>
+            <textarea class="form-control mb-2" rows="10">${content}</textarea>
             <div class="d-flex gap-2">
                 <button class="btn btn-primary btn-sm" onclick="saveComment(${commentId})">
                     <i class="bi bi-check-lg"></i> Speichern
                 </button>
-                <button class="btn btn-outline-secondary btn-sm" onclick="cancelEdit(${commentId}, '${content.replace(/'/g, "\\'")}')">
+                <button class="btn btn-outline-secondary btn-sm" onclick="cancelEdit(${commentId})">
                     <i class="bi bi-x-lg"></i> Abbrechen
                 </button>
             </div>
@@ -471,6 +471,8 @@ async function saveComment(commentId) {
             commentDiv.innerHTML = nl2br(escapeHtml(content));
             // Zeige Erfolgsmeldung
             showAlert('success', 'Kommentar wurde aktualisiert');
+            // Seite neu laden um die aktualisierten Zeitstempel zu sehen
+            setTimeout(() => location.reload(), 1000);
         } else {
             throw new Error(data.error || 'Fehler beim Speichern des Kommentars');
         }
@@ -479,9 +481,9 @@ async function saveComment(commentId) {
     }
 }
 
-function cancelEdit(commentId, originalContent) {
-    const commentDiv = document.getElementById(`comment-text-${commentId}`);
-    commentDiv.innerHTML = nl2br(escapeHtml(originalContent));
+function cancelEdit(commentId) {
+    // Seite neu laden um den ursprünglichen Zustand wiederherzustellen
+    location.reload();
 }
 
 // Hilfsfunktionen
