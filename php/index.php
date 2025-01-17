@@ -57,28 +57,31 @@ require_once __DIR__ . '/includes/header.php';
 
 // Hole alle Status für den Filter
 $db = Database::getInstance()->getConnection();
-$stmt = $db->query("SELECT * FROM ticket_status WHERE is_active = 1 ORDER BY sort_order, name");
-$allStatus = $stmt->fetchAll();
+$stmt = $db->query("
+    SELECT DISTINCT filter_category, 
+           COUNT(*) as status_count 
+    FROM ticket_status 
+    WHERE is_active = 1 
+    GROUP BY filter_category 
+    ORDER BY FIELD(filter_category, 'zurueckgestellt', 'in_bearbeitung', 'geschlossen', 'archiviert')
+");
+$filterCategories = $stmt->fetchAll();
 
 // Bestimme aktive Filter
 $isFirstVisit = !isset($_GET['filter_applied']);
-$selectedStatus = [];
+$selectedCategories = [];
 
 if ($isFirstVisit) {
-    // Standardmäßig alle aktiven Status auswählen, die nicht archiviert oder geschlossen sind
-    foreach ($allStatus as $status) {
-        if (!$status['is_archived'] && !$status['is_closed']) {
-            $selectedStatus[] = $status['id'];
-        }
-    }
+    // Standardmäßig "In Bearbeitung" auswählen
+    $selectedCategories[] = 'in_bearbeitung';
 } else {
-    // Ansonsten die ausgewählten Status aus der Request nehmen
-    $selectedStatus = isset($_GET['status']) ? (array)$_GET['status'] : [];
+    // Ansonsten die ausgewählten Kategorien aus der Request nehmen
+    $selectedCategories = isset($_GET['category']) ? (array)$_GET['category'] : [];
 }
 
 // Baue SQL-Query
 $sql = "
-    SELECT t.*, ts.name as status_name, ts.is_archived, ts.is_closed,
+    SELECT t.*, ts.name as status_name, ts.is_archived, ts.is_closed, ts.background_color, ts.filter_category,
            (SELECT COUNT(*) FROM comments WHERE ticket_id = t.id) as comment_count,
            GREATEST(t.created_at, COALESCE((SELECT MAX(created_at) FROM comments WHERE ticket_id = t.id), t.created_at)) as last_activity,
            (SELECT username FROM comments WHERE ticket_id = t.id ORDER BY created_at DESC LIMIT 1) as last_commenter,
@@ -101,10 +104,10 @@ $sql = "
 $params = [];
 
 // Füge Filter hinzu
-if (!empty($selectedStatus)) {
-    $placeholders = str_repeat('?,', count($selectedStatus) - 1) . '?';
-    $sql .= " AND ts.id IN ($placeholders)";
-    $params = array_merge($params, $selectedStatus);
+if (!empty($selectedCategories)) {
+    $placeholders = str_repeat('?,', count($selectedCategories) - 1) . '?';
+    $sql .= " AND ts.filter_category IN ($placeholders)";
+    $params = array_merge($params, $selectedCategories);
 }
 
 $sql .= " ORDER BY last_activity DESC";
@@ -130,42 +133,32 @@ $tickets = $stmt->fetchAll();
             <form method="get" class="row g-3">
                 <input type="hidden" name="filter_applied" value="1">
                 <div class="col-12">
-                    <label class="form-label">Status-Filter</label>
-                    <div class="d-flex gap-3 flex-wrap">
-                        <?php foreach ($allStatus as $status): ?>
-                        <div class="form-check">
-                            <input class="form-check-input" 
-                                   type="checkbox" 
-                                   name="status[]" 
-                                   value="<?= $status['id'] ?>"
-                                   id="status_<?= $status['id'] ?>"
-                                   <?= in_array($status['id'], $selectedStatus) ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="status_<?= $status['id'] ?>">
-                                <?= htmlspecialchars($status['name']) ?>
-                                <?php if ($status['is_archived']): ?>
-                                <span class="badge bg-secondary">Archiviert</span>
-                                <?php endif; ?>
-                                <?php if ($status['is_closed']): ?>
-                                <span class="badge bg-secondary">Geschlossen</span>
-                                <?php endif; ?>
-                            </label>
-                        </div>
+                    <label class="form-label">Filter</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <?php foreach ($filterCategories as $category): 
+                            $isSelected = in_array($category['filter_category'], $selectedCategories);
+                        ?>
+                        <button type="submit" 
+                                name="category[]" 
+                                value="<?= $category['filter_category'] ?>"
+                                class="btn <?= $isSelected ? 'btn-primary' : 'btn-outline-primary' ?>">
+                            <?php
+                            $categoryLabels = [
+                                'zurueckgestellt' => 'Zurückgestellt',
+                                'in_bearbeitung' => 'In Bearbeitung',
+                                'geschlossen' => 'Erledigt',
+                                'archiviert' => 'Archiviert'
+                            ];
+                            echo htmlspecialchars($categoryLabels[$category['filter_category']]);
+                            ?>
+                        </button>
                         <?php endforeach; ?>
                     </div>
                 </div>
                 <div class="col-12">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-funnel"></i> Filter anwenden
-                    </button>
                     <a href="index.php" class="btn btn-outline-secondary">
                         <i class="bi bi-x-lg"></i> Filter zurücksetzen
                     </a>
-                    <?php if (!$isFirstVisit): ?>
-                    <span class="ms-2 text-muted">
-                        <i class="bi bi-info-circle"></i> 
-                        Filter aktiv
-                    </span>
-                    <?php endif; ?>
                 </div>
             </form>
         </div>
@@ -205,7 +198,7 @@ $tickets = $stmt->fetchAll();
                         </td>
                         <td class="<?= $activityClass ?>"><?= htmlspecialchars($ticket['title']) ?></td>
                         <td class="<?= $activityClass ?>">
-                            <span class="badge bg-<?= $ticket['status_name'] === 'offen' ? 'success' : 'secondary' ?>">
+                            <span style="background-color: <?= htmlspecialchars($ticket['background_color']) ?>; color: #000000">
                                 <?= htmlspecialchars($ticket['status_name']) ?>
                             </span>
                         </td>
@@ -230,7 +223,7 @@ $tickets = $stmt->fetchAll();
     <div class="text-muted text-end mt-2">
         <small>
             <?= count($tickets) ?> Ticket<?= count($tickets) !== 1 ? 's' : '' ?> angezeigt
-            <?php if (!empty($selectedStatus)): ?>
+            <?php if (!empty($selectedCategories)): ?>
             (gefiltert)
             <?php endif; ?>
         </small>
