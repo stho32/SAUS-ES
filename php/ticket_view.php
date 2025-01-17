@@ -85,9 +85,6 @@ require_once 'includes/header.php';
         <div>
             <h1 class="mb-0"><?= htmlspecialchars($ticket['title']) ?></h1>
             <small class="text-muted">Ticket #<?= $ticket['id'] ?></small>
-            <?php if (!empty($ticket['assignee'])): ?>
-                <br><small class="text-muted">Bearbeiter: <?= htmlspecialchars($ticket['assignee']) ?></small>
-            <?php endif; ?>
         </div>
         <div class="d-flex gap-2">
             <?php if ($isMasterLink): ?>
@@ -98,6 +95,43 @@ require_once 'includes/header.php';
             <a href="index.php" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Zurück
             </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-person-circle fs-3 text-muted"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-subtitle mb-1 text-muted">Zuständiger Bearbeiter</h6>
+                            <p class="card-text fs-5 mb-0">
+                                <?= !empty($ticket['assignee']) ? htmlspecialchars($ticket['assignee']) : '<span class="text-muted">Nicht zugewiesen</span>' ?>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-flag-fill fs-3 text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-subtitle mb-1 text-muted">Status</h6>
+                            <p class="card-text fs-5 mb-0">
+                                <?= htmlspecialchars($ticket['status_name']) ?>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -99,6 +99,7 @@ require_once 'includes/header.php';
                            class="form-control" 
                            id="title" 
                            name="title" 
+                           value="<?= htmlspecialchars($_POST['title'] ?? '') ?>"
                            required>
                 </div>
 
@@ -107,18 +108,8 @@ require_once 'includes/header.php';
                     <textarea class="form-control" 
                               id="description" 
                               name="description" 
-                              rows="5"
-                              required></textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label for="assignee" class="form-label">Zuständige Bearbeiter</label>
-                    <input type="text" 
-                           class="form-control" 
-                           id="assignee" 
-                           name="assignee" 
-                           maxlength="200"
-                           placeholder="Namen der zuständigen Bearbeiter">
+                              rows="5" 
+                              required><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
                 </div>
 
                 <div class="mb-3">
@@ -126,16 +117,28 @@ require_once 'includes/header.php';
                     <select class="form-select" id="status" name="status" required>
                         <option value="">Bitte wählen...</option>
                         <?php foreach ($allStatus as $status): ?>
-                        <option value="<?= $status['id'] ?>">
-                            <?= htmlspecialchars($status['name']) ?>
-                        </option>
+                            <option value="<?= $status['id'] ?>" 
+                                    <?= (isset($_POST['status']) && $_POST['status'] == $status['id']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($status['name']) ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg"></i> Ticket erstellen
-                </button>
+
+                <div class="mb-3">
+                    <label for="assignee" class="form-label">Bearbeiter</label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="assignee" 
+                           name="assignee"
+                           value="<?= htmlspecialchars($_POST['assignee'] ?? '') ?>">
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> Ticket erstellen
+                    </button>
+                </div>
             </form>
         </div>
     </div>
