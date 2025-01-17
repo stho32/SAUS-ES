@@ -70,6 +70,7 @@ $filterCategories = $stmt->fetchAll();
 // Bestimme aktive Filter
 $isFirstVisit = !isset($_GET['filter_applied']);
 $selectedCategories = [];
+$searchText = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 if ($isFirstVisit) {
     // Standardmäßig "In Bearbeitung" auswählen
@@ -95,7 +96,10 @@ $sql = "
                 ORDER BY created_at DESC 
                 LIMIT 1
             )
-            GROUP BY ticket_id) as other_participants
+            GROUP BY ticket_id) as other_participants,
+           (SELECT GROUP_CONCAT(DISTINCT username) 
+            FROM comments 
+            WHERE ticket_id = t.id) as all_commenters
     FROM tickets t
     JOIN ticket_status ts ON t.status_id = ts.id
     WHERE 1=1
@@ -108,6 +112,34 @@ if (!empty($selectedCategories)) {
     $placeholders = str_repeat('?,', count($selectedCategories) - 1) . '?';
     $sql .= " AND ts.filter_category IN ($placeholders)";
     $params = array_merge($params, $selectedCategories);
+}
+
+// Füge Textsuche hinzu
+if ($searchText !== '') {
+    // Teile den Suchtext in einzelne Wörter
+    $searchTerms = array_filter(explode(' ', $searchText));
+    
+    if (!empty($searchTerms)) {
+        $searchConditions = [];
+        foreach ($searchTerms as $term) {
+            $searchFields = [
+                't.id',
+                't.title',
+                'ts.name',
+                '(SELECT GROUP_CONCAT(username) FROM comments WHERE ticket_id = t.id)'
+            ];
+            
+            $termConditions = [];
+            foreach ($searchFields as $field) {
+                $termConditions[] = "$field LIKE ?";
+                $params[] = '%' . $term . '%';
+            }
+            
+            $searchConditions[] = '(' . implode(' OR ', $termConditions) . ')';
+        }
+        
+        $sql .= " AND " . implode(' AND ', $searchConditions);
+    }
 }
 
 $sql .= " ORDER BY last_activity DESC";
@@ -132,16 +164,34 @@ $tickets = $stmt->fetchAll();
         <div class="card-body">
             <form method="get" class="row g-3">
                 <input type="hidden" name="filter_applied" value="1">
+                <?php foreach ($selectedCategories as $category): ?>
+                <input type="hidden" name="category[]" value="<?= htmlspecialchars($category) ?>">
+                <?php endforeach; ?>
+                <div class="col-12">
+                    <div class="input-group mb-3">
+                        <input type="text" 
+                               class="form-control" 
+                               placeholder="Suche in Tickets..." 
+                               name="search"
+                               value="<?= htmlspecialchars($searchText) ?>">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
                 <div class="col-12">
                     <label class="form-label">Filter</label>
                     <div class="d-flex gap-2 flex-wrap">
                         <?php foreach ($filterCategories as $category): 
                             $isSelected = in_array($category['filter_category'], $selectedCategories);
                         ?>
-                        <button type="submit" 
-                                name="category[]" 
-                                value="<?= $category['filter_category'] ?>"
-                                class="btn <?= $isSelected ? 'btn-primary' : 'btn-outline-primary' ?>">
+                        <a href="<?= '?' . http_build_query(array_merge($_GET, [
+                            'filter_applied' => '1',
+                            'category' => $isSelected 
+                                ? array_diff($selectedCategories, [$category['filter_category']])
+                                : array_merge($selectedCategories, [$category['filter_category']])
+                        ])) ?>"
+                           class="btn <?= $isSelected ? 'btn-primary' : 'btn-outline-primary' ?>">
                             <?php
                             $categoryLabels = [
                                 'zurueckgestellt' => 'Zurückgestellt',
@@ -151,12 +201,12 @@ $tickets = $stmt->fetchAll();
                             ];
                             echo htmlspecialchars($categoryLabels[$category['filter_category']]);
                             ?>
-                        </button>
+                        </a>
                         <?php endforeach; ?>
                     </div>
                 </div>
                 <div class="col-12">
-                    <a href="index.php" class="btn btn-outline-secondary">
+                    <a href="<?= '?' . http_build_query(['filter_applied' => '1', 'category' => ['in_bearbeitung']]) ?>" class="btn btn-outline-secondary">
                         <i class="bi bi-x-lg"></i> Filter zurücksetzen
                     </a>
                 </div>
@@ -189,22 +239,26 @@ $tickets = $stmt->fetchAll();
                 </tr>
                 <?php else: ?>
                     <?php foreach ($tickets as $ticket): ?>
-                    <?php $activityClass = getActivityClass($ticket['last_activity']); ?>
+                    <?php 
+                        // Activity-Klasse nur für "in_bearbeitung" anwenden
+                        $activityClass = $ticket['filter_category'] === 'in_bearbeitung' ? getActivityClass($ticket['last_activity']) : '';
+                        $bgColor = $ticket['filter_category'] === 'in_bearbeitung' ? $ticket['background_color'] : '#f8f9fa';
+                    ?>
                     <tr>
-                        <td class="<?= $activityClass ?>">
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
                             <a href="ticket_view.php?id=<?= $ticket['id'] ?>">
                                 #<?= $ticket['id'] ?>
                             </a>
                         </td>
-                        <td class="<?= $activityClass ?>"><?= htmlspecialchars($ticket['title']) ?></td>
-                        <td class="<?= $activityClass ?>">
-                            <span style="background-color: <?= htmlspecialchars($ticket['background_color']) ?>; color: #000000">
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>"><?= htmlspecialchars($ticket['title']) ?></td>
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
+                            <span class="badge fw-bold" style="background-color: <?= htmlspecialchars($ticket['background_color']) ?>; color: #000000">
                                 <?= htmlspecialchars($ticket['status_name']) ?>
                             </span>
                         </td>
-                        <td class="<?= $activityClass ?>"><?= (new DateTime($ticket['last_activity']))->format('d.m.Y H:i') ?></td>
-                        <td class="<?= $activityClass ?>"><?= $ticket['comment_count'] ?></td>
-                        <td class="<?= $activityClass ?>">
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>"><?= (new DateTime($ticket['last_activity']))->format('d.m.Y H:i') ?></td>
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>"><?= $ticket['comment_count'] ?></td>
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
                             <div><?= $ticket['last_commenter'] ? htmlspecialchars($ticket['last_commenter']) : '-' ?></div>
                             <?php if ($ticket['other_participants']): ?>
                             <small class="text-muted">
