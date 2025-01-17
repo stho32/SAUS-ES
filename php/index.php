@@ -81,7 +81,18 @@ $sql = "
     SELECT t.*, ts.name as status_name, ts.is_archived, ts.is_closed,
            (SELECT COUNT(*) FROM comments WHERE ticket_id = t.id) as comment_count,
            GREATEST(t.created_at, COALESCE((SELECT MAX(created_at) FROM comments WHERE ticket_id = t.id), t.created_at)) as last_activity,
-           (SELECT username FROM comments WHERE ticket_id = t.id ORDER BY created_at DESC LIMIT 1) as last_commenter
+           (SELECT username FROM comments WHERE ticket_id = t.id ORDER BY created_at DESC LIMIT 1) as last_commenter,
+           (SELECT GROUP_CONCAT(DISTINCT username ORDER BY created_at)
+            FROM comments 
+            WHERE ticket_id = t.id 
+            AND username != (
+                SELECT username 
+                FROM comments c2 
+                WHERE c2.ticket_id = t.id 
+                ORDER BY created_at DESC 
+                LIMIT 1
+            )
+            GROUP BY ticket_id) as other_participants
     FROM tickets t
     JOIN ticket_status ts ON t.status_id = ts.id
     WHERE 1=1
@@ -200,7 +211,14 @@ $tickets = $stmt->fetchAll();
                         </td>
                         <td class="<?= $activityClass ?>"><?= (new DateTime($ticket['last_activity']))->format('d.m.Y H:i') ?></td>
                         <td class="<?= $activityClass ?>"><?= $ticket['comment_count'] ?></td>
-                        <td class="<?= $activityClass ?>"><?= $ticket['last_commenter'] ? htmlspecialchars($ticket['last_commenter']) : '-' ?></td>
+                        <td class="<?= $activityClass ?>">
+                            <div class="fw-bold"><?= $ticket['last_commenter'] ? htmlspecialchars($ticket['last_commenter']) : '-' ?></div>
+                            <?php if ($ticket['other_participants']): ?>
+                            <small class="text-muted">
+                                <?= htmlspecialchars($ticket['other_participants']) ?>
+                            </small>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
