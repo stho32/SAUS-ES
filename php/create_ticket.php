@@ -33,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $statusId = $_POST['status'] ?? null;
+        $assignee = trim($_POST['assignee'] ?? '');
 
         // Validiere Eingaben
         if (empty($title)) {
@@ -50,11 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Speichere Ticket
         $stmt = $db->prepare("
-            INSERT INTO tickets (ticket_number, title, description, status_id) 
-            VALUES (?, ?, ?, ?)
+            INSERT INTO tickets (ticket_number, title, description, status_id, assignee) 
+            VALUES (?, ?, ?, ?, ?)
         ");
         
-        $stmt->execute([$ticketNumber, $title, $description, $statusId]);
+        $stmt->execute([$ticketNumber, $title, $description, $statusId, $assignee]);
         $ticketId = $db->lastInsertId();
 
         $db->commit();
@@ -108,6 +109,16 @@ require_once 'includes/header.php';
                               name="description" 
                               rows="5"
                               required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="assignee" class="form-label">Zuständige Bearbeiter</label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="assignee" 
+                           name="assignee" 
+                           maxlength="200"
+                           placeholder="Namen der zuständigen Bearbeiter">
                 </div>
 
                 <div class="mb-3">

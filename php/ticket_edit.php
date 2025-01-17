@@ -57,7 +57,7 @@ require_once 'includes/header.php';
             <a href="ticket_view.php?id=<?= $ticketId ?>" class="btn btn-outline-secondary">
                 <i class="bi bi-x-lg"></i> Abbrechen
             </a>
-            <button type="button" class="btn btn-primary ms-2" id="saveButton">
+            <button type="button" class="btn btn-primary ms-2" id="saveButton" onclick="updateTicket()">
                 <i class="bi bi-check-lg"></i> Speichern
             </button>
         </div>
@@ -98,6 +98,17 @@ require_once 'includes/header.php';
                                       id="description" 
                                       rows="5"
                                       required><?php echo trim(htmlspecialchars($ticket['description'])); ?></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="assignee" class="form-label">Zuständige Bearbeiter</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="assignee" 
+                                   name="assignee" 
+                                   value="<?= htmlspecialchars($ticket['assignee'] ?? '') ?>" 
+                                   maxlength="200"
+                                   placeholder="Namen der zuständigen Bearbeiter">
                         </div>
 
                         <?php if (!empty($ticket['ki_summary'])): ?>
@@ -149,47 +160,36 @@ require_once 'includes/header.php';
 </div>
 
 <script>
-// Formular-Referenz
-const form = document.getElementById('ticketForm');
-const saveButton = document.getElementById('saveButton');
-
-// Event-Handler für Speichern-Button
-saveButton.addEventListener('click', async function() {
-    if (!form.checkValidity()) {
-        form.classList.add('was-validated');
-        return;
-    }
-
-    const ticketData = {
+async function updateTicket() {
+    const data = {
         ticketId: document.getElementById('ticketId').value,
         title: document.getElementById('title').value,
         description: document.getElementById('description').value,
-        statusId: document.getElementById('status').value
+        statusId: document.getElementById('status').value,
+        assignee: document.getElementById('assignee').value
     };
 
     try {
         const response = await fetch('api/update_ticket.php', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(ticketData)
+            body: JSON.stringify(data)
         });
-        
-        if (!response.ok) {
-            throw new Error('Netzwerkfehler');
-        }
-        
+
         const result = await response.json();
+        
         if (result.success) {
-            window.location.href = `ticket_view.php?id=${ticketData.ticketId}`;
+            window.location.href = 'ticket_view.php?id=' + data.ticketId;
         } else {
-            throw new Error(result.message || 'Unbekannter Fehler');
+            alert('Fehler beim Speichern: ' + result.message);
         }
     } catch (error) {
-        alert('Fehler beim Speichern: ' + error.message);
+        console.error('Fehler:', error);
+        alert('Fehler beim Speichern des Tickets');
     }
-});
+}
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

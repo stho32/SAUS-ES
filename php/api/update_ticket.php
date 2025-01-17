@@ -6,6 +6,8 @@ require_once '../includes/Database.php';
 require_once '../includes/auth.php';
 require_once '../includes/error_logger.php';
 
+header('Content-Type: application/json');
+
 // Nur Master-Link darf Tickets bearbeiten
 if (!isset($_SESSION['master_code'])) {
     http_response_code(403);
@@ -20,60 +22,50 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Lese JSON-Daten
-$data = json_decode(file_get_contents('php://input'), true);
-if (!$data) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Ungültige Anfrage']);
-    exit;
-}
-
-// Validiere Pflichtfelder
-if (!isset($data['ticketId'], $data['title'], $data['description'])) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Fehlende Pflichtfelder']);
-    exit;
-}
-
 try {
     $db = Database::getInstance()->getConnection();
     
+    // Lese JSON-Daten
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!$data) {
+        throw new Exception('Ungültige Anfrage');
+    }
+
+    $ticketId = intval($data['ticketId'] ?? 0);
+    $title = trim($data['title'] ?? '');
+    $description = trim($data['description'] ?? '');
+    $statusId = intval($data['statusId'] ?? 0);
+    $assignee = trim($data['assignee'] ?? '');
+
+    // Validiere die Daten
+    if (!$ticketId || empty($title)) {
+        throw new Exception('Ungültige Daten');
+    }
+
     // Debug-Logging
     ErrorLogger::getInstance()->logError("Update-Daten: " . print_r($data, true));
     
-    // Bereite Update-Daten vor
-    $updateData = [
-        'title' => $data['title'],
-        'description' => $data['description'],
-        'status_id' => $data['statusId']
-    ];
-    
-    // Baue SQL-Query
-    $sql = "UPDATE tickets SET ";
-    $params = [];
-    foreach ($updateData as $field => $value) {
-        $sql .= "`$field` = ?, ";
-        $params[] = $value;
-    }
-    $sql = rtrim($sql, ', ');
-    $sql .= " WHERE id = ?";
-    $params[] = $data['ticketId'];
-    
-    // Debug-Logging
-    ErrorLogger::getInstance()->logError("SQL: $sql");
-    ErrorLogger::getInstance()->logError("Parameter: " . print_r($params, true));
-    
-    // Führe Update durch
-    $stmt = $db->prepare($sql);
-    $stmt->execute($params);
+    $stmt = $db->prepare("
+        UPDATE tickets 
+        SET title = ?, 
+            description = ?, 
+            status_id = ?,
+            assignee = ?
+        WHERE id = ?
+    ");
+    $stmt->execute([$title, $description, $statusId, $assignee, $ticketId]);
     
     if ($stmt->rowCount() === 0) {
-        throw new RuntimeException('Ticket nicht gefunden oder keine Änderungen');
+        throw new Exception('Ticket nicht gefunden oder keine Änderungen');
     }
-    
+
     echo json_encode(['success' => true]);
+
 } catch (Exception $e) {
     ErrorLogger::getInstance()->logError("Fehler beim Aktualisieren des Tickets: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Datenbankfehler: ' . $e->getMessage()]);
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
 }

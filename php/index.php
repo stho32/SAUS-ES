@@ -83,7 +83,7 @@ if ($isFirstVisit) {
 
 // Baue SQL-Query
 $sql = "
-    SELECT t.*, ts.name as status_name, ts.is_archived, ts.is_closed, ts.background_color, ts.filter_category,
+    SELECT t.*, ts.name as status_name, ts.background_color, ts.filter_category,
            (SELECT COUNT(*) FROM comments WHERE ticket_id = t.id) as comment_count,
            GREATEST(t.created_at, COALESCE((SELECT MAX(created_at) FROM comments WHERE ticket_id = t.id), t.created_at)) as last_activity,
            (SELECT username FROM comments WHERE ticket_id = t.id ORDER BY created_at DESC LIMIT 1) as last_commenter,
@@ -97,10 +97,7 @@ $sql = "
                 ORDER BY created_at DESC 
                 LIMIT 1
             )
-            GROUP BY ticket_id) as other_participants,
-           (SELECT GROUP_CONCAT(DISTINCT username) 
-            FROM comments 
-            WHERE ticket_id = t.id) as all_commenters
+            GROUP BY ticket_id) as other_participants
     FROM tickets t
     JOIN ticket_status ts ON t.status_id = ts.id
     WHERE 1=1
@@ -127,6 +124,7 @@ if ($searchText !== '') {
                 't.id',
                 't.title',
                 'ts.name',
+                't.assignee',
                 '(SELECT GROUP_CONCAT(username) FROM comments WHERE ticket_id = t.id)'
             ];
             
@@ -225,13 +223,14 @@ $tickets = $stmt->fetchAll();
                     <th>Status</th>
                     <th>Letzte Aktivität</th>
                     <th>Kommentare</th>
-                    <th>Letzter Kommentar von</th>
+                    <th>Teilnehmer</th>
+                    <th>Zuständig</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($tickets)): ?>
                 <tr>
-                    <td colspan="6" class="text-center py-3">
+                    <td colspan="7" class="text-center py-3">
                         <div class="alert alert-info mb-0">
                             <i class="bi bi-info-circle"></i> 
                             Keine Tickets gefunden. Passen Sie die Filter an oder erstellen Sie ein neues Ticket.
@@ -266,6 +265,9 @@ $tickets = $stmt->fetchAll();
                                 <?= htmlspecialchars($ticket['other_participants']) ?>
                             </small>
                             <?php endif; ?>
+                        </td>
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
+                            <?= $ticket['assignee'] ? htmlspecialchars($ticket['assignee']) : '-' ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>
