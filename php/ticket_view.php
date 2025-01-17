@@ -27,7 +27,7 @@ $db = Database::getInstance()->getConnection();
 try {
     // Hole Ticket-Details mit Partner-Liste
     $stmt = $db->prepare("
-        SELECT t.*, ts.name as status_name, 
+        SELECT t.*, ts.name as status_name, t.assignee,
                (SELECT partner_list FROM partners WHERE ticket_id = t.id LIMIT 1) as partner_list,
                (SELECT partner_link FROM partners WHERE ticket_id = t.id LIMIT 1) as partner_link
         FROM tickets t
@@ -85,6 +85,9 @@ require_once 'includes/header.php';
         <div>
             <h1 class="mb-0"><?= htmlspecialchars($ticket['title']) ?></h1>
             <small class="text-muted">Ticket #<?= $ticket['id'] ?></small>
+            <?php if (!empty($ticket['assignee'])): ?>
+                <br><small class="text-muted">Bearbeiter: <?= htmlspecialchars($ticket['assignee']) ?></small>
+            <?php endif; ?>
         </div>
         <div class="d-flex gap-2">
             <?php if ($isMasterLink): ?>
