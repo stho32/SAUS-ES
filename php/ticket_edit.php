@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/includes/auth_check.php';
 
 require_once 'includes/Database.php';
 require_once 'includes/functions.php';
@@ -46,7 +47,6 @@ try {
 $pageTitle = "Ticket #" . $ticket['id'] . " bearbeiten";
 require_once 'includes/header.php';
 ?>
-
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
