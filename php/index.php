@@ -212,7 +212,7 @@ $tickets = $stmt->fetchAll();
                         <td class="<?= $activityClass ?>"><?= (new DateTime($ticket['last_activity']))->format('d.m.Y H:i') ?></td>
                         <td class="<?= $activityClass ?>"><?= $ticket['comment_count'] ?></td>
                         <td class="<?= $activityClass ?>">
-                            <div class="fw-bold"><?= $ticket['last_commenter'] ? htmlspecialchars($ticket['last_commenter']) : '-' ?></div>
+                            <div><?= $ticket['last_commenter'] ? htmlspecialchars($ticket['last_commenter']) : '-' ?></div>
                             <?php if ($ticket['other_participants']): ?>
                             <small class="text-muted">
                                 <?= htmlspecialchars($ticket['other_participants']) ?>
