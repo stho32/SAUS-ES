@@ -3,7 +3,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/includes/auth_check.php';
 require_once __DIR__ . '/includes/Database.php';
 require_once __DIR__ . '/includes/comment_formatter.php';
-
+require_once __DIR__ . '/includes/ticket_functions.php';
+require_once __DIR__ . '/includes/comment_functions.php';
 require_once 'includes/functions.php';
 require_once 'includes/auth.php';
 
@@ -23,70 +24,11 @@ if (!$ticketId) {
     exit;
 }
 
-$db = Database::getInstance()->getConnection();
-
 try {
-    // Hole Ticket-Details mit Partner-Liste
-    $stmt = $db->prepare("
-        SELECT t.*, ts.name as status_name, ts.background_color as status_color, t.assignee,
-               (SELECT partner_list FROM partners WHERE ticket_id = t.id LIMIT 1) as partner_list,
-               (SELECT partner_link FROM partners WHERE ticket_id = t.id LIMIT 1) as partner_link,
-               COALESCE(tst.up_votes, 0) as up_votes,
-               COALESCE(tst.down_votes, 0) as down_votes,
-               COALESCE(tv.value, 'none') as user_vote,
-               (
-                   SELECT GROUP_CONCAT(username)
-                   FROM ticket_votes
-                   WHERE ticket_id = t.id AND value = 'up'
-               ) as upvoters,
-               (
-                   SELECT GROUP_CONCAT(username)
-                   FROM ticket_votes
-                   WHERE ticket_id = t.id AND value = 'down'
-               ) as downvoters
-        FROM tickets t
-        JOIN ticket_status ts ON t.status_id = ts.id
-        LEFT JOIN ticket_statistics tst ON t.id = tst.ticket_id
-        LEFT JOIN ticket_votes tv ON t.id = tv.ticket_id AND tv.username = ?
-        WHERE t.id = ?
-    ");
-    $stmt->execute([getCurrentUsername(), $ticketId]);
-    $ticket = $stmt->fetch();
-
-    if (!$ticket) {
-        throw new RuntimeException('Ticket nicht gefunden');
-    }
-
-    // Hole alle Kommentare mit Voting-Statistiken und Voting-Details
-    $stmt = $db->prepare("
-        SELECT c.*, cs.up_votes, cs.down_votes,
-               COALESCE(cv.value, 'none') as user_vote,
-               (
-                   SELECT GROUP_CONCAT(username)
-                   FROM comment_votes
-                   WHERE comment_id = c.id AND value = 'up'
-               ) as upvoters,
-               (
-                   SELECT GROUP_CONCAT(username)
-                   FROM comment_votes
-                   WHERE comment_id = c.id AND value = 'down'
-               ) as downvoters,
-               c.is_visible,
-               c.hidden_by,
-               c.hidden_at
-        FROM comments c
-        LEFT JOIN comment_statistics cs ON c.id = cs.comment_id
-        LEFT JOIN comment_votes cv ON c.id = cv.comment_id AND cv.username = ?
-        WHERE c.ticket_id = ?
-        ORDER BY c.created_at ASC
-    ");
-    $stmt->execute([getCurrentUsername(), $ticketId]);
-    $comments = $stmt->fetchAll();
-
-    // Lade alle verfügbaren Status
-    $statusStmt = $db->query("SELECT id, name, background_color FROM ticket_status ORDER BY sort_order ASC, name ASC");
-    $allStatus = $statusStmt->fetchAll();
-
+    // Hole Ticket-Details und Kommentare
+    $ticket = getTicketDetails($ticketId, getCurrentUsername());
+    $comments = getTicketComments($ticketId, getCurrentUsername());
+    $allStatus = getAllTicketStatus();
 } catch (Exception $e) {
     header('Location: error.php?type=error&message=' . urlencode($e->getMessage()));
     exit;
@@ -218,84 +160,9 @@ require_once 'includes/header.php';
                 Noch keine Kommentare vorhanden
             </p>
             <?php else: ?>
-            <?php foreach ($comments as $comment): ?>
-            <div class="comment mb-4 <?= !$comment['is_visible'] ? 'comment-hidden' : '' ?>" 
-                 id="comment-<?= $comment['id'] ?>"
-                 data-visible="<?= $comment['is_visible'] ? 'true' : 'false' ?>">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <strong><?= htmlspecialchars($comment['username']) ?></strong>
-                        <small class="text-muted">
-                            <?= formatDateTime($comment['created_at']) ?>
-                            <?php if ($comment['is_edited']): ?>
-                                (bearbeitet am <?= formatDateTime($comment['updated_at']) ?>)
-                            <?php endif; ?>
-                            <?php if (!$comment['is_visible']): ?>
-                            <span class="text-danger">
-                                (Ausgeblendet von <?= htmlspecialchars($comment['hidden_by']) ?> 
-                                am <?= formatDateTime($comment['hidden_at']) ?>)
-                            </span>
-                            <?php endif; ?>
-                        </small>
-                    </div>
-                    <?php if (!$partner): ?>
-                    <div class="btn-group" role="group">
-                        <button type="button" 
-                                class="btn btn-sm <?= $comment['up_votes'] > 0 ? 'btn-outline-success' : 'btn-outline-secondary' ?> <?= $comment['user_vote'] === 'up' ? 'voted-up' : '' ?>"
-                                onclick="voteComment(<?= $comment['id'] ?>, 'up')"
-                                title="<?= $comment['user_vote'] === 'up' ? 'Dafür-Stimme zurücknehmen' : 'Dafür stimmen' ?>">
-                            <i class="bi bi-hand-thumbs-<?= $comment['up_votes'] > 0 ? 'up-fill' : 'up' ?>"></i> 
-                            <span class="vote-count"><?= $comment['up_votes'] ?></span>
-                        </button>
-                        <button type="button" 
-                                class="btn btn-sm <?= $comment['down_votes'] > 0 ? 'btn-outline-danger' : 'btn-outline-secondary' ?> <?= $comment['user_vote'] === 'down' ? 'voted-down' : '' ?>"
-                                onclick="voteComment(<?= $comment['id'] ?>, 'down')"
-                                title="<?= $comment['user_vote'] === 'down' ? 'Dagegen-Stimme zurücknehmen' : 'Dagegen stimmen' ?>">
-                            <i class="bi bi-hand-thumbs-<?= $comment['down_votes'] > 0 ? 'down-fill' : 'down' ?>"></i>
-                            <span class="vote-count"><?= $comment['down_votes'] ?></span>
-                        </button>
-                        <button type="button"
-                                class="btn btn-sm btn-outline-secondary"
-                                onclick="toggleCommentVisibility(<?= $comment['id'] ?>, <?= $comment['is_visible'] ? 'false' : 'true' ?>)">
-                            <i class="bi bi-eye<?= $comment['is_visible'] ? '-slash' : '' ?>"></i>
-                        </button>
-                        <?php if ($comment['username'] === getCurrentUsername()): ?>
-                        <button type="button"
-                                class="btn btn-sm btn-outline-primary"
-                                onclick="startEditComment(<?= $comment['id'] ?>)">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <?php endif; ?>
-                    </div>
-                    <?php endif; ?>
-                </div>
-                <div class="mt-2">
-                    <div id="comment-text-<?= $comment['id'] ?>" class="comment-text" data-raw-content="<?= htmlspecialchars($comment['content']) ?>">
-                        <?= formatComment($comment['content']) ?>
-                    </div>
-                </div>
-                <?php 
-                $upvoters = $comment['upvoters'] ? explode(',', $comment['upvoters']) : [];
-                $downvoters = $comment['downvoters'] ? explode(',', $comment['downvoters']) : [];
-                if (!empty($upvoters) || !empty($downvoters)): 
-                ?>
-                <div class="text-end mt-2">
-                    <small class="text-muted">
-                        <?php
-                        $parts = [];
-                        if (!empty($upvoters)) {
-                            $parts[] = 'dafür: ' . implode(', ', array_map('htmlspecialchars', $upvoters));
-                        }
-                        if (!empty($downvoters)) {
-                            $parts[] = 'dagegen: ' . implode(', ', array_map('htmlspecialchars', $downvoters));
-                        }
-                        echo implode(' / ', $parts);
-                        ?>
-                    </small>
-                </div>
-                <?php endif; ?>
-            </div>
-            <?php endforeach; ?>
+                <?php foreach ($comments as $comment): ?>
+                    <?= renderComment($comment) ?>
+                <?php endforeach; ?>
             <?php endif; ?>
         </div>
     </div>
