@@ -13,6 +13,8 @@
    - `status_id`: Referenz auf ticket_status
    - `created_at`: Erstellungszeitpunkt
    - `updated_at`: Letzter Änderungszeitpunkt
+   - `show_on_website`: Boolean-Wert für die Sichtbarkeit auf der Webseite
+   - `public_comment`: Öffentlicher Kommentar für die Webseitenanzeige
 
 2. **comments**
    - `id`: Primärschlüssel
@@ -203,3 +205,58 @@ $breakpoints: (
    - Strict Types
    - Optimierte Queries
    - Lazy Loading
+
+## PHP-Codebasis-Organisation
+
+### Hauptseiten
+- `index.php` - Haupteinstiegspunkt
+- `ticket_view.php` - Ticket-Ansichtsseite
+- `ticket_edit.php` - Ticket-Bearbeitungsseite
+- `create_ticket.php` - Ticket-Erstellungsseite
+- `error.php` - Fehlerbehandlungsseite
+- `logout.php` - Abmeldefunktionalität
+
+### API-Endpunkte (`api/`)
+1. **Ticket-Operationen**
+   - `update_ticket.php` - Ticket aktualisieren
+   - `update_ticket_status.php` - Ticketstatus ändern
+   - `update_ticket_assignee.php` - Ticketzuweisung ändern
+   - `vote_ticket.php` - Für Ticket abstimmen
+
+2. **Kommentar-Operationen**
+   - `add_comment.php` - Kommentar hinzufügen
+   - `edit_comment.php` - Kommentar bearbeiten
+   - `format_comment.php` - Kommentarformatierung
+   - `toggle_comment_visibility.php` - Kommentarsichtbarkeit umschalten
+
+3. **Abstimmungssystem**
+   - `vote.php` - Abstimmungsfunktionalität
+   - `get_votes.php` - Abstimmungen abrufen
+
+4. **Partner-Verwaltung**
+   - `create_partner.php` - Partner erstellen
+
+### Includes (`includes/`)
+1. **Kernfunktionalität**
+   - `Database.php` - Datenbankverbindung und -operationen
+   - `functions.php` - Allgemeine Hilfsfunktionen
+
+2. **Authentifizierung**
+   - `auth.php` - Authentifizierungslogik
+   - `auth_check.php` - Authentifizierungsprüfung
+   - `api_auth_check.php` - API-Authentifizierungsprüfung
+
+3. **Layout-Komponenten**
+   - `header.php` - Kopfzeilenkomponente
+   - `footer.php` - Fußzeilenkomponente
+
+4. **Dienstprogramme**
+   - `comment_formatter.php` - Kommentarformatierung
+   - `error_logger.php` - Fehlerprotokollierung
+
+### Templates (`templates/`)
+- `header.php` - Header-Template
+- `footer.php` - Footer-Template
+
+### Konfiguration
+- `config.example.php` - Beispielkonfigurationsdatei
