@@ -27,7 +27,7 @@ $db = Database::getInstance()->getConnection();
 try {
     // Hole Ticket-Details mit Partner-Liste
     $stmt = $db->prepare("
-        SELECT t.*, ts.name as status_name, t.assignee,
+        SELECT t.*, ts.name as status_name, ts.background_color as status_color, t.assignee,
                (SELECT partner_list FROM partners WHERE ticket_id = t.id LIMIT 1) as partner_list,
                (SELECT partner_link FROM partners WHERE ticket_id = t.id LIMIT 1) as partner_link
         FROM tickets t
@@ -67,9 +67,9 @@ try {
     $stmt->execute([getCurrentUsername(), $ticketId]);
     $comments = $stmt->fetchAll();
 
-    // Hole alle verfügbaren Status
-    $stmt = $db->query("SELECT * FROM ticket_status ORDER BY name");
-    $allStatus = $stmt->fetchAll();
+    // Lade alle verfügbaren Status
+    $statusStmt = $db->query("SELECT id, name, background_color FROM ticket_status ORDER BY sort_order ASC, name ASC");
+    $allStatus = $statusStmt->fetchAll();
 
 } catch (Exception $e) {
     header('Location: error.php?type=error&message=' . urlencode($e->getMessage()));
@@ -121,12 +121,15 @@ require_once 'includes/header.php';
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <i class="bi bi-flag-fill fs-3 text-primary"></i>
+                            <i class="bi bi-flag-fill fs-3" style="color: <?= htmlspecialchars($ticket['status_color']) ?>"></i>
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="card-subtitle mb-1 text-muted">Status</h6>
                             <p class="card-text fs-5 mb-0">
-                                <?= htmlspecialchars($ticket['status_name']) ?>
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#statusModal" style="text-decoration: none; color: inherit;">
+                                    <?= htmlspecialchars($ticket['status_name']) ?>
+                                    <i class="bi bi-pencil-square ms-2 small"></i>
+                                </a>
                             </p>
                         </div>
                     </div>
@@ -288,6 +291,36 @@ require_once 'includes/header.php';
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
                 <button type="button" class="btn btn-primary" onclick="savePartners()">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Status ändern</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateStatusForm">
+                    <div class="mb-3">
+                        <label for="statusSelect" class="form-label">Neuer Status</label>
+                        <select class="form-select" id="statusSelect" name="statusId">
+                            <?php foreach ($allStatus as $status): ?>
+                            <option value="<?= $status['id'] ?>" <?= $status['id'] == $ticket['status_id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($status['name']) ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" onclick="updateStatus()">Speichern</button>
             </div>
         </div>
     </div>
@@ -462,6 +495,30 @@ async function toggleCommentVisibility(commentId, visible) {
         }
     } catch (error) {
         alert('Fehler beim Ändern der Sichtbarkeit: ' + error.message);
+    }
+}
+
+async function updateStatus() {
+    const statusId = document.getElementById('statusSelect').value;
+    const formData = new FormData();
+    formData.append('ticketId', '<?= $ticket['id'] ?>');
+    formData.append('statusId', statusId);
+    
+    try {
+        const response = await fetch('api/update_ticket_status.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Fehler beim Aktualisieren des Status');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Fehler beim Aktualisieren des Status');
     }
 }
 
