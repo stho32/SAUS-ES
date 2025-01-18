@@ -51,8 +51,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Speichere Ticket
         $stmt = $db->prepare("
-            INSERT INTO tickets (ticket_number, title, description, status_id, assignee) 
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO tickets (
+                ticket_number, 
+                title, 
+                description, 
+                status_id, 
+                assignee,
+                show_on_website,
+                public_comment
+            ) 
+            VALUES (?, ?, ?, ?, ?, FALSE, NULL)
         ");
         
         $stmt->execute([$ticketNumber, $title, $description, $statusId, $assignee]);
