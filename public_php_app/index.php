@@ -131,22 +131,99 @@ $pageTitle = "Aktuelle Vorgänge des Siedlungsausschusses";
             align-items: center;
             margin-bottom: 0.3rem;
         }
+        .intro-list {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 1.5rem;
+        }
+        .intro-list li {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+        .intro-list i {
+            margin-right: 0.75rem;
+            color: #0d6efd;
+        }
+        .contact-box {
+            background: #e9ecef;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+            border-left: 4px solid #0d6efd;
+        }
+        .contact-box h5 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .contact-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1rem 0;
+        }
+        .contact-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+        .contact-list i {
+            width: 1.5rem;
+            margin-right: 0.5rem;
+            color: #0d6efd;
+        }
+        .contact-note {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-top: 0.75rem;
+            margin-top: 0.75rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            color: #dc3545;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="row mb-4">
             <div class="col">
-                <h2 class="mb-2"><?= $pageTitle ?></h2>
-                <p class="text-muted">
-                    Hier sehen Sie die aktuellen Vorgänge, an denen Ihr Siedlungsausschuss für Sie arbeitet. 
-                    Sie sind herzlich eingeladen mitzuwirken!
-                </p>
-                <p class="text-muted small">
-                    Haben Sie Fragen oder Kommentare? Wenden Sie sich an Ihre SAUS-Mitglieder oder nutzen Sie unsere 
-                    öffentlichen Kanäle (WhatsApp, Signal). Alternativ finden Sie unsere E-Mail-Adresse in den Aushängen 
-                    in jedem Aufgang. Bitte geben Sie bei Kontaktaufnahme immer die Vorgangs-Nr. an.
-                </p>
+                <ul class="intro-list">
+                    <li>
+                        <i class="bi bi-info-circle"></i>
+                        Hier sehen Sie die aktuellen Vorgänge, an denen Ihr Siedlungsausschuss für Sie arbeitet
+                    </li>
+                    <li>
+                        <i class="bi bi-people"></i>
+                        Sie sind herzlich eingeladen mitzuwirken!
+                    </li>
+                    <li>
+                        <i class="bi bi-calendar-event"></i>
+                        Sitzungen finden jeden ersten Nicht-Feiertag-Montag im Monat um 19:30 Uhr im Siedlungsausschuss/Gemeinschaftsraum statt
+                    </li>
+                </ul>
+
+                <div class="contact-box">
+                    <h5><i class="bi bi-chat-dots"></i> Kontaktmöglichkeiten</h5>
+                    <ul class="contact-list">
+                        <li>
+                            <i class="bi bi-chat-dots"></i>
+                            <span>Messenger-Gruppen (WhatsApp oder Signal) für schnellen Austausch</span>
+                        </li>
+                        <li>
+                            <i class="bi bi-envelope"></i>
+                            <span>E-Mail-Adresse (siehe Aushänge in Ihrem Aufgang)</span>
+                        </li>
+                    </ul>
+                    <div class="contact-note">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <strong>Wichtig:</strong> Bitte geben Sie bei jeder Kontaktaufnahme die Vorgangs-Nr. an!
+                    </div>
+                </div>
             </div>
         </div>
 
