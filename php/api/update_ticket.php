@@ -36,6 +36,8 @@ try {
     $description = trim($data['description'] ?? '');
     $statusId = intval($data['statusId'] ?? 0);
     $assignee = trim($data['assignee'] ?? '');
+    $showOnWebsite = (bool)($data['showOnWebsite'] ?? false);
+    $publicComment = trim($data['publicComment'] ?? '');
 
     // Validiere die Daten
     if (!$ticketId || empty($title)) {
@@ -50,10 +52,12 @@ try {
         SET title = ?, 
             description = ?, 
             status_id = ?,
-            assignee = ?
+            assignee = ?,
+            show_on_website = ?,
+            public_comment = ?
         WHERE id = ?
     ");
-    $stmt->execute([$title, $description, $statusId, $assignee, $ticketId]);
+    $stmt->execute([$title, $description, $statusId, $assignee, $showOnWebsite, $publicComment, $ticketId]);
     
     if ($stmt->rowCount() === 0) {
         throw new Exception('Ticket nicht gefunden oder keine Änderungen');

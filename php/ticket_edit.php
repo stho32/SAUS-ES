@@ -152,6 +152,25 @@ require_once 'includes/header.php';
                                 <?php endforeach; ?>
                             </select>
                         </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="showOnWebsite" 
+                                       <?= $ticket['show_on_website'] ? 'checked' : '' ?>>
+                                <label class="form-check-label" for="showOnWebsite">
+                                    Auf Website anzeigen
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="publicComment" class="form-label">Öffentlicher Kommentar</label>
+                            <textarea class="form-control" 
+                                    id="publicComment" 
+                                    rows="3"
+                                    placeholder="Dieser Kommentar wird auf der Website angezeigt"><?= htmlspecialchars($ticket['public_comment'] ?? '') ?></textarea>
+                            <div class="form-text">Dieser Text wird auf der Website neben dem Ticket-Titel angezeigt.</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -166,7 +185,9 @@ async function updateTicket() {
         title: document.getElementById('title').value,
         description: document.getElementById('description').value,
         statusId: document.getElementById('status').value,
-        assignee: document.getElementById('assignee').value
+        assignee: document.getElementById('assignee').value,
+        showOnWebsite: document.getElementById('showOnWebsite').checked,
+        publicComment: document.getElementById('publicComment').value
     };
 
     try {
