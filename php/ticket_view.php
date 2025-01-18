@@ -208,17 +208,17 @@ require_once 'includes/header.php';
                     <?php if (!$partner): ?>
                     <div class="btn-group" role="group">
                         <button type="button" 
-                                class="btn btn-sm <?= $comment['user_vote'] === 'up' ? 'btn-outline-success voted-up' : 'btn-outline-secondary' ?>"
+                                class="btn btn-sm <?= $comment['up_votes'] > 0 ? 'btn-outline-success' : 'btn-outline-secondary' ?> <?= $comment['user_vote'] === 'up' ? 'voted-up' : '' ?>"
                                 onclick="voteComment(<?= $comment['id'] ?>, 'up')"
                                 title="<?= $comment['user_vote'] === 'up' ? 'Dafür-Stimme zurücknehmen' : 'Dafür stimmen' ?>">
-                            <i class="bi bi-hand-thumbs-up<?= $comment['user_vote'] === 'up' ? '-fill' : '' ?>"></i> 
+                            <i class="bi bi-hand-thumbs-<?= $comment['up_votes'] > 0 ? 'up-fill' : 'up' ?>"></i> 
                             <span class="vote-count"><?= $comment['up_votes'] ?></span>
                         </button>
                         <button type="button" 
-                                class="btn btn-sm <?= $comment['user_vote'] === 'down' ? 'btn-outline-danger voted-down' : 'btn-outline-secondary' ?>"
+                                class="btn btn-sm <?= $comment['down_votes'] > 0 ? 'btn-outline-danger' : 'btn-outline-secondary' ?> <?= $comment['user_vote'] === 'down' ? 'voted-down' : '' ?>"
                                 onclick="voteComment(<?= $comment['id'] ?>, 'down')"
                                 title="<?= $comment['user_vote'] === 'down' ? 'Dagegen-Stimme zurücknehmen' : 'Dagegen stimmen' ?>">
-                            <i class="bi bi-hand-thumbs-down<?= $comment['user_vote'] === 'down' ? '-fill' : '' ?>"></i>
+                            <i class="bi bi-hand-thumbs-<?= $comment['down_votes'] > 0 ? 'down-fill' : 'down' ?>"></i>
                             <span class="vote-count"><?= $comment['down_votes'] ?></span>
                         </button>
                         <button type="button"
