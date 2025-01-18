@@ -30,12 +30,27 @@ try {
     $stmt = $db->prepare("
         SELECT t.*, ts.name as status_name, ts.background_color as status_color, t.assignee,
                (SELECT partner_list FROM partners WHERE ticket_id = t.id LIMIT 1) as partner_list,
-               (SELECT partner_link FROM partners WHERE ticket_id = t.id LIMIT 1) as partner_link
+               (SELECT partner_link FROM partners WHERE ticket_id = t.id LIMIT 1) as partner_link,
+               COALESCE(tst.up_votes, 0) as up_votes,
+               COALESCE(tst.down_votes, 0) as down_votes,
+               COALESCE(tv.value, 'none') as user_vote,
+               (
+                   SELECT GROUP_CONCAT(username)
+                   FROM ticket_votes
+                   WHERE ticket_id = t.id AND value = 'up'
+               ) as upvoters,
+               (
+                   SELECT GROUP_CONCAT(username)
+                   FROM ticket_votes
+                   WHERE ticket_id = t.id AND value = 'down'
+               ) as downvoters
         FROM tickets t
         JOIN ticket_status ts ON t.status_id = ts.id
+        LEFT JOIN ticket_statistics tst ON t.id = tst.ticket_id
+        LEFT JOIN ticket_votes tv ON t.id = tv.ticket_id AND tv.username = ?
         WHERE t.id = ?
     ");
-    $stmt->execute([$ticketId]);
+    $stmt->execute([getCurrentUsername(), $ticketId]);
     $ticket = $stmt->fetch();
 
     if (!$ticket) {
@@ -82,12 +97,30 @@ $pageTitle = htmlspecialchars($ticket['title']);
 require_once 'includes/header.php';
 ?>
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
+    <div class="mb-4">
+        <div class="mb-3">
             <h1 class="mb-0"><?= htmlspecialchars($ticket['title']) ?></h1>
             <small class="text-muted">Ticket #<?= $ticket['id'] ?></small>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
+            <?php if (!$partner): ?>
+            <div class="btn-group" role="group" aria-label="Voting">
+                <button type="button" 
+                        class="btn <?= $ticket['user_vote'] === 'up' ? 'btn-success' : 'btn-outline-success' ?>"
+                        onclick="voteTicket(<?= $ticket['id'] ?>, '<?= $ticket['user_vote'] === 'up' ? 'none' : 'up' ?>')"
+                        title="<?= $ticket['upvoters'] ? 'Upvotes von: ' . htmlspecialchars($ticket['upvoters']) : 'Keine Upvotes' ?>">
+                    <i class="bi bi-hand-thumbs-up"></i>
+                    <span class="upvote-count"><?= $ticket['up_votes'] ?></span>
+                </button>
+                <button type="button" 
+                        class="btn <?= $ticket['user_vote'] === 'down' ? 'btn-danger' : 'btn-outline-danger' ?>"
+                        onclick="voteTicket(<?= $ticket['id'] ?>, '<?= $ticket['user_vote'] === 'down' ? 'none' : 'down' ?>')"
+                        title="<?= $ticket['downvoters'] ? 'Downvotes von: ' . htmlspecialchars($ticket['downvoters']) : 'Keine Downvotes' ?>">
+                    <i class="bi bi-hand-thumbs-down"></i>
+                    <span class="downvote-count"><?= $ticket['down_votes'] ?></span>
+                </button>
+            </div>
+            <?php endif; ?>
             <?php if ($isMasterLink): ?>
             <a href="ticket_edit.php?id=<?= $ticket['id'] ?>" class="btn btn-primary">
                 <i class="bi bi-pencil"></i> Bearbeiten
@@ -689,6 +722,50 @@ async function cancelCommentEdit(commentId) {
     } catch (error) {
         console.error('Error:', error);
         commentDiv.innerHTML = rawContent; // Fallback zur unformatierten Anzeige
+    }
+}
+
+// Ticket Voting
+async function voteTicket(ticketId, value) {
+    try {
+        const formData = new FormData();
+        formData.append('ticketId', ticketId);
+        formData.append('value', value);
+
+        const response = await fetch('api/vote_ticket.php', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update vote counts
+            const container = document.querySelector('.btn-group[role="group"][aria-label="Voting"]');
+            const upButton = container.querySelector('.btn:first-child');
+            const downButton = container.querySelector('.btn:last-child');
+            
+            // Update counts
+            upButton.querySelector('.upvote-count').textContent = data.stats.up_votes;
+            downButton.querySelector('.downvote-count').textContent = data.stats.down_votes;
+            
+            // Update button styles
+            upButton.className = `btn ${value === 'up' ? 'btn-success' : 'btn-outline-success'}`;
+            downButton.className = `btn ${value === 'down' ? 'btn-danger' : 'btn-outline-danger'}`;
+            
+            // Update tooltips
+            upButton.title = data.stats.upvoters ? `Upvotes von: ${data.stats.upvoters}` : 'Keine Upvotes';
+            downButton.title = data.stats.downvoters ? `Downvotes von: ${data.stats.downvoters}` : 'Keine Downvotes';
+            
+            // Update onclick handlers
+            upButton.setAttribute('onclick', `voteTicket(${ticketId}, '${value === 'up' ? 'none' : 'up'}')`);
+            downButton.setAttribute('onclick', `voteTicket(${ticketId}, '${value === 'down' ? 'none' : 'down'}')`);
+        } else {
+            alert('Fehler beim Abstimmen: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Fehler beim Abstimmen:', error);
+        alert('Fehler beim Abstimmen');
     }
 }
 

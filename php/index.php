@@ -1,5 +1,9 @@
 <?php
 declare(strict_types=1);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/includes/auth_check.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/Database.php';
@@ -87,7 +91,7 @@ $sql = "
            (SELECT COUNT(*) FROM comments WHERE ticket_id = t.id) as comment_count,
            GREATEST(t.created_at, COALESCE((SELECT MAX(created_at) FROM comments WHERE ticket_id = t.id), t.created_at)) as last_activity,
            (SELECT username FROM comments WHERE ticket_id = t.id ORDER BY created_at DESC LIMIT 1) as last_commenter,
-           (SELECT GROUP_CONCAT(DISTINCT username ORDER BY created_at)
+           (SELECT GROUP_CONCAT(DISTINCT username)
             FROM comments 
             WHERE ticket_id = t.id 
             AND username != (
@@ -96,8 +100,9 @@ $sql = "
                 WHERE c2.ticket_id = t.id 
                 ORDER BY created_at DESC 
                 LIMIT 1
-            )
-            GROUP BY ticket_id) as other_participants
+            )) as other_participants,
+           (SELECT GROUP_CONCAT(username) FROM ticket_votes WHERE ticket_id = t.id AND value = 'up') as up_voters,
+           (SELECT GROUP_CONCAT(username) FROM ticket_votes WHERE ticket_id = t.id AND value = 'down') as down_voters
     FROM tickets t
     JOIN ticket_status ts ON t.status_id = ts.id
     WHERE 1=1
@@ -227,19 +232,17 @@ $tickets = $stmt->fetchAll();
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th>Ticket-Nr.</th>
+                    <th style="width: 90px">Nr.</th>
                     <th>Titel</th>
-                    <th>Status</th>
-                    <th>Letzte Aktivität</th>
-                    <th>Kommentare</th>
-                    <th>Teilnehmer</th>
-                    <th>Zuständig</th>
+                    <th style="width: 130px">Status</th>
+                    <th style="width: 140px" class="text-center">Votes</th>
+                    <th style="width: 140px">Aktivität</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($tickets)): ?>
                 <tr>
-                    <td colspan="7" class="text-center py-3">
+                    <td colspan="5" class="text-center py-3">
                         <div class="alert alert-info mb-0">
                             <i class="bi bi-info-circle"></i> 
                             Keine Tickets gefunden. Passen Sie die Filter an oder erstellen Sie ein neues Ticket.
@@ -255,28 +258,68 @@ $tickets = $stmt->fetchAll();
                     ?>
                     <tr>
                         <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
-                            <a href="ticket_view.php?id=<?= $ticket['id'] ?>">
+                            <a href="ticket_view.php?id=<?= $ticket['id'] ?>" class="text-decoration-none">
                                 #<?= $ticket['id'] ?>
                             </a>
                         </td>
-                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>"><?= htmlspecialchars($ticket['title']) ?></td>
                         <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
-                            <span class="badge fw-bold" style="background-color: <?= htmlspecialchars($ticket['background_color']) ?>; color: #000000">
+                            <div>
+                                <a href="ticket_view.php?id=<?= $ticket['id'] ?>" class="text-decoration-none">
+                                    <?= htmlspecialchars($ticket['title']) ?>
+                                </a>
+                            </div>
+                            <small>
+                                <?php if ($ticket['assignee']): ?>
+                                <div class="text-dark">Zuständig: <?= htmlspecialchars($ticket['assignee']) ?></div>
+                                <?php endif; ?>
+                                <?php 
+                                $participants = [];
+                                if ($ticket['last_commenter']) {
+                                    $participants[] = $ticket['last_commenter'];
+                                }
+                                if ($ticket['other_participants']) {
+                                    $participants = array_merge($participants, explode(',', $ticket['other_participants']));
+                                }
+                                if (!empty($participants)): 
+                                ?>
+                                <div class="text-muted">
+                                    Teilnehmer: <?= htmlspecialchars(implode(', ', array_unique($participants))) ?>
+                                    <?php if ($ticket['comment_count'] > 0): ?>
+                                    <span class="ms-2">(<?= $ticket['comment_count'] ?> <?= $ticket['comment_count'] === 1 ? 'Kommentar' : 'Kommentare' ?>)</span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endif; ?>
+                            </small>
+                        </td>
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
+                            <span class="badge fw-normal" style="background-color: <?= htmlspecialchars($ticket['background_color']) ?>; color: #000000">
                                 <?= htmlspecialchars($ticket['status_name']) ?>
                             </span>
                         </td>
-                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>"><?= (new DateTime($ticket['last_activity']))->format('d.m.Y H:i') ?></td>
-                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>"><?= $ticket['comment_count'] ?></td>
-                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
-                            <div><?= $ticket['last_commenter'] ? htmlspecialchars($ticket['last_commenter']) : '-' ?></div>
-                            <?php if ($ticket['other_participants']): ?>
-                            <small class="text-muted">
-                                <?= htmlspecialchars($ticket['other_participants']) ?>
-                            </small>
+                        <td class="text-center <?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
+                            <?php
+                            $upVoters = $ticket['up_voters'] ? explode(',', $ticket['up_voters']) : [];
+                            $downVoters = $ticket['down_voters'] ? explode(',', $ticket['down_voters']) : [];
+                            if (!empty($upVoters) || !empty($downVoters)): 
+                            ?>
+                            <div class="d-flex flex-column gap-1">
+                                <?php foreach ($upVoters as $voter): ?>
+                                <div class="text-success small">
+                                    <?= htmlspecialchars($voter) ?>
+                                    <i class="bi bi-hand-thumbs-up-fill"></i>
+                                </div>
+                                <?php endforeach; ?>
+                                <?php foreach ($downVoters as $voter): ?>
+                                <div class="text-danger small">
+                                    <?= htmlspecialchars($voter) ?>
+                                    <i class="bi bi-hand-thumbs-down-fill"></i>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
                             <?php endif; ?>
                         </td>
                         <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
-                            <?= $ticket['assignee'] ? htmlspecialchars($ticket['assignee']) : '-' ?>
+                            <?= (new DateTime($ticket['last_activity']))->format('d.m.Y H:i') ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>
