@@ -136,6 +136,26 @@ require_once 'includes/header.php';
         </div>
     </div>
 
+    <?php if ($ticket['show_on_website']): ?>
+    <div class="card mb-4 border-info">
+        <div class="card-header bg-info bg-opacity-10 text-info">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-globe"></i> Website-Informationen
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-0">
+                <h6 class="text-muted mb-2">Öffentlicher Kommentar</h6>
+                <?php if (!empty($ticket['public_comment'])): ?>
+                    <p class="mb-0"><?= nl2br(htmlspecialchars($ticket['public_comment'])) ?></p>
+                <?php else: ?>
+                    <p class="text-muted mb-0"><em>Kein öffentlicher Kommentar vorhanden</em></p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <div class="card mb-4">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
