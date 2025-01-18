@@ -64,7 +64,7 @@ $stmt = $db->query("
     FROM ticket_status 
     WHERE is_active = 1 
     GROUP BY filter_category 
-    ORDER BY FIELD(filter_category, 'zurueckgestellt', 'in_bearbeitung', 'geschlossen', 'archiviert')
+    ORDER BY FIELD(filter_category, 'zurueckgestellt', 'in_bearbeitung', 'ready', 'geschlossen', 'archiviert')
 ");
 $filterCategories = $stmt->fetchAll();
 
@@ -203,6 +203,7 @@ $tickets = $stmt->fetchAll();
                             $categoryLabels = [
                                 'zurueckgestellt' => 'Zurückgestellt',
                                 'in_bearbeitung' => 'In Bearbeitung',
+                                'ready' => 'Bereit zur Vorstellung',
                                 'geschlossen' => 'Erledigt',
                                 'archiviert' => 'Archiviert'
                             ];
