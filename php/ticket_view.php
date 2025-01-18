@@ -107,9 +107,12 @@ require_once 'includes/header.php';
                             <i class="bi bi-person-circle fs-3 text-muted"></i>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="card-subtitle mb-1 text-muted">Zuständiger Bearbeiter</h6>
+                            <h6 class="card-subtitle mb-1 text-muted">Zuständig</h6>
                             <p class="card-text fs-5 mb-0">
-                                <?= !empty($ticket['assignee']) ? htmlspecialchars($ticket['assignee']) : '<span class="text-muted">Nicht zugewiesen</span>' ?>
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#assigneeModal" style="text-decoration: none; color: inherit;">
+                                    <?= !empty($ticket['assignee']) ? htmlspecialchars($ticket['assignee']) : '<span class="text-muted">Nicht zugewiesen</span>' ?>
+                                    <i class="bi bi-pencil-square ms-2 small"></i>
+                                </a>
                             </p>
                         </div>
                     </div>
@@ -326,6 +329,35 @@ require_once 'includes/header.php';
     </div>
 </div>
 
+<!-- Assignee Modal -->
+<div class="modal fade" id="assigneeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Zuständigkeit bearbeiten</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateAssigneeForm">
+                    <div class="mb-3">
+                        <label for="assigneeInput" class="form-label">Zuständig</label>
+                        <input type="text" class="form-control" id="assigneeInput" name="assignee" 
+                               value="<?= htmlspecialchars($ticket['assignee'] ?? '') ?>" 
+                               placeholder="Name oder Gruppe eingeben">
+                        <div class="form-text">
+                            Mehrere Zuständige können durch Komma getrennt werden.
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" onclick="updateAssignee()">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Add Comment Modal -->
 <div class="modal fade" id="addCommentModal" tabindex="-1">
     <div class="modal-dialog">
@@ -519,6 +551,30 @@ async function updateStatus() {
     } catch (error) {
         console.error('Error:', error);
         alert('Fehler beim Aktualisieren des Status');
+    }
+}
+
+async function updateAssignee() {
+    const assignee = document.getElementById('assigneeInput').value.trim();
+    const formData = new FormData();
+    formData.append('ticketId', '<?= $ticket['id'] ?>');
+    formData.append('assignee', assignee);
+    
+    try {
+        const response = await fetch('api/update_ticket_assignee.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Fehler beim Aktualisieren der Zuständigkeit');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Fehler beim Aktualisieren der Zuständigkeit');
     }
 }
 
