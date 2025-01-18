@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/includes/auth_check.php';
+require_once __DIR__ . '/includes/Database.php';
+require_once __DIR__ . '/includes/comment_formatter.php';
 
-require_once 'includes/Database.php';
 require_once 'includes/functions.php';
 require_once 'includes/auth.php';
 
@@ -236,8 +237,8 @@ require_once 'includes/header.php';
                     <?php endif; ?>
                 </div>
                 <div class="mt-2">
-                    <div class="comment-text" id="comment-text-<?= $comment['id'] ?>">
-                        <?= nl2br(htmlspecialchars($comment['content'])) ?>
+                    <div id="comment-text-<?= $comment['id'] ?>" class="comment-text" data-raw-content="<?= htmlspecialchars($comment['content']) ?>">
+                        <?= formatComment($comment['content']) ?>
                     </div>
                 </div>
                 <?php 
@@ -371,6 +372,12 @@ require_once 'includes/header.php';
                     <div class="mb-3">
                         <label for="commentContent" class="form-label">Kommentar</label>
                         <textarea class="form-control" id="commentContent" rows="3" required></textarea>
+                        <small class="text-muted">
+                            Unterstützte Formatierung:<br>
+                            **fett** oder __fett__, *kursiv* oder _kursiv_<br>
+                            [ ] Checkbox leer, [X] Checkbox ausgefüllt<br>
+                            URLs werden automatisch zu Links
+                        </small>
                     </div>
                 </form>
             </div>
@@ -383,6 +390,27 @@ require_once 'includes/header.php';
 </div>
 
 <script>
+// Alert-Funktion für Benachrichtigungen
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.setAttribute('role', 'alert');
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    // Füge die Alert-Box am Anfang der Seite ein
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Automatisch nach 5 Sekunden ausblenden
+    setTimeout(() => {
+        alertDiv.classList.remove('show');
+        setTimeout(() => alertDiv.remove(), 150);
+    }, 5000);
+}
+
 async function copyPartnerLink(link) {
     try {
         await navigator.clipboard.writeText(window.location.origin + window.location.pathname + '?partner=' + link);
@@ -581,60 +609,87 @@ async function updateAssignee() {
 // Kommentar-Bearbeitung
 async function startEditComment(commentId) {
     const commentDiv = document.getElementById(`comment-text-${commentId}`);
-    const content = commentDiv.innerText.trim();
+    const content = commentDiv.getAttribute('data-raw-content') || commentDiv.textContent.trim();
     
     // Erstelle Bearbeitungsformular
     commentDiv.innerHTML = `
-        <div class="edit-comment-form">
-            <textarea class="form-control mb-2" rows="10">${content}</textarea>
-            <div class="d-flex gap-2">
-                <button class="btn btn-primary btn-sm" onclick="saveComment(${commentId})">
-                    <i class="bi bi-check-lg"></i> Speichern
-                </button>
-                <button class="btn btn-outline-secondary btn-sm" onclick="cancelEdit(${commentId})">
-                    <i class="bi bi-x-lg"></i> Abbrechen
-                </button>
-            </div>
+        <div class="mb-2">
+            <textarea class="form-control" id="edit-comment-${commentId}" rows="3">${content}</textarea>
+        </div>
+        <div class="mb-2">
+            <small class="text-muted">
+                Unterstützte Formatierung:<br>
+                **fett** oder __fett__, *kursiv* oder _kursiv_<br>
+                [ ] Checkbox leer, [X] Checkbox ausgefüllt<br>
+                URLs werden automatisch zu Links
+            </small>
+        </div>
+        <div>
+            <button class="btn btn-primary btn-sm" onclick="saveCommentEdit(${commentId})">Speichern</button>
+            <button class="btn btn-secondary btn-sm" onclick="cancelCommentEdit(${commentId})">Abbrechen</button>
         </div>
     `;
 }
 
-async function saveComment(commentId) {
-    const commentDiv = document.getElementById(`comment-text-${commentId}`);
-    const content = commentDiv.querySelector('textarea').value;
+async function saveCommentEdit(commentId) {
+    const content = document.getElementById(`edit-comment-${commentId}`).value;
+    const formData = new FormData();
+    formData.append('commentId', commentId);
+    formData.append('content', content);
     
     try {
+        // Speichere den bearbeiteten Kommentar und hole das formatierte HTML
         const response = await fetch('api/edit_comment.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                commentId: commentId,
-                content: content
-            })
+            credentials: 'include',  // Wichtig: Session-Cookie mitsenden
+            body: formData
         });
         
         const data = await response.json();
-        
-        if (response.ok) {
-            // Aktualisiere den Kommentar
-            commentDiv.innerHTML = nl2br(escapeHtml(content));
-            // Zeige Erfolgsmeldung
-            showAlert('success', 'Kommentar wurde aktualisiert');
-            // Seite neu laden um die aktualisierten Zeitstempel zu sehen
-            setTimeout(() => location.reload(), 1000);
-        } else {
+        if (!data.success) {
             throw new Error(data.error || 'Fehler beim Speichern des Kommentars');
         }
+
+        // Aktualisiere die Anzeige
+        const commentDiv = document.getElementById(`comment-text-${commentId}`);
+        commentDiv.setAttribute('data-raw-content', content);
+        commentDiv.innerHTML = data.formattedContent;
+
+        // Zeige eine Erfolgsmeldung
+        showAlert('success', 'Kommentar wurde aktualisiert');
+        
+        // Lade die Seite neu um den "bearbeitet" Status zu aktualisieren
+        setTimeout(() => location.reload(), 1000);
+        
     } catch (error) {
+        console.error('Error:', error);
         showAlert('danger', error.message);
     }
 }
 
-function cancelEdit(commentId) {
-    // Seite neu laden um den ursprünglichen Zustand wiederherzustellen
-    location.reload();
+async function cancelCommentEdit(commentId) {
+    const commentDiv = document.getElementById(`comment-text-${commentId}`);
+    const rawContent = commentDiv.getAttribute('data-raw-content');
+    
+    // Hole das formatierte HTML vom Server
+    const formData = new FormData();
+    formData.append('content', rawContent);
+    
+    try {
+        const response = await fetch('api/format_comment.php', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        if (data.success) {
+            commentDiv.innerHTML = data.formattedContent;
+        } else {
+            throw new Error('Fehler beim Formatieren des Kommentars');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        commentDiv.innerHTML = rawContent; // Fallback zur unformatierten Anzeige
+    }
 }
 
 // Hilfsfunktionen

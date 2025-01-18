@@ -1,8 +1,18 @@
 <?php
 declare(strict_types=1);
+
+// Fehlerbehandlung einrichten
+function handleError($errno, $errstr, $errfile, $errline) {
+    header('Content-Type: application/json');
+    http_response_code(500);
+    echo json_encode(['error' => $errstr]);
+    exit;
+}
+set_error_handler('handleError');
+
 require_once __DIR__ . '/../includes/auth_check.php';
-require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/Database.php';
+require_once __DIR__ . '/../includes/comment_formatter.php';
 
 header('Content-Type: application/json');
 
@@ -13,29 +23,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// JSON-Daten aus dem Request-Body lesen
-$json = file_get_contents('php://input');
-$data = json_decode($json, true);
+$commentId = filter_input(INPUT_POST, 'commentId', FILTER_VALIDATE_INT);
+$content = trim(filter_input(INPUT_POST, 'content') ?? '');
+$username = $_SESSION['username'] ?? '';
 
-if (!$data || !isset($data['commentId']) || !isset($data['content'])) {
+if (!$commentId || !$content) {
     http_response_code(400);
     echo json_encode(['error' => 'Fehlende Parameter']);
     exit;
 }
 
-$commentId = (int)$data['commentId'];
-$content = trim($data['content']);
-$username = getCurrentUsername();
-
 if (!$username) {
     http_response_code(401);
     echo json_encode(['error' => 'Nicht authentifiziert']);
-    exit;
-}
-
-if (empty($content)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Kommentarinhalt darf nicht leer sein']);
     exit;
 }
 
@@ -56,24 +56,20 @@ try {
     $stmt = $db->prepare("
         UPDATE comments 
         SET content = ?, 
-            updated_at = CURRENT_TIMESTAMP,
-            is_edited = TRUE
-        WHERE id = ? 
-        AND username = ?
+            is_edited = TRUE,
+            updated_at = CURRENT_TIMESTAMP 
+        WHERE id = ?
     ");
+    $stmt->execute([$content, $commentId]);
     
-    $success = $stmt->execute([$content, $commentId, $username]);
+    // Formatiere den Inhalt
+    $formattedContent = formatComment($content);
     
-    if ($success) {
-        echo json_encode([
-            'success' => true,
-            'message' => 'Kommentar wurde aktualisiert'
-        ]);
-    } else {
-        throw new Exception('Fehler beim Aktualisieren des Kommentars');
-    }
-    
+    echo json_encode([
+        'success' => true,
+        'formattedContent' => $formattedContent
+    ]);
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Serverfehler: ' . $e->getMessage()]);
+    echo json_encode(['error' => $e->getMessage()]);
 }
