@@ -161,7 +161,7 @@ require_once 'includes/header.php';
             </p>
             <?php else: ?>
                 <?php foreach ($comments as $comment): ?>
-                    <?= renderComment($comment) ?>
+                    <?= renderComment($comment, $partner !== null) ?>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
