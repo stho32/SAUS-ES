@@ -152,7 +152,15 @@ $tickets = $stmt->fetchAll();
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Ticket-Übersicht</h1>
+        <div>
+            <h1 class="mb-0">Ticket-Übersicht</h1>
+            <small class="text-muted">
+                Brauchen Sie Hilfe? 
+                <a href="https://chatgpt.com/g/g-AYCDjxFTR-saus" target="_blank" class="text-decoration-none">
+                    <i class="bi bi-robot"></i> SAUS-Berater-GPT
+                </a>
+            </small>
+        </div>
         <a href="<?= $basePath ?>/create_ticket.php" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Neues Ticket
         </a>
