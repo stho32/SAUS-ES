@@ -88,6 +88,7 @@ if ($isFirstVisit) {
 // Baue SQL-Query
 $sql = "
     SELECT t.*, ts.name as status_name, ts.background_color, ts.filter_category,
+           t.show_on_website,
            (SELECT COUNT(*) FROM comments WHERE ticket_id = t.id) as comment_count,
            GREATEST(t.created_at, COALESCE((SELECT MAX(created_at) FROM comments WHERE ticket_id = t.id), t.created_at)) as last_activity,
            (SELECT username FROM comments WHERE ticket_id = t.id ORDER BY created_at DESC LIMIT 1) as last_commenter,
@@ -233,6 +234,7 @@ $tickets = $stmt->fetchAll();
             <thead>
                 <tr>
                     <th style="width: 90px">Nr.</th>
+                    <th style="width: 40px"></th>
                     <th>Titel</th>
                     <th style="width: 130px">Status</th>
                     <th style="width: 140px" class="text-center">Votes</th>
@@ -242,7 +244,7 @@ $tickets = $stmt->fetchAll();
             <tbody>
                 <?php if (empty($tickets)): ?>
                 <tr>
-                    <td colspan="5" class="text-center py-3">
+                    <td colspan="6" class="text-center py-3">
                         <div class="alert alert-info mb-0">
                             <i class="bi bi-info-circle"></i> 
                             Keine Tickets gefunden. Passen Sie die Filter an oder erstellen Sie ein neues Ticket.
@@ -261,6 +263,11 @@ $tickets = $stmt->fetchAll();
                             <a href="ticket_view.php?id=<?= $ticket['id'] ?>" class="text-decoration-none">
                                 #<?= $ticket['id'] ?>
                             </a>
+                        </td>
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>; text-align: center;">
+                            <?php if ($ticket['show_on_website']): ?>
+                                <i class="bi bi-globe text-primary" title="Öffentlich auf der Website sichtbar"></i>
+                            <?php endif; ?>
                         </td>
                         <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
                             <div>
