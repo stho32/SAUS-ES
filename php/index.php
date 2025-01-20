@@ -277,7 +277,7 @@ $tickets = $stmt->fetchAll();
                             </div>
                             <small>
                                 <?php if ($ticket['assignee']): ?>
-                                <div class="text-dark">Zuständig: <?= htmlspecialchars($ticket['assignee']) ?></div>
+                                <div class="text-dark">Zuständig: <strong><?= htmlspecialchars($ticket['assignee']) ?></strong></div>
                                 <?php endif; ?>
                                 <?php 
                                 $participants = [];
