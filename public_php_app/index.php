@@ -25,7 +25,7 @@ try {
         LEFT JOIN comments c ON t.id = c.ticket_id
         WHERE t.show_on_website = TRUE
         GROUP BY t.id
-        ORDER BY t.id DESC
+        ORDER BY t.title ASC
     ");
     $stmt->execute();
     $tickets = $stmt->fetchAll();
@@ -186,6 +186,15 @@ $pageTitle = "Aktuelle Vorgänge des Siedlungsausschusses";
             color: #dc3545;
             font-size: 0.9rem;
         }
+        .toc-list {
+            list-style: disc;
+            padding-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .toc-list li {
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
     </style>
 </head>
 <body>
@@ -224,6 +233,20 @@ $pageTitle = "Aktuelle Vorgänge des Siedlungsausschusses";
                         <strong>Wichtig:</strong> Bitte geben Sie bei jeder Kontaktaufnahme die Vorgangs-Nr. an!
                     </div>
                 </div>
+
+                <h2 class="mt-4">Inhaltsverzeichnis</h2>
+                <ul class="toc-list">
+                    <?php foreach ($tickets as $ticket): ?>
+                        <li>
+                            <a href="#ticket-<?= $ticket['id'] ?>" class="text-decoration-none">
+                                <?= htmlspecialchars($ticket['title']) ?> (Vorgang #<?= (string)$ticket['id'] ?>)
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+
+            <hr/>
+            
             </div>
         </div>
 
@@ -235,7 +258,7 @@ $pageTitle = "Aktuelle Vorgänge des Siedlungsausschusses";
             <div class="row">
                 <?php foreach ($tickets as $ticket): ?>
                     <div class="col-12">
-                        <div class="card">
+                        <div class="card mb-4" id="ticket-<?= $ticket['id'] ?>">
                             <div class="card-header">
                                 <div class="ticket-header">
                                     <div class="d-flex justify-content-between align-items-center">
