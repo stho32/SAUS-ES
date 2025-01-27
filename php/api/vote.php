@@ -37,7 +37,7 @@ $logger->logError("voteType: " . var_export($voteType, true));
 $username = getCurrentUsername();
 $logger->logError("username: " . var_export($username, true));
 
-if (!$commentId || !$voteType || !$username || !in_array($voteType, ['up', 'down'], true)) {
+if (!$commentId || !$voteType || !$username || !in_array($voteType, ['up', 'down', 'none'], true)) {
     $logger->logError("Ungültige Parameter: commentId=$commentId, voteType=$voteType, username=$username");
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Ungültige Parameter']);

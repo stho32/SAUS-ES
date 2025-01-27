@@ -430,6 +430,12 @@ async function addComment() {
 
 async function voteComment(commentId, voteType) {
     try {
+        // Wenn der Button bereits aktiv ist (also bereits gevoted wurde),
+        // setzen wir voteType auf 'none' um die Stimme zurückzunehmen
+        const voteButton = event.currentTarget;
+        const isActive = voteButton.classList.contains(voteType === 'up' ? 'btn-success' : 'btn-danger');
+        const finalVoteType = isActive ? 'none' : voteType;
+
         const response = await fetch('api/vote.php', {
             method: 'POST',
             headers: {
@@ -437,7 +443,7 @@ async function voteComment(commentId, voteType) {
             },
             body: JSON.stringify({
                 commentId: commentId,
-                voteType: voteType
+                voteType: finalVoteType
             })
         });
         
@@ -652,7 +658,7 @@ async function voteTicket(ticketId, value) {
         }
     } catch (error) {
         console.error('Fehler beim Abstimmen:', error);
-        alert('Fehler beim Abstimmen');
+        alert('Fehler beim Abstimmen: ' + error.message);
     }
 }
 
