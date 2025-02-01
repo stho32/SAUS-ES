@@ -103,8 +103,8 @@ $sql = "
                 ORDER BY created_at DESC 
                 LIMIT 1
             )) as other_participants,
-           (SELECT GROUP_CONCAT(username) FROM ticket_votes WHERE ticket_id = t.id AND value = 'up') as up_voters,
-           (SELECT GROUP_CONCAT(username) FROM ticket_votes WHERE ticket_id = t.id AND value = 'down') as down_voters
+           (SELECT COUNT(*) FROM ticket_votes WHERE ticket_id = t.id AND value = 'up') as up_votes,
+           (SELECT COUNT(*) FROM ticket_votes WHERE ticket_id = t.id AND value = 'down') as down_votes
     FROM tickets t
     JOIN ticket_status ts ON t.status_id = ts.id
     WHERE 1=1
@@ -306,25 +306,16 @@ $tickets = $stmt->fetchAll();
                             </span>
                         </td>
                         <td class="text-center <?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
-                            <?php
-                            $upVoters = $ticket['up_voters'] ? explode(',', $ticket['up_voters']) : [];
-                            $downVoters = $ticket['down_voters'] ? explode(',', $ticket['down_voters']) : [];
-                            if (!empty($upVoters) || !empty($downVoters)): 
-                            ?>
-                            <div class="d-flex flex-column gap-1">
-                                <?php foreach ($upVoters as $voter): ?>
-                                <div class="text-success small">
-                                    <?= htmlspecialchars($voter) ?>
-                                    <i class="bi bi-hand-thumbs-up-fill"></i>
-                                </div>
-                                <?php endforeach; ?>
-                                <?php foreach ($downVoters as $voter): ?>
-                                <div class="text-danger small">
-                                    <?= htmlspecialchars($voter) ?>
-                                    <i class="bi bi-hand-thumbs-down-fill"></i>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
+                            <?php if ($ticket['up_votes'] > 0 || $ticket['down_votes'] > 0): ?>
+                                <?php if ($ticket['up_votes'] > 0): ?>
+                                    <?= $ticket['up_votes'] ?>× <i class="bi bi-hand-thumbs-up-fill text-success"></i>
+                                <?php endif; ?>
+                                <?php if ($ticket['up_votes'] > 0 && $ticket['down_votes'] > 0): ?>, <?php endif; ?>
+                                <?php if ($ticket['down_votes'] > 0): ?>
+                                    <?= $ticket['down_votes'] ?>× <i class="bi bi-hand-thumbs-down-fill text-danger"></i>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                -
                             <?php endif; ?>
                         </td>
                         <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>; text-align: center;">
