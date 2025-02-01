@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
 require_once __DIR__ . '/includes/auth_check.php';
 
 require_once 'includes/Database.php';
@@ -111,6 +114,18 @@ require_once 'includes/header.php';
                                    placeholder="Namen der zuständigen Bearbeiter">
                         </div>
 
+                        <div class="mb-3">
+                            <label for="affectedNeighbors" class="form-label">Anzahl betroffener Nachbarn</label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="affectedNeighbors" 
+                                   name="affected_neighbors" 
+                                   value="<?= $ticket['affected_neighbors'] !== null ? htmlspecialchars((string)$ticket['affected_neighbors']) : '' ?>" 
+                                   min="0"
+                                   placeholder="Anzahl der betroffenen Nachbarn">
+                            <div class="form-text">Leer lassen wenn unbekannt.</div>
+                        </div>
+
                         <?php if (!empty($ticket['ki_summary'])): ?>
                         <div class="card mb-3">
                             <div class="card-body">
@@ -187,7 +202,8 @@ async function updateTicket() {
         statusId: document.getElementById('status').value,
         assignee: document.getElementById('assignee').value,
         showOnWebsite: document.getElementById('showOnWebsite').checked,
-        publicComment: document.getElementById('publicComment').value
+        publicComment: document.getElementById('publicComment').value,
+        affectedNeighbors: document.getElementById('affectedNeighbors').value === '' ? null : parseInt(document.getElementById('affectedNeighbors').value)
     };
 
     try {
