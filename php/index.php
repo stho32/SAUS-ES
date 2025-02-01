@@ -76,6 +76,8 @@ $filterCategories = $stmt->fetchAll();
 $isFirstVisit = !isset($_GET['filter_applied']);
 $selectedCategories = [];
 $searchText = isset($_GET['search']) ? trim($_GET['search']) : '';
+$sortField = isset($_GET['sort']) ? trim($_GET['sort']) : 'last_activity';
+$sortOrder = isset($_GET['order']) && strtolower($_GET['order']) === 'asc' ? 'ASC' : 'DESC';
 
 if ($isFirstVisit) {
     // Standardmäßig "In Bearbeitung" auswählen
@@ -148,7 +150,32 @@ if ($searchText !== '') {
     }
 }
 
-$sql .= " ORDER BY last_activity DESC";
+$sql .= " ORDER BY ";
+
+// Bestimme Sortierreihenfolge
+switch ($sortField) {
+    case 'id':
+        $sql .= "t.id";
+        break;
+    case 'title':
+        $sql .= "t.title";
+        break;
+    case 'status':
+        $sql .= "ts.name";
+        break;
+    case 'votes':
+        $sql .= "(SELECT COUNT(*) FROM ticket_votes WHERE ticket_id = t.id AND value = 'up') - (SELECT COUNT(*) FROM ticket_votes WHERE ticket_id = t.id AND value = 'down')";
+        break;
+    case 'affected_neighbors':
+        $sql .= "COALESCE(t.affected_neighbors, -1)";
+        break;
+    case 'last_activity':
+    default:
+        $sql .= "last_activity";
+        break;
+}
+
+$sql .= " " . $sortOrder;
 
 // Führe Query aus
 $stmt = $db->prepare($sql);
@@ -234,13 +261,39 @@ $tickets = $stmt->fetchAll();
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th style="width: 90px">Nr.</th>
+                    <?php 
+                    function getSortLink($field, $currentSort, $currentOrder, $label) {
+                        $params = array_merge($_GET, ['sort' => $field]);
+                        $isCurrentSort = $currentSort === $field;
+                        
+                        if ($isCurrentSort) {
+                            $params['order'] = $currentOrder === 'ASC' ? 'desc' : 'asc';
+                            $icon = $currentOrder === 'ASC' ? 'bi-sort-down' : 'bi-sort-up';
+                            $iconClass = 'text-dark';
+                        } else {
+                            $params['order'] = 'desc';
+                            $icon = 'bi-arrow-down-up';
+                            $iconClass = 'text-muted opacity-25';
+                        }
+                        
+                        $url = '?' . http_build_query($params);
+                        $labelHtml = $isCurrentSort ? "<strong>$label</strong>" : $label;
+                        return "<a href=\"$url\" class=\"text-dark text-decoration-none\">$labelHtml <i class=\"bi $icon $iconClass\"></i></a>";
+                    }
+
+                    // Setze Standardsortierung in URL-Parameter
+                    if (!isset($_GET['sort'])) {
+                        $_GET['sort'] = 'last_activity';
+                        $_GET['order'] = 'desc';
+                    }
+                    ?>
+                    <th style="width: 90px"><?= getSortLink('id', $sortField, $sortOrder, 'Nr.') ?></th>
                     <th style="width: 40px"></th>
-                    <th>Titel</th>
-                    <th style="width: 130px">Status</th>
-                    <th style="width: 140px" class="text-center">Votes</th>
-                    <th style="width: 50px" class="text-center">ABN</th>
-                    <th style="width: 140px">Aktivität</th>
+                    <th><?= getSortLink('title', $sortField, $sortOrder, 'Titel') ?></th>
+                    <th style="width: 130px"><?= getSortLink('status', $sortField, $sortOrder, 'Status') ?></th>
+                    <th style="width: 140px" class="text-center"><?= getSortLink('votes', $sortField, $sortOrder, 'Votes') ?></th>
+                    <th style="width: 50px" class="text-center"><?= getSortLink('affected_neighbors', $sortField, $sortOrder, 'ABN') ?></th>
+                    <th style="width: 140px"><?= getSortLink('last_activity', $sortField, $sortOrder, 'Aktivität') ?></th>
                 </tr>
             </thead>
             <tbody>
