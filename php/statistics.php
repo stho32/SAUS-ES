@@ -32,12 +32,11 @@ $statusStats = $stmt->fetchAll();
 $stmt = $db->query("
     SELECT 
         COUNT(t.id) as total_tickets,
-        COALESCE(SUM(t.affected_neighbors), 0) as total_neighbors,
-        COALESCE(AVG(NULLIF(t.affected_neighbors, 0)), 0) as avg_neighbors
+        COALESCE(SUM(COALESCE(t.affected_neighbors, 0)), 0) as total_neighbors,
+        COALESCE(AVG(COALESCE(t.affected_neighbors, 0)), 0) as avg_neighbors
     FROM tickets t
     JOIN ticket_status ts ON t.status_id = ts.id
     WHERE ts.filter_category != 'archiviert'
-    AND t.affected_neighbors IS NOT NULL
 ");
 $neighborStats = $stmt->fetch();
 $totalNeighbors = (int)$neighborStats['total_neighbors'];
