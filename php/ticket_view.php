@@ -42,7 +42,12 @@ require_once 'includes/header.php';
     <div class="mb-4">
         <div class="mb-3">
             <h1 class="mb-0"><?= htmlspecialchars($ticket['title']) ?></h1>
-            <small class="text-muted">Ticket #<?= $ticket['id'] ?></small>
+            <small class="text-muted">
+                Ticket #<?= $ticket['id'] ?>
+                <a href="ticket_email.php?id=<?= $ticket['id'] ?>" class="text-muted ms-2" title="E-Mail-Ansicht">
+                    <i class="bi bi-envelope"></i>
+                </a>
+            </small>
         </div>
         <div class="d-flex flex-wrap gap-2">
             <?php if (!$partner): ?>
