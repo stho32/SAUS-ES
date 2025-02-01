@@ -89,6 +89,7 @@ if ($isFirstVisit) {
 $sql = "
     SELECT t.*, ts.name as status_name, ts.background_color, ts.filter_category,
            t.show_on_website,
+           t.affected_neighbors,
            (SELECT COUNT(*) FROM comments WHERE ticket_id = t.id) as comment_count,
            GREATEST(t.created_at, COALESCE((SELECT MAX(created_at) FROM comments WHERE ticket_id = t.id), t.created_at)) as last_activity,
            (SELECT username FROM comments WHERE ticket_id = t.id ORDER BY created_at DESC LIMIT 1) as last_commenter,
@@ -238,13 +239,14 @@ $tickets = $stmt->fetchAll();
                     <th>Titel</th>
                     <th style="width: 130px">Status</th>
                     <th style="width: 140px" class="text-center">Votes</th>
+                    <th style="width: 50px" class="text-center">ABN</th>
                     <th style="width: 140px">Aktivität</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($tickets)): ?>
                 <tr>
-                    <td colspan="6" class="text-center py-3">
+                    <td colspan="7" class="text-center py-3">
                         <div class="alert alert-info mb-0">
                             <i class="bi bi-info-circle"></i> 
                             Keine Tickets gefunden. Passen Sie die Filter an oder erstellen Sie ein neues Ticket.
@@ -324,6 +326,9 @@ $tickets = $stmt->fetchAll();
                                 <?php endforeach; ?>
                             </div>
                             <?php endif; ?>
+                        </td>
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>; text-align: center;">
+                            <?= $ticket['affected_neighbors'] !== null ? (int)$ticket['affected_neighbors'] : '-' ?>
                         </td>
                         <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
                             <?= (new DateTime($ticket['last_activity']))->format('d.m.Y H:i') ?>
