@@ -310,6 +310,9 @@ const baseChartOptions = {
         legend: {
             display: false
         }
+    },
+    onHover: (event, elements) => {
+        event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
     }
 };
 
