@@ -1,42 +1,51 @@
 <?php
 declare(strict_types=1);
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
-
 require_once __DIR__ . '/includes/auth_check.php';
-require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/Database.php';
+require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/auth.php';
 
-// Prüfe Master-Link
+// Prüfe Authentifizierung
 requireMasterLink();
-
-// Header einbinden
-require_once __DIR__ . '/includes/header.php';
 
 // Hole die Statistiken
 $db = Database::getInstance()->getConnection();
 
 // Hole Status-Statistiken (ohne archiviert)
 $stmt = $db->query("
-    SELECT ts.name, ts.filter_category, ts.background_color, COUNT(t.id) as ticket_count
+    SELECT ts.id, ts.name, ts.filter_category, ts.background_color, COUNT(t.id) as ticket_count
     FROM ticket_status ts
     LEFT JOIN tickets t ON t.status_id = ts.id
     WHERE ts.is_active = 1 
     AND ts.filter_category != 'archiviert'
-    GROUP BY ts.id
+    GROUP BY ts.id, ts.name, ts.filter_category, ts.background_color, ts.sort_order
     ORDER BY ts.sort_order
 ");
 $statusStats = $stmt->fetchAll();
 
 // Hole Zuständigen-Statistiken für Tickets in Bearbeitung
 $stmt = $db->query("
+    WITH RECURSIVE split_assignees AS (
+        SELECT 
+            t.id,
+            SUBSTRING_INDEX(SUBSTRING_INDEX(COALESCE(t.assignee, 'Nicht zugewiesen'), ',', n.n), ',', -1) as single_assignee
+        FROM tickets t
+        CROSS JOIN (
+            SELECT a.N + b.N * 10 + 1 n
+            FROM (SELECT 0 N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) a
+            CROSS JOIN (SELECT 0 N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) b
+            ORDER BY n
+        ) n
+        WHERE n.n <= 1 + LENGTH(COALESCE(t.assignee, 'Nicht zugewiesen')) - LENGTH(REPLACE(COALESCE(t.assignee, 'Nicht zugewiesen'), ',', ''))
+    )
     SELECT 
-        COALESCE(t.assignee, 'Nicht zugewiesen') as assignee,
-        COUNT(*) as ticket_count
+        TRIM(REPLACE(sa.single_assignee, '+', '')) as assignee,
+        COUNT(DISTINCT t.id) as ticket_count
     FROM tickets t
     JOIN ticket_status ts ON t.status_id = ts.id
+    JOIN split_assignees sa ON t.id = sa.id
     WHERE ts.filter_category = 'in_bearbeitung'
-    GROUP BY t.assignee
+    GROUP BY TRIM(REPLACE(sa.single_assignee, '+', ''))
     HAVING ticket_count > 0
     ORDER BY ticket_count DESC
 ");
@@ -44,13 +53,27 @@ $assigneeStatsInProgress = $stmt->fetchAll();
 
 // Hole Zuständigen-Statistiken für abgeschlossene Tickets
 $stmt = $db->query("
+    WITH RECURSIVE split_assignees AS (
+        SELECT 
+            t.id,
+            SUBSTRING_INDEX(SUBSTRING_INDEX(COALESCE(t.assignee, 'Nicht zugewiesen'), ',', n.n), ',', -1) as single_assignee
+        FROM tickets t
+        CROSS JOIN (
+            SELECT a.N + b.N * 10 + 1 n
+            FROM (SELECT 0 N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) a
+            CROSS JOIN (SELECT 0 N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) b
+            ORDER BY n
+        ) n
+        WHERE n.n <= 1 + LENGTH(COALESCE(t.assignee, 'Nicht zugewiesen')) - LENGTH(REPLACE(COALESCE(t.assignee, 'Nicht zugewiesen'), ',', ''))
+    )
     SELECT 
-        COALESCE(t.assignee, 'Nicht zugewiesen') as assignee,
-        COUNT(*) as ticket_count
+        TRIM(REPLACE(sa.single_assignee, '+', '')) as assignee,
+        COUNT(DISTINCT t.id) as ticket_count
     FROM tickets t
     JOIN ticket_status ts ON t.status_id = ts.id
+    JOIN split_assignees sa ON t.id = sa.id
     WHERE ts.filter_category IN ('ready', 'geschlossen')
-    GROUP BY t.assignee
+    GROUP BY TRIM(REPLACE(sa.single_assignee, '+', ''))
     HAVING ticket_count > 0
     ORDER BY ticket_count DESC
 ");
@@ -104,7 +127,20 @@ foreach ($assigneeStatsCompleted as $stat) {
     $assigneeLabelsCompleted[] = $stat['assignee'];
     $assigneeDataCompleted[] = (int)$stat['ticket_count'];
 }
+
+// Seitentitel setzen
+$pageTitle = 'Statistiken';
+require_once __DIR__ . '/includes/header.php';
 ?>
+
+<!-- DataTables CSS -->
+<link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
+<!-- JavaScript-Bibliotheken -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
 
 <div class="container mt-4">
     <div class="row">
@@ -119,6 +155,30 @@ foreach ($assigneeStatsCompleted as $stat) {
                     </h5>
                     <div style="height: 400px;">
                         <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="bi bi-person-fill-gear text-warning"></i>
+                        Tickets aktuell in Bearbeitung durch
+                    </h5>
+                    <div style="height: 400px;">
+                        <canvas id="assigneeChartInProgress"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="bi bi-person-check-fill text-success"></i>
+                        Abgeschlossene Aufgaben pro Zuständiger
+                    </h5>
+                    <div style="height: 400px;">
+                        <canvas id="assigneeChartCompleted"></canvas>
                     </div>
                 </div>
             </div>
@@ -155,38 +215,126 @@ foreach ($assigneeStatsCompleted as $stat) {
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-4">
-                        <i class="bi bi-person-fill-gear text-warning"></i>
-                        Tickets aktuell in Bearbeitung durch
-                    </h5>
-                    <div style="height: 400px;">
-                        <canvas id="assigneeChartInProgress"></canvas>
-                    </div>
-                </div>
+<!-- Ticket-Liste Modal -->
+<div class="modal fade" id="ticketListModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tickets</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-4">
-                        <i class="bi bi-person-check-fill text-success"></i>
-                        Abgeschlossene Aufgaben pro Zuständiger
-                    </h5>
-                    <div style="height: 400px;">
-                        <canvas id="assigneeChartCompleted"></canvas>
-                    </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table id="ticketTable" class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Titel</th>
+                                <th>Status</th>
+                                <th>Zuständig</th>
+                                <th>Erstellt</th>
+                                <th>Betroffene Nachbarn</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Chart.js einbinden -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
+// Ticket-Tabelle initialisieren
+let ticketTable = new DataTable('#ticketTable', {
+    language: {
+        url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/de-DE.json'
+    }
+});
+
+// Funktion zum Laden der Tickets
+async function loadTickets(filterType, filterValue) {
+    try {
+        const response = await fetch('api/get_tickets.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ filterType, filterValue })
+        });
+        
+        if (!response.ok) throw new Error('Netzwerk-Antwort war nicht ok');
+        
+        const tickets = await response.json();
+        
+        // Tabelle leeren und neu befüllen
+        ticketTable.clear();
+        tickets.forEach(ticket => {
+            ticketTable.row.add([
+                `<a href="ticket_view.php?id=${ticket.id}">#${ticket.id}</a>`,
+                ticket.title,
+                ticket.status,
+                ticket.assignee || 'Nicht zugewiesen',
+                new Date(ticket.created_at).toLocaleDateString('de-DE'),
+                ticket.affected_neighbors || '0'
+            ]);
+        });
+        ticketTable.draw();
+        
+        // Modal öffnen
+        const modal = new bootstrap.Modal(document.getElementById('ticketListModal'));
+        modal.show();
+    } catch (error) {
+        console.error('Fehler:', error);
+        alert('Fehler beim Laden der Tickets');
+    }
+}
+
+// Gemeinsame Optionen für alle Charts
+const baseChartOptions = {
+    maintainAspectRatio: true,
+    scales: {
+        y: {
+            beginAtZero: true,
+            ticks: {
+                stepSize: 1
+            }
+        }
+    },
+    plugins: {
+        legend: {
+            display: false
+        }
+    }
+};
+
+// Handler-Funktionen für die verschiedenen Chart-Typen
+function handleStatusChartClick(chart, event, elements) {
+    if (!elements || elements.length === 0) return;
+    const index = elements[0].index;
+    const label = chart.data.labels[index];
+    loadTickets('status', label);
+}
+
+function handleAssigneeInProgressClick(chart, event, elements) {
+    if (!elements || elements.length === 0) return;
+    const index = elements[0].index;
+    const label = chart.data.labels[index];
+    loadTickets('assignee_in_progress', label);
+}
+
+function handleAssigneeCompletedClick(chart, event, elements) {
+    if (!elements || elements.length === 0) return;
+    const index = elements[0].index;
+    const label = chart.data.labels[index];
+    loadTickets('assignee_completed', label);
+}
+
 // Status-Chart erstellen
 const ctx = document.getElementById('statusChart').getContext('2d');
 new Chart(ctx, {
@@ -202,20 +350,9 @@ new Chart(ctx, {
         }]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                display: false
-            }
+        ...baseChartOptions,
+        onClick: function(event, elements) {
+            handleStatusChartClick(this, event, elements);
         }
     }
 });
@@ -235,20 +372,9 @@ new Chart(ctxAssigneeInProgress, {
         }]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                display: false
-            }
+        ...baseChartOptions,
+        onClick: function(event, elements) {
+            handleAssigneeInProgressClick(this, event, elements);
         }
     }
 });
@@ -262,26 +388,15 @@ new Chart(ctxAssigneeCompleted, {
         datasets: [{
             label: 'Anzahl Tickets',
             data: <?= json_encode($assigneeDataCompleted) ?>,
-            backgroundColor: 'rgba(40, 167, 69, 0.5)',    // Grün
-            borderColor: 'rgba(40, 167, 69, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.5)',   // Türkis
+            borderColor: 'rgba(75, 192, 192, 1)',
             borderWidth: 1
         }]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                display: false
-            }
+        ...baseChartOptions,
+        onClick: function(event, elements) {
+            handleAssigneeCompletedClick(this, event, elements);
         }
     }
 });
