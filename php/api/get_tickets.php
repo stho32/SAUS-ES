@@ -17,9 +17,22 @@ try {
 
     $db = Database::getInstance()->getConnection();
     
-    // Basis-Query
+    // Basis-Query mit Split-Assignees CTE
     $sql = "
-        SELECT 
+        WITH RECURSIVE split_assignees AS (
+            SELECT 
+                t.id,
+                SUBSTRING_INDEX(SUBSTRING_INDEX(COALESCE(t.assignee, 'Nicht zugewiesen'), ',', n.n), ',', -1) as single_assignee
+            FROM tickets t
+            CROSS JOIN (
+                SELECT a.N + b.N * 10 + 1 n
+                FROM (SELECT 0 N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) a
+                CROSS JOIN (SELECT 0 N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) b
+                ORDER BY n
+            ) n
+            WHERE n.n <= 1 + LENGTH(COALESCE(t.assignee, 'Nicht zugewiesen')) - LENGTH(REPLACE(COALESCE(t.assignee, 'Nicht zugewiesen'), ',', ''))
+        )
+        SELECT DISTINCT
             t.id,
             t.title,
             t.assignee,
@@ -28,6 +41,7 @@ try {
             ts.name as status
         FROM tickets t
         JOIN ticket_status ts ON t.status_id = ts.id
+        LEFT JOIN split_assignees sa ON t.id = sa.id
         WHERE 1=1
     ";
     
@@ -42,19 +56,13 @@ try {
             
         case 'assignee_in_progress':
             $sql .= " AND ts.filter_category = 'in_bearbeitung'";
-            $sql .= " AND (t.assignee LIKE ? OR t.assignee LIKE ? OR t.assignee LIKE ? OR t.assignee = ?)";
-            $params[] = $filterValue . ',%';
-            $params[] = '%,' . $filterValue;
-            $params[] = '%+' . $filterValue;
+            $sql .= " AND TRIM(REPLACE(sa.single_assignee, '+', '')) = ?";
             $params[] = $filterValue;
             break;
             
         case 'assignee_completed':
             $sql .= " AND ts.filter_category IN ('ready', 'geschlossen')";
-            $sql .= " AND (t.assignee LIKE ? OR t.assignee LIKE ? OR t.assignee LIKE ? OR t.assignee = ?)";
-            $params[] = $filterValue . ',%';
-            $params[] = '%,' . $filterValue;
-            $params[] = '%+' . $filterValue;
+            $sql .= " AND TRIM(REPLACE(sa.single_assignee, '+', '')) = ?";
             $params[] = $filterValue;
             break;
             
