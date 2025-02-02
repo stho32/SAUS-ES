@@ -4,108 +4,112 @@ Ein webbasiertes Ticket-System mit Abstimmungs- und Kommentarfunktionen, optimie
 
 ## Features
 
-- **Responsives Mobile-First-Design**
-  - Optimiert für Smartphones und Tablets
-  - Adaptive Layouts für alle Bildschirmgrößen
-  - Touch-freundliche Bedienelemente
-  - Schnelle Ladezeiten durch optimierte Assets
-
 - **Ticket-Management**
   - Erstellen und Verwalten von Tickets
-  - KI-gestützte Zusammenfassungen
-  - Status-Tracking (offen, geschlossen, archiviert)
+  - Status-Tracking mit farblicher Kennzeichnung
+  - Mehrere Zuständige pro Ticket (komma- oder plus-getrennt)
+  - Erfassung betroffener Nachbarn
 
 - **Kommentar-System**
   - Mehrere Kommentare pro Ticket
   - Chronologische Anzeige
   - Abstimmungsmöglichkeit pro Kommentar (👍/👎)
-  - Echtzeit-Aktualisierung der Abstimmungen
+  - Bearbeitungshistorie für Kommentare
+  - Sichtbarkeitssteuerung für Kommentare
+
+- **Statistik-Dashboard**
+  - Interaktive Grafiken mit Chart.js
+  - Ticket-Verteilung nach Status
+  - Zuständigen-Übersicht für Tickets in Bearbeitung
+  - Abgeschlossene Aufgaben pro Zuständiger
+  - Klickbare Balken für detaillierte Ticket-Listen
+  - Unterstützung für kombinierte Zuständige in der Auswertung
 
 - **Partner-System**
   - Generierung von Partner-Links pro Ticket
   - Komma-separierte Liste aller Partner
   - Eingeschränkter Zugriff für Partner
-  - Automatische Partner-Listen-Aktualisierung
 
 - **Master-Link-System**
   - Zentrale Zugriffskontrolle
   - Tracking der letzten Nutzung
-  - Flexible Berechtigungsverwaltung
 
 ## Technische Anforderungen
 
-- PHP 8.4 oder höher
-- MariaDB 10.5 oder höher
-- Apache mit mod_rewrite
-- Bootstrap 5.3
+- PHP 8.0 oder höher
+- MySQL/MariaDB mit PDO-Unterstützung
+
+- Bootstrap 5.x
+- Chart.js 3.x für Statistik-Visualisierungen
+- DataTables 1.11.5 für interaktive Tabellen
 - Moderner Browser mit JavaScript-Unterstützung
 
 ## Installation
 
 1. Klonen Sie das Repository
-2. Führen Sie die SQL-Migrationen aus:
+2. Kopieren Sie die Konfigurationsvorlage:
+   ```bash
+   cp php/config.example.php php/config.php
+   ```
+3. Passen Sie die Datenbankverbindung in `php/config.php` an
+4. Führen Sie die SQL-Migrationen in numerischer Reihenfolge aus:
    ```bash
    mysql -u [user] -p [database] < mysql/01_tables.sql
-   mysql -u [user] -p [database] < mysql/02_initial_data.sql
-   mysql -u [user] -p [database] < mysql/03_add_comment_votes.sql
-   mysql -u [user] -p [database] < mysql/04_view_and_functions.sql
+   mysql -u [user] -p [database] < mysql/02_add_description.sql
+   # Führen Sie alle weiteren Migrations-Dateien aus
    ```
-3. Konfigurieren Sie die Datenbankverbindung in `php/config.php`
-4. Erstellen Sie einen Master-Link (siehe SETUP.md)
 
 ## Nutzung
 
-### Mobile Nutzung
-1. Öffnen Sie die Anwendung auf Ihrem Smartphone oder Tablet
-2. Nutzen Sie die Touch-optimierte Navigation
-3. Erstellen und verwalten Sie Tickets mit natürlichen Touch-Gesten
-
 ### Ticket erstellen
 1. Öffnen Sie die Anwendung mit einem gültigen Master-Link
-2. Klicken/Tippen Sie auf "Neues Ticket"
+2. Klicken Sie auf "Neues Ticket"
 3. Füllen Sie Titel und Beschreibung aus
+4. Optional: Fügen Sie mehrere Zuständige hinzu (getrennt durch Komma oder Plus)
+5. Geben Sie betroffene Nachbarn an
+
+### Statistiken und Auswertungen
+1. Öffnen Sie die Statistik-Seite über die Navigation
+2. Sehen Sie die Verteilung der Tickets nach Status
+3. Analysieren Sie die Zuständigen-Übersicht
+4. Klicken Sie auf einen Balken für detaillierte Ticket-Listen
+5. Filtern und sortieren Sie die Ticket-Listen nach Bedarf
 
 ### Kommentare und Abstimmungen
 1. Öffnen Sie ein Ticket
 2. Fügen Sie Kommentare hinzu
-3. Stimmen Sie für einzelne Kommentare (👍/👎)
-4. Sehen Sie die Abstimmungsstatistiken in Echtzeit
+3. Steuern Sie die Sichtbarkeit der Kommentare
+4. Stimmen Sie für Kommentare (👍/👎)
 
 ### Partner-Links
 1. Öffnen Sie ein Ticket
 2. Nutzen Sie das Partner-Formular
-3. Geben Sie den Partner-Namen ein
+3. Geben Sie die Partner-Namen ein
 4. Teilen Sie den generierten Link
 
-## Mobile-First-Design-Prinzipien
+## Design-Prinzipien
 
 - **Progressive Enhancement**
   - Basis-Funktionalität auch ohne JavaScript
   - Erweiterte Features bei modernen Browsern
-  - Optimierte Performance auf allen Geräten
+  - Interaktive Datenvisualisierungen mit Fallbacks
 
-- **Touch-Optimierung**
-  - Große, gut erreichbare Bedienelemente
-  - Swipe-Gesten für Navigation
-  - Optimierte Formulare für mobile Eingabe
-
-- **Responsive Images**
-  - Automatische Bildgrößenanpassung
-  - Lazy Loading für bessere Performance
-  - WebP-Support mit Fallbacks
+- **Responsive Design**
+  - Optimiert für alle Bildschirmgrößen
+  - Touch-freundliche Bedienelemente
+  - Responsive Charts mit automatischer Größenanpassung
+  - Optimierte Tabellen-Darstellung auf mobilen Geräten
 
 - **Performance**
   - Minimierte CSS/JS-Dateien
-  - Optimierte Asset-Delivery
-  - Schnelle Ladezeiten auch bei 3G
+  - Effiziente Datenabfragen für Statistiken
+  - Asynchrone Aktualisierung von Diagrammen
+  - Optimierte Datenbank-Indizes
 
 ## Sicherheit
 
-- Alle Eingaben werden validiert und escaped
-- Prepared Statements für alle Datenbankzugriffe
-- Session-basierte Authentifizierung
-- XSS-Schutz durch htmlspecialchars
-
-## Lizenz
-
-MIT License - Siehe LICENSE.md für Details
+- Strikte Typisierung in PHP (declare(strict_types=1))
+- PDO mit vorbereiteten Statements
+- XSS-Schutz durch HTML-Escaping
+- CSRF-Schutz für Formulare
+- Zugriffskontrolle über Master-Links
