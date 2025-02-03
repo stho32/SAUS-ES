@@ -1,10 +1,14 @@
 <?php
 declare(strict_types=1);
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
 require_once __DIR__ . '/includes/auth_check.php';
 require_once __DIR__ . '/includes/Database.php';
 require_once __DIR__ . '/includes/comment_formatter.php';
 require_once __DIR__ . '/includes/ticket_functions.php';
 require_once __DIR__ . '/includes/comment_functions.php';
+require_once __DIR__ . '/includes/attachment_functions.php';
 require_once 'includes/functions.php';
 require_once 'includes/auth.php';
 
@@ -28,8 +32,10 @@ try {
     // Hole Ticket-Details und Kommentare
     $ticket = getTicketDetails($ticketId, getCurrentUsername());
     $comments = getTicketComments($ticketId, getCurrentUsername());
+    $attachments = getTicketAttachments($ticketId);
     $allStatus = getAllTicketStatus();
 } catch (Exception $e) {
+    error_log("Fehler in ticket_view.php: " . $e->getMessage());
     header('Location: error.php?type=error&message=' . urlencode($e->getMessage()));
     exit;
 }
@@ -160,6 +166,62 @@ require_once 'includes/header.php';
         </div>
     </div>
     <?php endif; ?>
+
+    <!-- Attachments Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Anhänge</h5>
+            
+            <!-- Upload Form -->
+            <form id="uploadForm" class="mb-3">
+                <div class="input-group">
+                    <input type="file" class="form-control" id="fileInput" name="file">
+                    <button type="submit" class="btn btn-primary">Hochladen</button>
+                </div>
+                <div id="uploadError" class="alert alert-danger mt-2" style="display: none;"></div>
+            </form>
+            
+            <!-- Attachments Grid -->
+            <div class="attachment-grid" id="attachmentGrid">
+                <?php if (empty($attachments)): ?>
+                    <p class="text-muted">Keine Anhänge vorhanden.</p>
+                <?php else: ?>
+                    <?php foreach ($attachments as $attachment): ?>
+                        <div class="attachment-item" id="attachment-<?= $attachment['id'] ?>">
+                            <?php if (str_starts_with($attachment['file_type'], 'image/')): ?>
+                                <a href="api/get_attachment.php?id=<?= $attachment['id'] ?>&ticketId=<?= $ticketId ?>" 
+                                   target="_blank" class="attachment-preview">
+                                    <img src="api/get_attachment.php?id=<?= $attachment['id'] ?>&ticketId=<?= $ticketId ?>" 
+                                         alt="<?= htmlspecialchars($attachment['original_filename']) ?>">
+                                </a>
+                            <?php else: ?>
+                                <a href="api/get_attachment.php?id=<?= $attachment['id'] ?>&ticketId=<?= $ticketId ?>" 
+                                   target="_blank" class="attachment-file">
+                                    <i class="bi bi-file-earmark"></i>
+                                </a>
+                            <?php endif; ?>
+                            <div class="attachment-info">
+                                <div class="attachment-name" title="<?= htmlspecialchars($attachment['original_filename']) ?>">
+                                    <?= htmlspecialchars($attachment['original_filename']) ?>
+                                </div>
+                                <div class="attachment-meta">
+                                    <small class="text-muted">
+                                        <?= htmlspecialchars($attachment['uploaded_by']) ?> - 
+                                        <?= date('d.m.Y H:i', strtotime($attachment['upload_date'])) ?>
+                                    </small>
+                                    <button class="btn btn-sm btn-danger delete-attachment" 
+                                            data-id="<?= $attachment['id'] ?>"
+                                            title="Löschen">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 
     <div class="card mb-4">
         <div class="card-header">
@@ -699,9 +761,142 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('showAllComments').addEventListener('change', function() {
     localStorage.setItem('showAllComments', this.checked);
 });
+
+// Attachment handling
+document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    const fileInput = document.getElementById('fileInput');
+    const errorDiv = document.getElementById('uploadError');
+    
+    try {
+        errorDiv.style.display = 'none';
+        
+        if (!fileInput.files.length) {
+            throw new Error('Bitte wählen Sie eine Datei aus.');
+        }
+        
+        formData.append('file', fileInput.files[0]);
+        formData.append('ticketId', <?= $ticketId ?>);
+        
+        const response = await fetch('api/upload_attachment.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            location.reload();
+        } else {
+            throw new Error(result.error || 'Upload fehlgeschlagen');
+        }
+    } catch (error) {
+        errorDiv.textContent = error.message;
+        errorDiv.style.display = 'block';
+    }
+});
+
+document.querySelectorAll('.delete-attachment').forEach(button => {
+    button.addEventListener('click', async function() {
+        if (!confirm('Möchten Sie diese Datei wirklich löschen?')) {
+            return;
+        }
+        
+        const attachmentId = this.dataset.id;
+        const formData = new FormData();
+        formData.append('id', attachmentId);
+        formData.append('ticketId', <?= $ticketId ?>);
+        
+        try {
+            const response = await fetch('api/delete_attachment.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                document.getElementById('attachment-' + attachmentId).remove();
+            } else {
+                alert(result.error || 'Löschen fehlgeschlagen');
+            }
+        } catch (error) {
+            alert('Löschen fehlgeschlagen');
+        }
+    });
+});
 </script>
 
 <style>
+.attachment-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.attachment-item {
+    flex: 0 0 200px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.attachment-preview {
+    display: block;
+    height: 150px;
+    overflow: hidden;
+    background: #f8f9fa;
+    text-align: center;
+}
+
+.attachment-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.attachment-file {
+    display: flex;
+    height: 150px;
+    background: #f8f9fa;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.attachment-file i {
+    font-size: 3rem;
+}
+
+.attachment-info {
+    padding: 0.5rem;
+}
+
+.attachment-name {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.attachment-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.25rem;
+}
+
+.attachment-meta small {
+    font-size: 0.8rem;
+}
+
+.delete-attachment {
+    padding: 0.1rem 0.3rem;
+}
+
 .comment-hidden {
     opacity: 0.5;
     display: none;
