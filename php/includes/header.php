@@ -52,6 +52,11 @@ if (substr($basePath, -8) === '/includes') {
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link btn btn-success text-white mx-2" href="./create_ticket.php">
+                            <i class="bi bi-plus-lg"></i> Neues Ticket
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="./statistics.php">
                             <i class="bi bi-graph-up"></i> Statistiken
                         </a>
@@ -59,11 +64,6 @@ if (substr($basePath, -8) === '/includes') {
                     <li class="nav-item">
                         <a class="nav-link" href="./saus_news.php">
                             <i class="bi bi-newspaper"></i> SAUS-News
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./create_ticket.php">
-                            <i class="bi bi-plus-lg"></i> Neues Ticket
                         </a>
                     </li>
                 </ul>
