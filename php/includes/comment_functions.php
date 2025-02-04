@@ -26,7 +26,7 @@ function getTicketComments(int $ticketId, string $username): array {
         LEFT JOIN comment_statistics cs ON c.id = cs.comment_id
         LEFT JOIN comment_votes cv ON c.id = cv.comment_id AND cv.username = ?
         WHERE c.ticket_id = ?
-        ORDER BY c.created_at ASC
+        ORDER BY c.created_at DESC
     ");
     $stmt->execute([$username, $ticketId]);
     return $stmt->fetchAll();
