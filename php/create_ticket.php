@@ -66,6 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$ticketNumber, $title, $description, $statusId, $assignee]);
         $ticketId = $db->lastInsertId();
 
+        // Füge Status-Kommentar hinzu
+        require_once 'includes/comment_functions.php';
+        addStatusChangeComment((int)$ticketId, (int)$statusId);
+
         $db->commit();
 
         // Leite zur Ticket-Ansicht weiter

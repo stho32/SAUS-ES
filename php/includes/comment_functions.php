@@ -146,3 +146,78 @@ function renderComment(array $comment, bool $isPartner = false): string {
     $html .= '</div>';
     return $html;
 }
+
+/**
+ * Fügt ein neues Kommentar zu einem Ticket hinzu
+ * 
+ * @param int $ticketId Die ID des Tickets
+ * @param string $comment Der Kommentartext
+ * @param string|null $username Optional: Der Benutzername. Wenn nicht angegeben, wird der aktuelle Benutzer verwendet.
+ * @return bool True wenn das Kommentar erfolgreich hinzugefügt wurde, false im Fehlerfall
+ * @throws PDOException wenn ein Datenbankfehler auftritt
+ */
+function addTicketComment(int $ticketId, string $comment, ?string $username = null): bool {
+    if ($username === null) {
+        $username = getCurrentUsername();
+    }
+
+    if (empty(trim($comment))) {
+        return false;
+    }
+
+    try {
+        $db = Database::getInstance()->getConnection();
+        
+        // Prüfe ob das Ticket existiert
+        $checkStmt = $db->prepare("SELECT id FROM tickets WHERE id = ?");
+        $checkStmt->execute([$ticketId]);
+        if (!$checkStmt->fetch()) {
+            return false;
+        }
+
+        $stmt = $db->prepare("
+            INSERT INTO comments (ticket_id, username, content, created_at)
+            VALUES (?, ?, ?, NOW())
+        ");
+        
+        return $stmt->execute([$ticketId, $username, $comment]);
+    } catch (PDOException $e) {
+        error_log("Fehler beim Hinzufügen des Kommentars: " . $e->getMessage());
+        throw $e;
+    }
+}
+
+/**
+ * Erstellt ein System-Kommentar für eine Statusänderung
+ * 
+ * @param int $ticketId Die ID des Tickets
+ * @param int $statusId Die ID des neuen Status
+ * @param int|null $oldStatusId Optional: Die ID des alten Status
+ * @return bool True wenn das Kommentar erfolgreich hinzugefügt wurde
+ */
+function addStatusChangeComment(int $ticketId, int $statusId, ?int $oldStatusId = null): bool {
+    $db = Database::getInstance()->getConnection();
+    
+    // Hole den neuen Status-Namen
+    $stmt = $db->prepare("SELECT name FROM ticket_status WHERE id = ?");
+    $stmt->execute([$statusId]);
+    $newStatus = $stmt->fetch(PDO::FETCH_COLUMN);
+    
+    if ($oldStatusId) {
+        // Hole den alten Status-Namen
+        $stmt->execute([$oldStatusId]);
+        $oldStatus = $stmt->fetch(PDO::FETCH_COLUMN);
+        $commentText = sprintf(
+            "Status wurde von '%s' zu '%s' geändert.",
+            $oldStatus,
+            $newStatus
+        );
+    } else {
+        $commentText = sprintf(
+            "Ticket wurde mit Status '%s' erstellt.",
+            $newStatus
+        );
+    }
+    
+    return addTicketComment($ticketId, $commentText);
+}
