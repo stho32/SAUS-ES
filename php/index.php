@@ -193,10 +193,6 @@ $tickets = $stmt->fetchAll();
                 <a href="https://chatgpt.com/g/g-AYCDjxFTR-saus" target="_blank" class="text-decoration-none">
                     <i class="bi bi-robot"></i> SAUS-Berater-GPT
                 </a>
-                | 
-                <a href="<?= $basePath ?>/statistics.php" class="text-decoration-none">
-                    <i class="bi bi-bar-chart-fill"></i> Statistiken
-                </a>
             </small>
         </div>
         <a href="<?= $basePath ?>/create_ticket.php" class="btn btn-success">
