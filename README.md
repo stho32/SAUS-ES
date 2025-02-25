@@ -1,6 +1,6 @@
 # SAUS-ES
 
-Ein webbasiertes Ticket-System mit Abstimmungs- und Kommentarfunktionen, optimiert für Entwicklungsteams. Das System wurde nach dem Mobile-First-Prinzip entwickelt und bietet eine optimale Nutzererfahrung auf allen Geräten.
+Ein webbasiertes Ticket-System mit Abstimmungs- und Kommentarfunktionen, optimiert für kleine Gruppen mit hohem gegenseitigen Vertrauen. Das System wurde nach dem Mobile-First-Prinzip entwickelt und bietet eine optimale Nutzererfahrung auf allen Geräten.
 
 ## Features
 
