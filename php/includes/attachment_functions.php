@@ -88,7 +88,10 @@ function getUploadPath(int $ticketId): string {
 function saveAttachment(int $ticketId, array $fileInfo, string $uploadedBy): int {
     global $db;
     
-    $stmt = $db->getConnection()->prepare('INSERT INTO ticket_attachments 
+    // Überprüfen, ob $db ein PDO-Objekt oder eine Database-Instanz ist
+    $connection = ($db instanceof PDO) ? $db : $db->getConnection();
+    
+    $stmt = $connection->prepare('INSERT INTO ticket_attachments 
         (ticket_id, filename, original_filename, file_type, file_size, uploaded_by, upload_date) 
         VALUES (?, ?, ?, ?, ?, ?, NOW())');
         
@@ -101,14 +104,17 @@ function saveAttachment(int $ticketId, array $fileInfo, string $uploadedBy): int
         $uploadedBy
     ]);
     
-    return (int)$db->getConnection()->lastInsertId();
+    return (int)$connection->lastInsertId();
 }
 
 function getTicketAttachments(int $ticketId): array {
     global $db;
     
     try {
-        $stmt = $db->getConnection()->prepare('SELECT * FROM ticket_attachments WHERE ticket_id = ? ORDER BY upload_date DESC');
+        // Überprüfen, ob $db ein PDO-Objekt oder eine Database-Instanz ist
+        $connection = ($db instanceof PDO) ? $db : $db->getConnection();
+        
+        $stmt = $connection->prepare('SELECT * FROM ticket_attachments WHERE ticket_id = ? ORDER BY upload_date DESC');
         $stmt->execute([$ticketId]);
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -121,8 +127,11 @@ function getTicketAttachments(int $ticketId): array {
 function deleteAttachment(int $attachmentId, int $ticketId): bool {
     global $db;
     
+    // Überprüfen, ob $db ein PDO-Objekt oder eine Database-Instanz ist
+    $connection = ($db instanceof PDO) ? $db : $db->getConnection();
+    
     // Hole Dateiinformationen
-    $stmt = $db->getConnection()->prepare('SELECT filename FROM ticket_attachments WHERE id = ? AND ticket_id = ?');
+    $stmt = $connection->prepare('SELECT filename FROM ticket_attachments WHERE id = ? AND ticket_id = ?');
     $stmt->execute([$attachmentId, $ticketId]);
     $attachment = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -137,6 +146,6 @@ function deleteAttachment(int $attachmentId, int $ticketId): bool {
     }
     
     // Lösche Datenbankeintrag
-    $stmt = $db->getConnection()->prepare('DELETE FROM ticket_attachments WHERE id = ? AND ticket_id = ?');
+    $stmt = $connection->prepare('DELETE FROM ticket_attachments WHERE id = ? AND ticket_id = ?');
     return $stmt->execute([$attachmentId, $ticketId]);
 }

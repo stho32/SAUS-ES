@@ -6,6 +6,20 @@ ini_set('display_errors', '1');
 require_once __DIR__ . '/includes/auth_check.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/Database.php';
+require_once __DIR__ . '/includes/attachment_functions.php';
+
+// Lade Pfad-Konfiguration
+$pathsConfigFile = __DIR__ . '/includes/paths_config.php';
+$pathsConfigExampleFile = __DIR__ . '/includes/paths_config.example.php';
+
+// Wenn die eigentliche Konfiguration nicht existiert, aber das Example, warnen
+if (!file_exists($pathsConfigFile) && file_exists($pathsConfigExampleFile)) {
+    error_log("WARNUNG: paths_config.php nicht gefunden. Bitte kopieren Sie paths_config.example.php zu paths_config.php und passen Sie sie an.");
+    // Trotzdem weitermachen mit der Example-Datei
+    $pathsConfigFile = $pathsConfigExampleFile;
+}
+
+$pathsConfig = file_exists($pathsConfigFile) ? require_once $pathsConfigFile : ['image_gallery_url' => '../public_php_app/imageview'];
 
 // Prüfe Master-Link
 requireMasterLink();
@@ -43,6 +57,21 @@ $stmt = $db->prepare("
 $stmt->execute([$ticketId]);
 $comments = $stmt->fetchAll();
 
+// Prüfe, ob es Anhänge gibt
+$attachments = getTicketAttachments($ticketId);
+$hasImages = false;
+
+// Prüfe, ob Bilder vorhanden sind
+foreach ($attachments as $attachment) {
+    if (strpos($attachment['file_type'], 'image/') === 0) {
+        $hasImages = true;
+        break;
+    }
+}
+
+// URL zur Bildergalerie aus Konfiguration
+$imageGalleryUrl = $pathsConfig['image_gallery_url'];
+
 // Header einbinden
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -76,6 +105,17 @@ require_once __DIR__ . '/includes/header.php';
                                 <div class="mb-4">
                                     <div style="white-space: pre-wrap;"><?= htmlspecialchars($ticket['description']) ?></div>
                                 </div>
+
+                                <?php if ($hasImages && isset($ticket['secret_string'])): ?>
+                                <div class="alert alert-info mb-4">
+                                    <i class="bi bi-images"></i> <strong>Bilder anzeigen:</strong><br>
+                                    <a href="<?= htmlspecialchars($imageGalleryUrl) ?>/?code=<?= urlencode($ticket['secret_string']) ?>" 
+                                       target="_blank" class="alert-link">
+                                        Hier klicken, um die Bilder zu diesem Vorgang zu öffnen
+                                    </a>
+                                    <div class="mt-2 small">Dieser Link kann kopiert und per E-Mail weitergegeben werden.</div>
+                                </div>
+                                <?php endif; ?>
 
                                 <?php if (!empty($comments)): ?>
                                 <hr>
