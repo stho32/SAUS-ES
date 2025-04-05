@@ -32,6 +32,9 @@ Enthält SQL-Migrationsdateien in chronologischer Reihenfolge:
   - Nachbarschaftsinformationen
   - Anhänge
   - SecretString für externe Bildanzeige
+- **15_add_follow_up_date.sql**: Hinzufügen eines Wiedervorlagedatums zu Tickets
+
+Hinweis: Die Migrations werden ausgeführt, aber nicht in der Datenbank protokolliert. Es gibt keine Tabelle zur Verfolgung der angewendeten Migrationen.
 
 ### /php
 

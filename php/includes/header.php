@@ -52,6 +52,11 @@ if (substr($basePath, -8) === '/includes') {
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="./follow_up.php">
+                            <i class="bi bi-calendar-check"></i> Dran bleiben
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link btn btn-success text-white mx-2" href="./create_ticket.php">
                             <i class="bi bi-plus-lg"></i> Neues Ticket
                         </a>

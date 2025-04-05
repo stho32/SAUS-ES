@@ -313,20 +313,20 @@ $tickets = $stmt->fetchAll();
                         $activityClass = $ticket['filter_category'] === 'in_bearbeitung' ? getActivityClass($ticket['last_activity']) : '';
                         $bgColor = $ticket['filter_category'] === 'in_bearbeitung' ? $ticket['background_color'] : '#f8f9fa';
                     ?>
-                    <tr>
+                    <tr onclick="window.location='ticket_view.php?id=<?= $ticket['id'] ?>&ref=index.php';" style="cursor: pointer;">
                         <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
-                            <a href="ticket_view.php?id=<?= $ticket['id'] ?>" class="text-decoration-none">
+                            <a href="ticket_view.php?id=<?= $ticket['id'] ?>&ref=index.php" class="text-decoration-none">
                                 #<?= $ticket['id'] ?>
                             </a>
                         </td>
-                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>; text-align: center;">
+                        <td class="<?= $activityClass ?>" style="text-align: center;">
                             <?php if ($ticket['show_on_website']): ?>
                                 <i class="bi bi-globe text-primary" title="Öffentlich auf der Website sichtbar"></i>
                             <?php endif; ?>
                         </td>
-                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
+                        <td class="<?= $activityClass ?>">
                             <div>
-                                <a href="ticket_view.php?id=<?= $ticket['id'] ?>" class="text-decoration-none">
+                                <a href="ticket_view.php?id=<?= $ticket['id'] ?>&ref=index.php" class="text-decoration-none">
                                     <?= htmlspecialchars($ticket['title']) ?>
                                 </a>
                             </div>
@@ -353,12 +353,12 @@ $tickets = $stmt->fetchAll();
                                 <?php endif; ?>
                             </small>
                         </td>
-                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
+                        <td class="<?= $activityClass ?>">
                             <span class="badge fw-normal" style="background-color: <?= htmlspecialchars($ticket['background_color']) ?>; color: #000000">
                                 <?= htmlspecialchars($ticket['status_name']) ?>
                             </span>
                         </td>
-                        <td class="text-center <?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
+                        <td class="text-center <?= $activityClass ?>">
                             <?php if ($ticket['up_votes'] > 0 || $ticket['down_votes'] > 0): ?>
                                 <?php if ($ticket['up_votes'] > 0): ?>
                                     <?= $ticket['up_votes'] ?>× <i class="bi bi-hand-thumbs-up-fill text-success"></i>
@@ -371,10 +371,10 @@ $tickets = $stmt->fetchAll();
                                 -
                             <?php endif; ?>
                         </td>
-                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>; text-align: center;">
+                        <td class="<?= $activityClass ?>" style="text-align: center;">
                             <?= $ticket['affected_neighbors'] !== null ? (int)$ticket['affected_neighbors'] : '-' ?>
                         </td>
-                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
+                        <td class="<?= $activityClass ?>">
                             <?= (new DateTime($ticket['last_activity']))->format('d.m.Y H:i') ?>
                         </td>
                     </tr>

@@ -28,6 +28,13 @@ if (!$ticketId) {
     exit;
 }
 
+// Bestimme, woher der Benutzer kommt (Standardmäßig index.php)
+$referer = isset($_GET['ref']) ? $_GET['ref'] : 'index.php';
+// Erlaubte Referer-Werte validieren
+if (!in_array($referer, ['index.php', 'follow_up.php'])) {
+    $referer = 'index.php';
+}
+
 try {
     // Hole Ticket-Details und Kommentare
     $ticket = getTicketDetails($ticketId, getCurrentUsername());
@@ -75,11 +82,11 @@ require_once 'includes/header.php';
             </div>
             <?php endif; ?>
             <?php if ($isMasterLink): ?>
-            <a href="ticket_edit.php?id=<?= $ticket['id'] ?>" class="btn btn-primary">
+            <a href="ticket_edit.php?id=<?= $ticket['id'] ?>&ref=<?= $referer ?>" class="btn btn-primary">
                 <i class="bi bi-pencil"></i> Bearbeiten
             </a>
             <?php endif; ?>
-            <a href="index.php" class="btn btn-outline-secondary">
+            <a href="<?= $referer ?>" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Zurück
             </a>
         </div>

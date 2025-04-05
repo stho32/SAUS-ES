@@ -45,6 +45,8 @@ try {
     $showOnWebsite = (bool)($data['showOnWebsite'] ?? false);
     $publicComment = trim($data['publicComment'] ?? '');
     $affectedNeighbors = isset($data['affectedNeighbors']) ? $data['affectedNeighbors'] : null;
+    $followUpDate = isset($data['followUpDate']) && !empty($data['followUpDate']) ? $data['followUpDate'] : null;
+    $doNotTrack = (bool)($data['doNotTrack'] ?? false);
 
     // Validiere die Daten
     if (!$ticketId || empty($title)) {
@@ -70,7 +72,9 @@ try {
             assignee = ?,
             show_on_website = ?,
             public_comment = ?,
-            affected_neighbors = ?
+            affected_neighbors = ?,
+            follow_up_date = ?,
+            do_not_track = ?
         WHERE id = ?
     ";
     
@@ -83,6 +87,8 @@ try {
         $showOnWebsite, 
         $publicComment, 
         $affectedNeighbors,
+        $followUpDate,
+        $doNotTrack,
         $ticketId
     ];
     

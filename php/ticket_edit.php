@@ -21,6 +21,13 @@ if (!$ticketId) {
     exit;
 }
 
+// Bestimme den ursprünglichen Referer
+$referer = isset($_GET['ref']) ? $_GET['ref'] : 'index.php';
+// Erlaubte Referer-Werte validieren
+if (!in_array($referer, ['index.php', 'follow_up.php'])) {
+    $referer = 'index.php';
+}
+
 $db = Database::getInstance()->getConnection();
 
 try {
@@ -57,7 +64,7 @@ require_once 'includes/header.php';
             <small class="text-muted">Ticket #<?= $ticket['id'] ?></small>
         </div>
         <div>
-            <a href="ticket_view.php?id=<?= $ticketId ?>" class="btn btn-outline-secondary">
+            <a href="ticket_view.php?id=<?= $ticketId ?>&ref=<?= $referer ?>" class="btn btn-outline-secondary">
                 <i class="bi bi-x-lg"></i> Abbrechen
             </a>
             <button type="button" class="btn btn-primary ms-2" id="saveButton" onclick="updateTicket()">
@@ -169,6 +176,29 @@ require_once 'includes/header.php';
                         </div>
 
                         <div class="mb-3">
+                            <label for="followUpDate" class="form-label">Wiedervorlagedatum</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="followUpDate" 
+                                       value="<?= $ticket['follow_up_date'] ? date('Y-m-d', strtotime($ticket['follow_up_date'])) : '' ?>">
+                                <button class="btn btn-outline-secondary" type="button" id="clearFollowUpDate">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">Setzen Sie ein Datum, an dem dieses Ticket erneut betrachtet werden sollte.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="doNotTrack" 
+                                       <?= isset($ticket['do_not_track']) && $ticket['do_not_track'] ? 'checked' : '' ?>>
+                                <label class="form-check-label" for="doNotTrack">
+                                    Nicht verfolgen
+                                </label>
+                                <div class="form-text">Ticket wird in der "Dran bleiben"-Übersicht nicht angezeigt.</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="showOnWebsite" 
                                        <?= $ticket['show_on_website'] ? 'checked' : '' ?>>
@@ -203,7 +233,9 @@ async function updateTicket() {
         assignee: document.getElementById('assignee').value,
         showOnWebsite: document.getElementById('showOnWebsite').checked,
         publicComment: document.getElementById('publicComment').value,
-        affectedNeighbors: document.getElementById('affectedNeighbors').value === '' ? null : parseInt(document.getElementById('affectedNeighbors').value)
+        affectedNeighbors: document.getElementById('affectedNeighbors').value === '' ? null : parseInt(document.getElementById('affectedNeighbors').value),
+        followUpDate: document.getElementById('followUpDate').value,
+        doNotTrack: document.getElementById('doNotTrack').checked
     };
 
     try {
@@ -227,6 +259,13 @@ async function updateTicket() {
         alert('Fehler beim Speichern des Tickets');
     }
 }
+</script>
+
+<script>
+// Funktion zum Löschen des Wiedervorlagedatums
+document.getElementById('clearFollowUpDate').addEventListener('click', function() {
+    document.getElementById('followUpDate').value = '';
+});
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
