@@ -22,11 +22,14 @@ Diese Anforderung beschreibt die Implementierung einer neuen Funktion, die es er
 
 * Es soll eine neue Gesamtübersicht "Dran bleiben" erstellt werden, die folgende Eigenschaften hat:
   * Grundsätzlich ist die Ansicht ähnlich wie die bestehende Gesamtübersicht aufgebaut
-  * Die Sortierung und Einfärbung erfolgt aber nach folgenden Kriterien:
+  * Es werden nur Tickets angezeigt, die entweder:
+    * Kein Wiedervorlagedatum haben ODER
+    * Ein Wiedervorlagedatum haben, das heute ist oder bereits abgelaufen ist
+  * Tickets ohne Wiedervorlagedatum, die heute geändert wurden, werden NICHT angezeigt
+  * Die Sortierung und Einfärbung erfolgt nach folgenden Kriterien:
     * Tickets mit abgelaufenem Wiedervorlagedatum sind ganz oben und mit einem Symbol markiert
     * Tickets mit heutigem Wiedervorlagedatum sind ebenfalls oben und mit einem Symbol markiert
     * Tickets ohne Wiedervorlagedatum werden nach letzter Aktivität sortiert, wobei lange nicht bearbeitete Tickets weiter oben erscheinen
-    * Tickets mit zukünftigem Wiedervorlagedatum werden unten angezeigt und grau eingefärbt (Es muss deutlich sein, dass sie derzeit nicht wichtig sind)
   * Der Standard-Filter für "Dran bleiben" soll identisch zum Standard-Filter in der normalen Gesamtübersicht sein (standardmäßig wird nur "In Bearbeitung" ausgewählt)
   * Tickets mit dem Flag "nicht verfolgen" werden in "Dran bleiben" nicht angezeigt
 

@@ -319,12 +319,12 @@ $tickets = $stmt->fetchAll();
                                 #<?= $ticket['id'] ?>
                             </a>
                         </td>
-                        <td class="<?= $activityClass ?>" style="text-align: center;">
+                        <td class="<?= $activityClass ?>" style="text-align: center; background-color: <?= htmlspecialchars($bgColor) ?>">
                             <?php if ($ticket['show_on_website']): ?>
                                 <i class="bi bi-globe text-primary" title="Öffentlich auf der Website sichtbar"></i>
                             <?php endif; ?>
                         </td>
-                        <td class="<?= $activityClass ?>">
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
                             <div>
                                 <a href="ticket_view.php?id=<?= $ticket['id'] ?>&ref=index.php" class="text-decoration-none">
                                     <?= htmlspecialchars($ticket['title']) ?>
@@ -353,12 +353,12 @@ $tickets = $stmt->fetchAll();
                                 <?php endif; ?>
                             </small>
                         </td>
-                        <td class="<?= $activityClass ?>">
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
                             <span class="badge fw-normal" style="background-color: <?= htmlspecialchars($ticket['background_color']) ?>; color: #000000">
                                 <?= htmlspecialchars($ticket['status_name']) ?>
                             </span>
                         </td>
-                        <td class="text-center <?= $activityClass ?>">
+                        <td class="text-center <?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
                             <?php if ($ticket['up_votes'] > 0 || $ticket['down_votes'] > 0): ?>
                                 <?php if ($ticket['up_votes'] > 0): ?>
                                     <?= $ticket['up_votes'] ?>× <i class="bi bi-hand-thumbs-up-fill text-success"></i>
@@ -371,10 +371,10 @@ $tickets = $stmt->fetchAll();
                                 -
                             <?php endif; ?>
                         </td>
-                        <td class="<?= $activityClass ?>" style="text-align: center;">
+                        <td class="<?= $activityClass ?>" style="text-align: center; background-color: <?= htmlspecialchars($bgColor) ?>">
                             <?= $ticket['affected_neighbors'] !== null ? (int)$ticket['affected_neighbors'] : '-' ?>
                         </td>
-                        <td class="<?= $activityClass ?>">
+                        <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
                             <?= (new DateTime($ticket['last_activity']))->format('d.m.Y H:i') ?>
                         </td>
                     </tr>

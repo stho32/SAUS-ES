@@ -116,6 +116,10 @@ $sql = "
     JOIN ticket_status ts ON t.status_id = ts.id
     WHERE 1=1
     AND t.do_not_track = 0
+    AND (
+        (t.follow_up_date IS NULL AND DATE(last_activity) < CURDATE()) 
+        OR t.follow_up_date <= CURDATE()
+    )
 ";
 
 $params = [];
