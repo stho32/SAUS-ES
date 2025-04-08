@@ -227,7 +227,8 @@ require_once 'includes/header.php';
                             <?php if (str_starts_with($attachment['file_type'], 'image/')): ?>
                                 <a href="api/get_attachment.php?id=<?= $attachment['id'] ?>&ticketId=<?= $ticketId ?>" 
                                    target="_blank" class="attachment-preview">
-                                    <img src="api/get_attachment.php?id=<?= $attachment['id'] ?>&ticketId=<?= $ticketId ?>" 
+                                    <img src="api/get_attachment.php?id=<?= $attachment['id'] ?>&ticketId=<?= $ticketId ?>&asThumbnail=true" 
+                                         loading="lazy"
                                          alt="<?= htmlspecialchars($attachment['original_filename']) ?>">
                                 </a>
                             <?php else: ?>
@@ -979,9 +980,10 @@ document.querySelectorAll('.delete-attachment').forEach(button => {
 }
 
 .attachment-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    width: 200px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 4px;
 }
 
 .attachment-file {
