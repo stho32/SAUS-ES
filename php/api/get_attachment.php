@@ -41,9 +41,15 @@ try {
         
         // Lade Originalbild
         $sourceImage = null;
+        $exif = null;
+        
         switch ($attachment['file_type']) {
             case 'image/jpeg':
                 $sourceImage = imagecreatefromjpeg($filePath);
+                // Lade EXIF-Daten für JPEG
+                if (function_exists('exif_read_data')) {
+                    $exif = @exif_read_data($filePath);
+                }
                 break;
             case 'image/png':
                 $sourceImage = imagecreatefrompng($filePath);
@@ -63,6 +69,30 @@ try {
         $maxWidth = 200;
         $sourceWidth = imagesx($sourceImage);
         $sourceHeight = imagesy($sourceImage);
+        
+        // Korrigiere Orientierung basierend auf EXIF-Daten
+        if ($exif && isset($exif['Orientation'])) {
+            switch ($exif['Orientation']) {
+                case 3: // 180 Grad
+                    $sourceImage = imagerotate($sourceImage, 180, 0);
+                    break;
+                case 6: // 90 Grad im Uhrzeigersinn
+                    $sourceImage = imagerotate($sourceImage, -90, 0);
+                    // Tausche Breite und Höhe
+                    $temp = $sourceWidth;
+                    $sourceWidth = $sourceHeight;
+                    $sourceHeight = $temp;
+                    break;
+                case 8: // 90 Grad gegen Uhrzeigersinn
+                    $sourceImage = imagerotate($sourceImage, 90, 0);
+                    // Tausche Breite und Höhe
+                    $temp = $sourceWidth;
+                    $sourceWidth = $sourceHeight;
+                    $sourceHeight = $temp;
+                    break;
+            }
+        }
+        
         $ratio = $sourceWidth / $maxWidth;
         $newWidth = $maxWidth;
         $newHeight = (int)round($sourceHeight / $ratio);
