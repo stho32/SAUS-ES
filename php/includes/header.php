@@ -7,6 +7,9 @@ $basePath = dirname($_SERVER['PHP_SELF']);
 if (substr($basePath, -8) === '/includes') {
     $basePath = dirname($basePath);
 }
+
+// Bestimme aktive Seite
+$currentPage = basename($_SERVER['SCRIPT_NAME']);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -35,6 +38,11 @@ if (substr($basePath, -8) === '/includes') {
         .activity-13 { background-color: #ffedbf !important; }
         .activity-14 { background-color: #ffeabc !important; }
         .activity-old { background-color: #ffe6e6 !important; }  /* Hellrot */
+        
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 0.25rem;
+        }
     </style>
 </head>
 <body>
@@ -52,22 +60,27 @@ if (substr($basePath, -8) === '/includes') {
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./index.php">
+                        <a class="nav-link<?= $currentPage === 'index.php' ? ' active' : '' ?>" href="./index.php">
                             <i class="bi bi-list-ul"></i> Übersicht
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./follow_up.php">
+                        <a class="nav-link<?= $currentPage === 'follow_up.php' ? ' active' : '' ?>" href="./follow_up.php">
                             <i class="bi bi-calendar-check"></i> Dran bleiben
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./statistics.php">
+                        <a class="nav-link<?= $currentPage === 'website_view.php' ? ' active' : '' ?>" href="./website_view.php">
+                            <i class="bi bi-globe"></i> Website-Ansicht
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link<?= $currentPage === 'statistics.php' ? ' active' : '' ?>" href="./statistics.php">
                             <i class="bi bi-graph-up"></i> Statistiken
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./saus_news.php">
+                        <a class="nav-link<?= $currentPage === 'saus_news.php' ? ' active' : '' ?>" href="./saus_news.php">
                             <i class="bi bi-newspaper"></i> SAUS-News
                         </a>
                     </li>
