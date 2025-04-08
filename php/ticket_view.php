@@ -135,6 +135,35 @@ require_once 'includes/header.php';
         </div>
     </div>
 
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-calendar-event fs-3 text-muted"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-subtitle mb-1 text-muted">Wiedervorlage</h6>
+                            <?php if ($isMasterLink): ?>
+                            <p class="card-text fs-5 mb-0">
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#followUpModal" style="text-decoration: none; color: inherit;">
+                                    <?= $ticket['follow_up_date'] ? date('d.m.Y', strtotime($ticket['follow_up_date'])) : '<span class="text-muted">Kein Datum gesetzt</span>' ?>
+                                    <i class="bi bi-pencil-square ms-2 small"></i>
+                                </a>
+                            </p>
+                            <?php else: ?>
+                            <p class="card-text fs-5 mb-0">
+                                <?= $ticket['follow_up_date'] ? date('d.m.Y', strtotime($ticket['follow_up_date'])) : '<span class="text-muted">Kein Datum gesetzt</span>' ?>
+                            </p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php if ($ticket['ki_summary']): ?>
     <div class="card mb-4">
         <div class="card-body">
@@ -348,6 +377,28 @@ require_once 'includes/header.php';
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
                 <button type="button" class="btn btn-primary" onclick="updateAssignee()">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Follow-up Date Modal -->
+<div class="modal fade" id="followUpModal" tabindex="-1" aria-labelledby="followUpModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="followUpModalLabel">Wiedervorlagedatum bearbeiten</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="followUpDate" class="form-label">Wiedervorlagedatum</label>
+                    <input type="date" class="form-control" id="followUpDate" value="<?= $ticket['follow_up_date'] ?? '' ?>">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" onclick="updateFollowUpDate()">Speichern</button>
             </div>
         </div>
     </div>
@@ -603,6 +654,75 @@ async function updateAssignee() {
     } catch (error) {
         console.error('Error:', error);
         alert('Fehler beim Aktualisieren der Zuständigkeit');
+    }
+}
+
+async function updateFollowUpDate() {
+    const followUpDate = document.getElementById('followUpDate').value;
+    
+    try {
+        const formData = new FormData();
+        formData.append('ticketId', <?= $ticketId ?>);
+        formData.append('followUpDate', followUpDate);
+        
+        const response = await fetch('api/update_ticket_follow_up.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            location.reload();
+        } else {
+            throw new Error(result.error || 'Update fehlgeschlagen');
+        }
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+// Ticket Voting
+async function voteTicket(ticketId, value) {
+    try {
+        const formData = new FormData();
+        formData.append('ticketId', ticketId);
+        formData.append('value', value);
+
+        const response = await fetch('api/vote_ticket.php', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update vote counts
+            const container = document.querySelector('.btn-group[role="group"][aria-label="Voting"]');
+            const upButton = container.querySelector('.btn:first-child');
+            const downButton = container.querySelector('.btn:last-child');
+            
+            // Update counts
+            upButton.querySelector('.upvote-count').textContent = data.stats.up_votes;
+            downButton.querySelector('.downvote-count').textContent = data.stats.down_votes;
+            
+            // Update button styles
+            upButton.className = `btn ${value === 'up' ? 'btn-success' : 'btn-outline-success'}`;
+            downButton.className = `btn ${value === 'down' ? 'btn-danger' : 'btn-outline-danger'}`;
+            
+            // Update tooltips
+            upButton.title = data.stats.upvoters ? `Upvotes von: ${data.stats.upvoters}` : 'Keine Upvotes';
+            downButton.title = data.stats.downvoters ? `Downvotes von: ${data.stats.downvoters}` : 'Keine Downvotes';
+            
+            // Update onclick handlers
+            upButton.setAttribute('onclick', `voteTicket(${ticketId}, '${value === 'up' ? 'none' : 'up'}')`);
+            downButton.setAttribute('onclick', `voteTicket(${ticketId}, '${value === 'down' ? 'none' : 'down'}')`);
+        } else {
+            alert('Fehler beim Abstimmen: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Fehler beim Abstimmen:', error);
+        alert('Fehler beim Abstimmen: ' + error.message);
     }
 }
 
@@ -929,6 +1049,16 @@ document.querySelectorAll('.delete-attachment').forEach(button => {
 
 .vote-count {
     margin-left: 4px;
+}
+
+.edit-follow-up {
+    text-decoration: none;
+    color: inherit;
+}
+
+.edit-follow-up:hover {
+    text-decoration: underline;
+    cursor: pointer;
 }
 </style>
 
