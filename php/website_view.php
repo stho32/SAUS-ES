@@ -137,7 +137,7 @@ try {
                     <tr>
                         <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
                             <div>
-                                <a href="ticket_view.php?id=<?= $ticket['id'] ?>" class="text-decoration-none">
+                                <a href="ticket_view.php?id=<?= $ticket['id'] ?>&ref=website_view.php" class="text-decoration-none">
                                     #<?= $ticket['id'] ?>: <?= htmlspecialchars($ticket['title']) ?>
                                 </a>
                             </div>

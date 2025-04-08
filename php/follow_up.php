@@ -195,13 +195,10 @@ $todayStr = $today->format('Y-m-d');
         <div>
             <h1 class="mb-0">Dran bleiben</h1>
             <small class="text-muted">
-                Tickets mit Wiedervorlagedatum und anstehenden Aufgaben
+                Zeigt Tickets, die Ihre Aufmerksamkeit benötigen
             </small>
         </div>
-        <div class="d-flex">
-            <a href="<?= $basePath ?>/index.php" class="btn btn-outline-secondary me-2">
-                <i class="bi bi-card-list"></i> Gesamtübersicht
-            </a>
+        <div>
             <a href="<?= $basePath ?>/create_ticket.php" class="btn btn-success">
                 <i class="bi bi-plus-lg"></i> Neues Ticket
             </a>
