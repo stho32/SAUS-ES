@@ -139,9 +139,6 @@ require_once 'includes/header.php';
                         <small class="text-muted">
                             Erstellt am <?= date('d.m.Y H:i', strtotime($ticket['created_at'])) ?>
                         </small>
-                        <div class="mt-2">
-                            <?= nl2br(htmlspecialchars($ticket['description'])) ?>
-                        </div>
                     </div>
                     
                     <h6 class="border-bottom pb-2 mb-3">Kommentare im Zeitraum:</h6>
