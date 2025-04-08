@@ -221,3 +221,36 @@ function addStatusChangeComment(int $ticketId, int $statusId, ?int $oldStatusId 
     
     return addTicketComment($ticketId, $commentText);
 }
+
+/**
+ * Erstellt ein System-Kommentar für eine Änderung des Wiedervorlagedatums
+ * 
+ * @param int $ticketId Die ID des Tickets
+ * @param ?string $newDate Das neue Wiedervorlagedatum im Format YYYY-MM-DD oder null wenn entfernt
+ * @param ?string $oldDate Optional: Das alte Wiedervorlagedatum im Format YYYY-MM-DD
+ * @return bool True wenn das Kommentar erfolgreich hinzugefügt wurde
+ */
+function addFollowUpDateComment(int $ticketId, ?string $newDate, ?string $oldDate = null): bool {
+    if ($oldDate === $newDate) {
+        return true; // Keine Änderung, kein Kommentar nötig
+    }
+
+    $formatDate = function(?string $date): string {
+        return $date ? date('d.m.Y', strtotime($date)) : 'kein Datum';
+    };
+
+    if ($oldDate) {
+        $commentText = sprintf(
+            "Wiedervorlagedatum wurde von '%s' zu '%s' geändert.",
+            $formatDate($oldDate),
+            $formatDate($newDate)
+        );
+    } else {
+        $commentText = sprintf(
+            "Wiedervorlagedatum wurde auf '%s' gesetzt.",
+            $formatDate($newDate)
+        );
+    }
+    
+    return addTicketComment($ticketId, $commentText);
+}

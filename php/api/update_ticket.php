@@ -8,6 +8,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
 require_once '../includes/Database.php';
 require_once '../includes/auth.php';
 require_once '../includes/error_logger.php';
+require_once '../includes/comment_functions.php';
 
 header('Content-Type: application/json');
 
@@ -64,6 +65,11 @@ try {
         }
     }
 
+    // Hole das aktuelle Wiedervorlagedatum für den Kommentar
+    $oldDateStmt = $db->prepare("SELECT follow_up_date FROM tickets WHERE id = ?");
+    $oldDateStmt->execute([$ticketId]);
+    $oldDate = $oldDateStmt->fetch(PDO::FETCH_COLUMN);
+
     $query = "
         UPDATE tickets 
         SET title = ?, 
@@ -100,6 +106,9 @@ try {
     if ($stmt->rowCount() === 0) {
         throw new Exception('Ticket nicht gefunden oder keine Änderungen');
     }
+
+    // Füge Kommentar hinzu, wenn sich das Wiedervorlagedatum geändert hat
+    addFollowUpDateComment($ticketId, $followUpDate, $oldDate);
 
     echo json_encode(['success' => true]);
 
