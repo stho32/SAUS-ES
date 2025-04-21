@@ -12,21 +12,77 @@ require_once __DIR__ . '/includes/comment_formatter.php';
 try {
     $db = Database::getInstance()->getConnection();
     
-    // Hole alle öffentlichen Tickets mit ihren Status
-    $stmt = $db->prepare("
-        SELECT t.id, t.title, t.public_comment, t.assignee, t.created_at, 
-               GREATEST(
-                   t.created_at,
-                   COALESCE(MAX(c.created_at), t.created_at)
-               ) as last_activity,
-               ts.name as status_name, ts.background_color as status_color
+    // Get sort parameter and search query from GET
+    $sort = isset($_GET['sort']) ? $_GET['sort'] : 'last_activity';
+    $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+    $showInactive = isset($_GET['show_inactive']) && $_GET['show_inactive'] == '1';
+    
+    // Define valid sort options
+    $validSortOptions = [
+        'last_activity' => 'Letzte Aktivität',
+        'title' => 'Titel',
+        'created_at' => 'Erstelldatum',
+        'status_name' => 'Status'
+    ];
+    
+    // Ensure sort parameter is valid
+    if (!array_key_exists($sort, $validSortOptions)) {
+        $sort = 'last_activity';
+    }
+    
+    // Configure SQL based on sort option
+    $orderBy = match($sort) {
+        'title' => 't.title ASC',
+        'created_at' => 't.created_at DESC',
+        'status_name' => 'ts.name ASC',
+        default => 'last_activity DESC'
+    };
+    
+    // Build query to get last activity date for each ticket
+    $sql = "
+        SELECT 
+            t.id, 
+            t.title, 
+            t.public_comment, 
+            t.assignee, 
+            t.created_at, 
+            GREATEST(
+                t.created_at,
+                COALESCE((SELECT MAX(c2.created_at) FROM comments c2 WHERE c2.ticket_id = t.id), t.created_at)
+            ) as last_activity,
+            ts.name as status_name, 
+            ts.background_color as status_color
         FROM tickets t
         JOIN ticket_status ts ON t.status_id = ts.id
-        LEFT JOIN comments c ON t.id = c.ticket_id
         WHERE t.show_on_website = TRUE
-        GROUP BY t.id, t.assignee
-        ORDER BY t.title ASC
-    ");
+    ";
+    
+    // Add search condition if search term is provided
+    if (!empty($search)) {
+        $sql .= " AND (t.title LIKE :search OR t.public_comment LIKE :search OR t.assignee LIKE :search)";
+    }
+    
+    // Hide inactive tickets (more than 3 months) unless specifically requested
+    if (!$showInactive) {
+        $sql .= " AND (
+            GREATEST(
+                t.created_at,
+                COALESCE((SELECT MAX(c3.created_at) FROM comments c3 WHERE c3.ticket_id = t.id), t.created_at)
+            ) > DATE_SUB(NOW(), INTERVAL 3 MONTH)
+        )";
+    }
+    
+    // Complete the query with proper ordering
+    $sql .= " ORDER BY " . $orderBy;
+    
+    $stmt = $db->prepare($sql);
+    
+    // Bind search parameter if needed
+    if (!empty($search)) {
+        $searchParam = '%' . $search . '%';
+        $stmt->bindParam(':search', $searchParam, PDO::PARAM_STR);
+    }
+    
     $stmt->execute();
     $tickets = $stmt->fetchAll();
 
@@ -253,6 +309,64 @@ $pageTitle = "Aktuelle Vorgänge des Siedlungsausschusses";
                 </div>
 
                 <h2 class="mt-4">Inhaltsverzeichnis</h2>
+                
+                <!-- Filters and Search -->
+                <div class="card mb-4 p-3" id="filter-section">
+                    <form method="get" class="row g-3" id="filter-form">
+                        <!-- Sort Dropdown -->
+                        <div class="col-md-4">
+                            <label for="sort-select" class="form-label"><i class="bi bi-sort-down"></i> Sortierung</label>
+                            <select id="sort-select" name="sort" class="form-select">
+                                <?php foreach ($validSortOptions as $value => $label): ?>
+                                    <option value="<?= $value ?>" <?= $sort === $value ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <!-- Search Box -->
+                        <div class="col-md-5">
+                            <label for="search-box" class="form-label"><i class="bi bi-search"></i> Suche</label>
+                            <input type="text" id="search-box" name="search" value="<?= htmlspecialchars($search) ?>" 
+                                   class="form-control" placeholder="Suchbegriff eingeben...">
+                        </div>
+                        
+                        <!-- Inactive Toggle -->
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" 
+                                       id="show-inactive" name="show_inactive" value="1" 
+                                       <?= $showInactive ? 'checked' : '' ?>>
+                                <label class="form-check-label" for="show-inactive">
+                                    Inaktive Vorgänge anzeigen
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-filter"></i> Anwenden
+                            </button>
+                            <?php if (!empty($search) || $sort !== 'last_activity' || $showInactive): ?>
+                                <a href="index.php" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Zurücksetzen
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </form>
+                </div>
+                
+                <?php if (!empty($search)): ?>
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-info-circle"></i> 
+                        Suchergebnisse für: <strong><?= htmlspecialchars($search) ?></strong>
+                        <a href="?sort=<?= $sort ?><?= $showInactive ? '&show_inactive=1' : '' ?>" 
+                           class="btn btn-sm btn-outline-secondary ms-2">Zurücksetzen</a>
+                    </div>
+                <?php endif; ?>
+                
                 <ul class="toc-list">
                     <?php foreach ($tickets as $ticket): ?>
                         <li>
@@ -317,5 +431,48 @@ $pageTitle = "Aktuelle Vorgänge des Siedlungsausschusses";
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Auto-submit form when select or checkbox changes
+        document.getElementById('sort-select').addEventListener('change', function() {
+            document.getElementById('filter-form').submit();
+        });
+        
+        document.getElementById('show-inactive').addEventListener('change', function() {
+            document.getElementById('filter-form').submit();
+        });
+        
+        // Auto-scroll to filter section if filter parameters are present
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if any filter parameters are in the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('sort') || urlParams.has('search') || urlParams.has('show_inactive')) {
+                // Scroll to filter section
+                const filterSection = document.getElementById('filter-section');
+                if (filterSection) {
+                    // Use setTimeout to ensure everything is loaded and rendered
+                    setTimeout(function() {
+                        // Scroll the parent frame (if in iframe) or the window
+                        if (window.parent !== window) {
+                            // We're in an iframe
+                            filterSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            // Also try to notify parent frame to scroll
+                            try {
+                                window.parent.postMessage({
+                                    action: 'scrollToChild',
+                                    childPosition: filterSection.getBoundingClientRect().top + window.scrollY
+                                }, '*');
+                            } catch (e) {
+                                // Silent fail if parent communication fails
+                            }
+                        } else {
+                            // Direct window
+                            filterSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 200);
+                }
+            }
+        });
+    </script>
 </body>
 </html>
