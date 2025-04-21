@@ -14,7 +14,7 @@ try {
     
     // Hole alle öffentlichen Tickets mit ihren Status
     $stmt = $db->prepare("
-        SELECT t.id, t.title, t.public_comment, t.created_at, 
+        SELECT t.id, t.title, t.public_comment, t.assignee, t.created_at, 
                GREATEST(
                    t.created_at,
                    COALESCE(MAX(c.created_at), t.created_at)
@@ -24,7 +24,7 @@ try {
         JOIN ticket_status ts ON t.status_id = ts.id
         LEFT JOIN comments c ON t.id = c.ticket_id
         WHERE t.show_on_website = TRUE
-        GROUP BY t.id
+        GROUP BY t.id, t.assignee
         ORDER BY t.title ASC
     ");
     $stmt->execute();
@@ -92,6 +92,11 @@ $pageTitle = "Aktuelle Vorgänge des Siedlungsausschusses";
             padding: 0;
             color: #2c3e50;
             line-height: 1.3;
+        }
+        .assignee {
+            font-size: 0.95rem;
+            color: #6c757d;
+            margin-top: -0.25rem;
         }
         .ticket-header {
             display: flex;
@@ -268,6 +273,9 @@ $pageTitle = "Aktuelle Vorgänge des Siedlungsausschusses";
                                         </span>
                                     </div>
                                     <h3 class="ticket-title"><?= htmlspecialchars($ticket['title']) ?></h3>
+                                    <?php if (!empty($ticket['assignee'])): ?>
+                                        <div class="assignee"><i class="bi bi-person-badge"></i> <?= htmlspecialchars($ticket['assignee']) ?></div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <?php if (!empty($ticket['public_comment'])): ?>
