@@ -95,8 +95,17 @@ $pageTitle = "Aktuelle Vorgänge des Siedlungsausschusses";
         }
         .assignee {
             font-size: 0.95rem;
-            color: #6c757d;
-            margin-top: -0.25rem;
+            color: #0d6efd;
+            margin-top: 0.5rem;
+            padding: 0.5rem 0;
+            border-top: 1px dashed rgba(0,0,0,0.1);
+        }
+        .assignee i {
+            color: #0d6efd;
+            margin-right: 0.5rem;
+        }
+        .assignee strong {
+            font-weight: 600;
         }
         .ticket-header {
             display: flex;
@@ -200,6 +209,10 @@ $pageTitle = "Aktuelle Vorgänge des Siedlungsausschusses";
             margin-bottom: 0.5rem;
             color: #495057;
         }
+        .toc-list small.text-muted {
+            font-style: italic;
+            margin-left: 0.3rem;
+        }
     </style>
 </head>
 <body>
@@ -245,6 +258,9 @@ $pageTitle = "Aktuelle Vorgänge des Siedlungsausschusses";
                         <li>
                             <a href="#ticket-<?= $ticket['id'] ?>" class="text-decoration-none">
                                 <?= htmlspecialchars($ticket['title']) ?> (Vorgang #<?= (string)$ticket['id'] ?>)
+                                <?php if (!empty($ticket['assignee'])): ?>
+                                    <small class="text-muted">| Zuständig: <?= htmlspecialchars($ticket['assignee']) ?></small>
+                                <?php endif; ?>
                             </a>
                         </li>
                     <?php endforeach; ?>
@@ -274,7 +290,7 @@ $pageTitle = "Aktuelle Vorgänge des Siedlungsausschusses";
                                     </div>
                                     <h3 class="ticket-title"><?= htmlspecialchars($ticket['title']) ?></h3>
                                     <?php if (!empty($ticket['assignee'])): ?>
-                                        <div class="assignee"><i class="bi bi-person-badge"></i> <?= htmlspecialchars($ticket['assignee']) ?></div>
+                                        <div class="assignee"><i class="bi bi-person-badge"></i> <strong>Zuständig:</strong> <?= htmlspecialchars($ticket['assignee']) ?></div>
                                     <?php endif; ?>
                                 </div>
                             </div>
