@@ -84,6 +84,11 @@ $currentPage = basename($_SERVER['SCRIPT_NAME']);
                             <i class="bi bi-newspaper"></i> SAUS-News
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link<?= $currentPage === 'contact_persons.php' ? ' active' : '' ?>" href="./contact_persons.php">
+                            <i class="bi bi-people"></i> Ansprechpartner
+                        </a>
+                    </li>
                 </ul>
                 <?php if (getCurrentUsername()): ?>
                 <div class="d-flex align-items-center">

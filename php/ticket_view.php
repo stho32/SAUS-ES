@@ -9,6 +9,7 @@ require_once __DIR__ . '/includes/comment_formatter.php';
 require_once __DIR__ . '/includes/ticket_functions.php';
 require_once __DIR__ . '/includes/comment_functions.php';
 require_once __DIR__ . '/includes/attachment_functions.php';
+require_once __DIR__ . '/includes/contact_functions.php';
 require_once 'includes/functions.php';
 require_once 'includes/auth.php';
 
@@ -41,6 +42,8 @@ try {
     $comments = getTicketComments($ticketId, getCurrentUsername());
     $attachments = getTicketAttachments($ticketId);
     $allStatus = getAllTicketStatus();
+    $contactPersons = getTicketContactPersons($ticketId);
+    $allContactPersons = getContactPersons(true); // Only active contact persons
 } catch (Exception $e) {
     error_log("Fehler in ticket_view.php: " . $e->getMessage());
     header('Location: error.php?type=error&message=' . urlencode($e->getMessage()));
@@ -163,6 +166,64 @@ require_once 'includes/header.php';
             </div>
         </div>
     </div>
+
+    <!-- Contact Persons Section -->
+    <?php if ($isMasterLink): ?>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Ansprechpartner bei der Genossenschaft</h5>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addContactPersonModal">
+                <i class="bi bi-plus-lg"></i> Ansprechpartner hinzufügen
+            </button>
+        </div>
+        <div class="card-body">
+            <?php if (empty($contactPersons)): ?>
+                <p class="text-muted">Keine Ansprechpartner verknüpft.</p>
+            <?php else: ?>
+                <div class="list-group">
+                    <?php foreach ($contactPersons as $person): ?>
+                        <div class="list-group-item list-group-item-action<?= $person['is_active'] ? '' : ' text-muted' ?>">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><?= htmlspecialchars($person['name']) ?></h6>
+                                    <small>
+                                        <?php if (!empty($person['email'])): ?>
+                                            <i class="bi bi-envelope"></i> <?= htmlspecialchars($person['email']) ?>
+                                        <?php endif; ?>
+                                        <?php if (!empty($person['phone'])): ?>
+                                            <?= !empty($person['email']) ? ' | ' : '' ?>
+                                            <i class="bi bi-telephone"></i> <?= htmlspecialchars($person['phone']) ?>
+                                        <?php endif; ?>
+                                    </small>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-info btn-sm view-contact-info" 
+                                            data-bs-toggle="tooltip" data-bs-placement="top" 
+                                            title="Zuständigkeiten anzeigen"
+                                            data-name="<?= htmlspecialchars($person['name']) ?>"
+                                            data-responsibility="<?= htmlspecialchars($person['responsibility_notes']) ?>">
+                                        <i class="bi bi-info-circle"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm remove-contact" 
+                                            data-ticket-id="<?= $ticketId ?>" 
+                                            data-contact-id="<?= $person['id'] ?>"
+                                            data-contact-name="<?= htmlspecialchars($person['name']) ?>">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+            <div class="mt-3">
+                <a href="contact_persons.php" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-gear"></i> Ansprechpartner verwalten
+                </a>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <?php if ($ticket['ki_summary']): ?>
     <div class="card mb-4">
@@ -435,6 +496,80 @@ require_once 'includes/header.php';
     </div>
 </div>
 
+<!-- Add Contact Person Modal -->
+<div class="modal fade" id="addContactPersonModal" tabindex="-1" aria-labelledby="addContactPersonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addContactPersonModalLabel">Ansprechpartner hinzufügen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                <?php if (empty($allContactPersons)): ?>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Es sind keine aktiven Ansprechpartner vorhanden.
+                        <a href="contact_persons.php" class="alert-link">Neuen Ansprechpartner anlegen</a>
+                    </div>
+                <?php else: ?>
+                    <div class="mb-3">
+                        <label for="contactPersonSelect" class="form-label">Ansprechpartner auswählen</label>
+                        <select class="form-select" id="contactPersonSelect">
+                            <option value="">-- Bitte wählen --</option>
+                            <?php foreach ($allContactPersons as $person): ?>
+                                <?php 
+                                // Check if this person is already linked to the ticket
+                                $isLinked = false;
+                                foreach ($contactPersons as $linkedPerson) {
+                                    if ($linkedPerson['id'] == $person['id']) {
+                                        $isLinked = true;
+                                        break;
+                                    }
+                                }
+                                
+                                // Skip if already linked
+                                if ($isLinked) continue;
+                                ?>
+                                <option value="<?= $person['id'] ?>"><?= htmlspecialchars($person['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div id="selectedContactInfo" class="d-none">
+                        <div class="alert alert-info">
+                            <div id="contactPersonDetails"></div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" id="addContactPersonBtn" disabled>Hinzufügen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Person Info Modal -->
+<div class="modal fade" id="contactInfoModal" tabindex="-1" aria-labelledby="contactInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contactInfoModalLabel">Ansprechpartner Informationen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="contactInfoName" class="mb-3"></h6>
+                <div class="mb-3">
+                    <h6 class="text-muted">Zuständigkeiten:</h6>
+                    <p id="contactInfoResponsibility" class="mb-0"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Alert-Funktion für Benachrichtigungen
 function showAlert(type, message) {
@@ -509,10 +644,6 @@ async function savePartners() {
             })
         });
         
-        if (!response.ok) {
-            throw new Error('Netzwerkfehler');
-        }
-        
         const result = await response.json();
         if (result.success) {
             location.reload();
@@ -538,10 +669,6 @@ async function addComment() {
                 content: content
             })
         });
-        
-        if (!response.ok) {
-            throw new Error('Netzwerkfehler');
-        }
         
         const result = await response.json();
         if (result.success) {
@@ -857,6 +984,68 @@ async function voteTicket(ticketId, value) {
     }
 }
 
+// Contact Persons Functions
+async function addContactPerson() {
+    const contactPersonId = document.getElementById('contactPersonSelect').value;
+    
+    if (!contactPersonId) {
+        showAlert('danger', 'Bitte wählen Sie einen Ansprechpartner aus.');
+        return;
+    }
+    
+    try {
+        const response = await fetch('api/add_contact_person.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ticketId: <?= $ticketId ?>,
+                contactPersonId: contactPersonId
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            location.reload();
+        } else {
+            throw new Error(result.message || 'Unbekannter Fehler');
+        }
+    } catch (error) {
+        showAlert('danger', 'Fehler beim Hinzufügen des Ansprechpartners: ' + error.message);
+    }
+}
+
+async function removeContactPerson(ticketId, contactPersonId, contactName) {
+    if (!confirm(`Möchten Sie den Ansprechpartner "${contactName}" wirklich entfernen?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('api/remove_contact_person.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ticketId: ticketId,
+                contactPersonId: contactPersonId
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            location.reload();
+        } else {
+            throw new Error(result.message || 'Unbekannter Fehler');
+        }
+    } catch (error) {
+        showAlert('danger', 'Fehler beim Entfernen des Ansprechpartners: ' + error.message);
+    }
+}
+
 // Hilfsfunktionen
 function nl2br(str) {
     return str.replace(/\n/g, '<br>');
@@ -953,6 +1142,47 @@ document.querySelectorAll('.delete-attachment').forEach(button => {
         } catch (error) {
             alert('Löschen fehlgeschlagen');
         }
+    });
+});
+
+// Contact person select change event
+const contactPersonSelect = document.getElementById('contactPersonSelect');
+if (contactPersonSelect) {
+    contactPersonSelect.addEventListener('change', function() {
+        const addButton = document.getElementById('addContactPersonBtn');
+        addButton.disabled = !this.value;
+    });
+}
+
+// Add contact person button click
+const addContactPersonBtn = document.getElementById('addContactPersonBtn');
+if (addContactPersonBtn) {
+    addContactPersonBtn.addEventListener('click', addContactPerson);
+}
+
+// Remove contact person buttons
+const removeContactButtons = document.querySelectorAll('.remove-contact');
+removeContactButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const ticketId = this.getAttribute('data-ticket-id');
+        const contactId = this.getAttribute('data-contact-id');
+        const contactName = this.getAttribute('data-contact-name');
+        removeContactPerson(ticketId, contactId, contactName);
+    });
+});
+
+// View contact info buttons
+const viewContactInfoButtons = document.querySelectorAll('.view-contact-info');
+viewContactInfoButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const name = this.getAttribute('data-name');
+        const responsibility = this.getAttribute('data-responsibility') || 'Keine Informationen vorhanden';
+        
+        document.getElementById('contactInfoName').textContent = name;
+        document.getElementById('contactInfoResponsibility').textContent = responsibility;
+        
+        const modal = new bootstrap.Modal(document.getElementById('contactInfoModal'));
+        modal.show();
     });
 });
 </script>
