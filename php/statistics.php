@@ -8,6 +8,13 @@ require_once __DIR__ . '/includes/auth.php';
 // Prüfe Authentifizierung
 requireMasterLink();
 
+// Stelle sicher, dass ein Benutzername gesetzt ist
+$currentUsername = getCurrentUsername();
+if (!$currentUsername) {
+    header('Location: index.php');
+    exit;
+}
+
 // Hole die Statistiken
 $db = Database::getInstance()->getConnection();
 

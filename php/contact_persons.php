@@ -10,6 +10,16 @@ require_once 'includes/Database.php';
 require_once 'includes/functions.php';
 require_once 'includes/contact_functions.php';
 
+// Prüfe Authentifizierung
+requireMasterLink();
+
+// Stelle sicher, dass ein Benutzername gesetzt ist
+$currentUsername = getCurrentUsername();
+if (!$currentUsername) {
+    header('Location: index.php');
+    exit;
+}
+
 $errorMessage = '';
 $successMessage = '';
 

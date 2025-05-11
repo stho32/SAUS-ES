@@ -14,6 +14,16 @@ require_once 'includes/functions.php';
 require_once 'includes/auth.php';
 
 // Prüfe Authentifizierung
+requireMasterLink();
+
+// Stelle sicher, dass ein Benutzername gesetzt ist
+$currentUsername = getCurrentUsername();
+if (!$currentUsername) {
+    header('Location: index.php');
+    exit;
+}
+
+// Prüfe Authentifizierung
 $partnerLink = $_GET['partner'] ?? null;
 $partner = $partnerLink ? isPartnerLink($partnerLink) : null;
 $isMasterLink = isset($_SESSION['master_code']);

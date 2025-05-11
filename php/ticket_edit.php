@@ -9,9 +9,13 @@ require_once 'includes/Database.php';
 require_once 'includes/functions.php';
 require_once 'includes/auth.php';
 
-// Nur Master-Link darf Tickets bearbeiten
-if (!isset($_SESSION['master_code'])) {
-    header('Location: error.php?type=unauthorized');
+// Prüfe Authentifizierung
+requireMasterLink();
+
+// Stelle sicher, dass ein Benutzername gesetzt ist
+$currentUsername = getCurrentUsername();
+if (!$currentUsername) {
+    header('Location: index.php');
     exit;
 }
 

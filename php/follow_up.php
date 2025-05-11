@@ -22,8 +22,15 @@ function getActivityClass(string $lastActivity): string {
     return 'activity-' . abs($daysDiff);
 }
 
-// Prüfe Master-Link
+// Prüfe Authentifizierung
 requireMasterLink();
+
+// Stelle sicher, dass ein Benutzername gesetzt ist
+$currentUsername = getCurrentUsername();
+if (!$currentUsername) {
+    header('Location: index.php');
+    exit;
+}
 
 // Hole Benutzernamen, wenn noch nicht gesetzt
 if (!getCurrentUsername()) {

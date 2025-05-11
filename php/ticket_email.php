@@ -21,8 +21,15 @@ if (!file_exists($pathsConfigFile) && file_exists($pathsConfigExampleFile)) {
 
 $pathsConfig = file_exists($pathsConfigFile) ? require_once $pathsConfigFile : ['image_gallery_url' => '../public_php_app/imageview'];
 
-// Prüfe Master-Link
+// Prüfe Authentifizierung
 requireMasterLink();
+
+// Stelle sicher, dass ein Benutzername gesetzt ist
+$currentUsername = getCurrentUsername();
+if (!$currentUsername) {
+    header('Location: index.php');
+    exit;
+}
 
 // Hole Ticket-ID aus der URL
 $ticketId = isset($_GET['id']) ? (int)$_GET['id'] : 0;

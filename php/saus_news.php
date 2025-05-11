@@ -5,10 +5,10 @@ require_once __DIR__ . '/includes/Database.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/comment_formatter.php';
 
-// Prüfe Master-Link
+// Prüfe Authentifizierung
 requireMasterLink();
 
-// Hole Benutzernamen
+// Stelle sicher, dass ein Benutzername gesetzt ist
 $currentUsername = getCurrentUsername();
 if (!$currentUsername) {
     header('Location: index.php');

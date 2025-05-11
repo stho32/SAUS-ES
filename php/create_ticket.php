@@ -6,10 +6,10 @@ require_once 'includes/Database.php';
 require_once 'includes/functions.php';
 require_once 'includes/auth.php';
 
-// Prüfe Master-Link
+// Prüfe Authentifizierung
 requireMasterLink();
 
-// Prüfe ob Benutzername gesetzt ist
+// Stelle sicher, dass ein Benutzername gesetzt ist
 $currentUsername = getCurrentUsername();
 if (!$currentUsername) {
     header('Location: index.php');
