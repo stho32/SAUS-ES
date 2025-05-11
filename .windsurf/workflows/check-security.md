@@ -4,57 +4,31 @@ description: Check the security of the internal application
 
 This workflow audits every publicly reachable PHP entry point (pages and AJAX endpoints) and ensures that they validate the "master-code" session by calling `requireMasterLink()` from `php/includes/auth.php`. Any entry point that does not perform the check is reported.
 
-### Prerequisites
-This workflow is written for **Windows 10/11** using **PowerShell 7+**.
+### Requirements
+This workflow is written for **Windows 10/11** and **PowerShell 7+** only. No external tooling is needed; every command uses built-in PowerShell cmdlets.
 
-Install the single extra dependency, **ripgrep**, with one of these commands (run once):
+### Audit procedure
+Follow these high-level steps—no specific scripts or external tools are required:
 
-```powershell
-# Chocolatey
-choco install ripgrep -y
+1. **Collect entry points**  
+   Browse the `php/` directory (and its `php/api/` sub-folder) for all `.php` files **except** those inside `php/includes/` or `vendor/`. These files (pages and AJAX endpoints) are the publicly reachable entry points.
 
-# – or –
+2. **Verify the guard**  
+   A file is treated as **protected** if **any** of the following conditions is met:  
+   • It calls `requireMasterLink();` directly (typically right after the strict-types declaration).  
+   • It includes `php/includes/auth.php` ***and*** then calls `requireMasterLink();`.  
+   • It includes `php/includes/auth_check.php` (or the correct relative variant such as `../includes/auth_check.php`). The helper loads `auth.php` and invokes the guard automatically, except for pages that are explicitly whitelisted in its `$publicPages` array (e.g. `error.php`, `logout.php`).  
+   
+   If none of these rules apply, the entry point is unprotected.
 
-# Scoop
-scoop install ripgrep
-```
+3. **Record issues**  
+   List every entry point that fails the protection test above (no direct guard call *and* no inclusion of `auth_check.php`). Ignore files that are deliberately public and appear in the `$publicPages` list inside `auth_check.php`.  
 
-After installation make sure `rg.exe` is in `%PATH%` (restart the shell if required).
+4. **(Optional) API nuance**  
+   For endpoints under `php/api/`, also confirm that a failed guard results in HTTP 401 (not a redirect) so XHR clients receive a proper error response.
 
-### Steps
-1. Identify all PHP entry points (exclude libraries and includes):
-
-   ```powershell
-   # Move to the project root first (adjust if necessary)
-   Set-Location "C:/Projekte/SAUS-ES"
-
-   # Create a list of PHP files that can be requested directly
-   rg -l --iglob "!php/includes/*" --iglob "!vendor/*" --type php "" php > entrypoints.txt
-   ```
-
-2. Detect missing security checks:
-
-   ```powershell
-   # List files that do NOT contain the call to requireMasterLink()
-   rg -L "requireMasterLink" -f entrypoints.txt > insecure.txt
-   ```
-
-3. (Optional) Double-check inclusion of the auth module:
-
-   ```powershell
-   rg -L "includes/auth.php" -f insecure.txt >> insecure.txt
-   ```
-
-4. Review results:
-
-   ```powershell
-   if (Test-Path insecure.txt -and (Get-Content insecure.txt).Length -gt 0) {
-       Write-Host "Unprotected entry points:" -ForegroundColor Yellow
-       Get-Content insecure.txt
-   } else {
-       Write-Host 'All entry points secured.' -ForegroundColor Green
-   }
-   ```
+5. **Remediate & re-audit**  
+   For every file in your issue list, apply the fixes described below, then repeat steps 1-4 until no unprotected entry points remain.
 
 ### Remediation guidelines
 * **UI pages** (`php/*.php`): include the auth module and call the guard immediately after the strict-types declaration.
