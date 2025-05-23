@@ -105,11 +105,16 @@ $sql = "
                 ORDER BY created_at DESC 
                 LIMIT 1
             )) as other_participants,
+         (SELECT GROUP_CONCAT(DISTINCT NAME, ' ')
+		  	   FROM ticket_contact_persons tcp
+			   JOIN contact_persons cp ON cp.id = tcp.contact_person_id
+           WHERE tcp.ticket_id = t.id 
+           ) as contacts_genossenschaft,
            (SELECT COUNT(*) FROM ticket_votes WHERE ticket_id = t.id AND value = 'up') as up_votes,
            (SELECT COUNT(*) FROM ticket_votes WHERE ticket_id = t.id AND value = 'down') as down_votes
     FROM tickets t
     JOIN ticket_status ts ON t.status_id = ts.id
-    WHERE 1=1
+   WHERE 1=1
 ";
 
 $params = [];
@@ -351,6 +356,12 @@ $tickets = $stmt->fetchAll();
                                     <?php endif; ?>
                                 </div>
                                 <?php endif; ?>
+                                <?php if (!empty($ticket['contacts_genossenschaft'])): ?>
+                                    <div class="text-primary">
+                                        + <?= htmlspecialchars($ticket['contacts_genossenschaft']) ?>
+                                    </div>
+                                <?php endif; ?>
+
                             </small>
                         </td>
                         <td class="<?= $activityClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
