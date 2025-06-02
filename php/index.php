@@ -323,6 +323,9 @@ $tickets = $stmt->fetchAll();
                             <a href="ticket_view.php?id=<?= $ticket['id'] ?>&ref=index.php" class="text-decoration-none">
                                 #<?= $ticket['id'] ?>
                             </a>
+                            <a href="ticket_view.php?id=<?= $ticket['id'] ?>&ref=index.php" class="ms-2 text-primary" target="_blank" title="In neuem Tab öffnen" onclick="event.stopPropagation();">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
                         </td>
                         <td class="<?= $activityClass ?>" style="text-align: center; background-color: <?= htmlspecialchars($bgColor) ?>">
                             <?php if ($ticket['show_on_website']): ?>
