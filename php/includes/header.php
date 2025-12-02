@@ -70,10 +70,27 @@ $currentPage = basename($_SERVER['SCRIPT_NAME']);
                             <i class="bi bi-calendar-check"></i> Dran bleiben
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link<?= $currentPage === 'website_view.php' ? ' active' : '' ?>" href="./website_view.php">
-                            <i class="bi bi-globe"></i> Website-Ansicht
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle<?= in_array($currentPage, ['website_view.php', 'news.php', 'news_edit.php']) ? ' active' : '' ?>"
+                           href="#"
+                           id="websiteDropdown"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <i class="bi bi-globe"></i> Webseite
                         </a>
+                        <ul class="dropdown-menu" aria-labelledby="websiteDropdown">
+                            <li>
+                                <a class="dropdown-item<?= $currentPage === 'website_view.php' ? ' active' : '' ?>" href="./website_view.php">
+                                    <i class="bi bi-eye"></i> Öffentliche Tickets
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item<?= $currentPage === 'news.php' || $currentPage === 'news_edit.php' ? ' active' : '' ?>" href="./news.php">
+                                    <i class="bi bi-megaphone"></i> News verwalten
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link<?= $currentPage === 'statistics.php' ? ' active' : '' ?>" href="./statistics.php">
