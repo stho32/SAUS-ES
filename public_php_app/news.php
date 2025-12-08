@@ -12,11 +12,19 @@ require_once __DIR__ . '/includes/comment_formatter.php';
 try {
     $db = Database::getInstance()->getConnection();
 
-    // Get page and search parameters
+    // Get page, search, and article ID parameters
     $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
     $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+    $articleId = isset($_GET['id']) ? (int)$_GET['id'] : null;
     $perPage = 10;
     $offset = ($page - 1) * $perPage;
+
+    // If article ID is provided, show single article view
+    if ($articleId) {
+        $singleArticleStmt = $db->prepare("SELECT id, title, content, image_filename, event_date, created_at FROM news WHERE id = ?");
+        $singleArticleStmt->execute([$articleId]);
+        $singleArticle = $singleArticleStmt->fetch();
+    }
 
     // Build base SQL for counting
     $countSql = "SELECT COUNT(*) FROM news WHERE 1=1";
@@ -63,7 +71,12 @@ try {
     die('Fehler beim Laden der News: ' . $e->getMessage());
 }
 
-$pageTitle = "News & Veranstaltungen";
+// Set page title based on context
+if ($articleId && $singleArticle) {
+    $pageTitle = htmlspecialchars($singleArticle['title']) . " - News";
+} else {
+    $pageTitle = "News & Veranstaltungen";
+}
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -109,17 +122,58 @@ $pageTitle = "News & Veranstaltungen";
             color: #2c3e50;
             line-height: 1.3;
         }
-        .news-image {
-            float: right;
-            width: 200px;
-            margin: 0 0 1rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.2s;
+        .news-date-badge {
+            display: inline-block;
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
         }
-        .news-image:hover {
-            transform: scale(1.02);
+        .news-thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        .news-list-item {
+            display: flex;
+            gap: 1rem;
+            text-decoration: none;
+            color: inherit;
+        }
+        .news-list-item:hover .news-title {
+            color: #007bff;
+        }
+        .news-list-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .news-excerpt {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .news-image-full {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin: 1.5rem 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
         }
         .news-content {
             margin-bottom: 1rem;
@@ -182,163 +236,197 @@ $pageTitle = "News & Veranstaltungen";
 </head>
 <body>
     <div class="container">
-        <h1 class="mb-4"><?= $pageTitle ?></h1>
+        <?php if ($articleId && $singleArticle): ?>
+            <!-- Single Article View -->
+            <a href="news.php<?= !empty($search) ? '?search=' . urlencode($search) : '' ?><?= $page > 1 ? (!empty($search) ? '&' : '?') . 'page=' . $page : '' ?>" class="back-link">
+                <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+            </a>
 
-        <!-- Search Box -->
-        <div class="search-box">
-            <form method="get" class="row g-3">
-                <div class="col-md-10">
-                    <label for="search-box" class="form-label">
-                        <i class="bi bi-search"></i> Suche
-                    </label>
-                    <input type="text"
-                           id="search-box"
-                           name="search"
-                           value="<?= htmlspecialchars($search) ?>"
-                           class="form-control"
-                           placeholder="Suchbegriff eingeben...">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-search"></i> Suchen
-                    </button>
-                </div>
-                <?php if (!empty($search)): ?>
-                    <div class="col-12">
-                        <a href="news.php" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-x-lg"></i> Suche zurücksetzen
-                        </a>
+            <div class="card">
+                <div class="card-body">
+                    <div class="news-date-badge">
+                        <i class="bi bi-calendar-event"></i>
+                        <?= date('d.m.Y', strtotime($singleArticle['event_date'])) ?>
                     </div>
-                <?php endif; ?>
-            </form>
-        </div>
 
-        <!-- Results Count -->
-        <?php if (!empty($search)): ?>
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle"></i>
-                <?= $totalNews ?> Ergebnis<?= $totalNews !== 1 ? 'se' : '' ?> für "<?= htmlspecialchars($search) ?>"
-            </div>
-        <?php endif; ?>
+                    <h1 class="news-title"><?= htmlspecialchars($singleArticle['title']) ?></h1>
 
-        <!-- News List -->
-        <?php if (empty($newsList)): ?>
-            <div class="no-results">
-                <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
-                <h3>Keine News gefunden</h3>
-                <?php if (!empty($search)): ?>
-                    <p>Versuchen Sie es mit einem anderen Suchbegriff.</p>
-                <?php else: ?>
-                    <p>Derzeit sind keine News-Artikel verfügbar.</p>
-                <?php endif; ?>
+                    <?php if (!empty($singleArticle['image_filename'])): ?>
+                        <div class="text-center">
+                            <img src="api/get_news_image.php?id=<?= $singleArticle['id'] ?>"
+                                 alt="<?= htmlspecialchars($singleArticle['title']) ?>"
+                                 class="news-image-full">
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="news-content">
+                        <?= formatComment($singleArticle['content']) ?>
+                    </div>
+
+                    <div class="news-meta">
+                        <i class="bi bi-clock"></i>
+                        Veröffentlicht: <?= date('d.m.Y', strtotime($singleArticle['created_at'])) ?>
+                    </div>
+                </div>
             </div>
+
+        <?php elseif ($articleId && !$singleArticle): ?>
+            <!-- Article Not Found -->
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                Artikel nicht gefunden.
+            </div>
+            <a href="news.php" class="btn btn-primary">
+                <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+            </a>
+
         <?php else: ?>
-            <?php foreach ($newsList as $news): ?>
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="news-title"><?= htmlspecialchars($news['title']) ?></h2>
+            <!-- News List View -->
+            <h1 class="mb-4"><?= $pageTitle ?></h1>
 
-                        <?php if (!empty($news['image_filename'])): ?>
-                            <img src="api/get_news_image.php?id=<?= $news['id'] ?>&thumbnail=true"
-                                 alt="<?= htmlspecialchars($news['title']) ?>"
-                                 class="news-image"
-                                 onclick="showImageModal(<?= $news['id'] ?>, '<?= htmlspecialchars(addslashes($news['title'])) ?>')">
-                        <?php endif; ?>
-
-                        <div class="news-content">
-                            <?= formatComment($news['content']) ?>
+            <!-- Search Box -->
+            <div class="search-box">
+                <form method="get" class="row g-3">
+                    <div class="col-md-10">
+                        <label for="search-box" class="form-label">
+                            <i class="bi bi-search"></i> Suche
+                        </label>
+                        <input type="text"
+                               id="search-box"
+                               name="search"
+                               value="<?= htmlspecialchars($search) ?>"
+                               class="form-control"
+                               placeholder="Suchbegriff eingeben...">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> Suchen
+                        </button>
+                    </div>
+                    <?php if (!empty($search)): ?>
+                        <div class="col-12">
+                            <a href="news.php" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-x-lg"></i> Suche zurücksetzen
+                            </a>
                         </div>
+                    <?php endif; ?>
+                </form>
+            </div>
 
-                        <div class="news-meta">
-                            <i class="bi bi-calendar-event"></i>
-                            Veranstaltungsdatum: <?= date('d.m.Y', strtotime($news['event_date'])) ?>
-                            <span class="ms-3">
-                                <i class="bi bi-clock"></i>
-                                Erstellt: <?= date('d.m.Y', strtotime($news['created_at'])) ?>
-                            </span>
+            <!-- Results Count -->
+            <?php if (!empty($search)): ?>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <?= $totalNews ?> Ergebnis<?= $totalNews !== 1 ? 'se' : '' ?> für "<?= htmlspecialchars($search) ?>"
+                </div>
+            <?php endif; ?>
+
+            <!-- News List -->
+            <?php if (empty($newsList)): ?>
+                <div class="no-results">
+                    <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                    <h3>Keine News gefunden</h3>
+                    <?php if (!empty($search)): ?>
+                        <p>Versuchen Sie es mit einem anderen Suchbegriff.</p>
+                    <?php else: ?>
+                        <p>Derzeit sind keine News-Artikel verfügbar.</p>
+                    <?php endif; ?>
+                </div>
+            <?php else: ?>
+                <?php foreach ($newsList as $news): ?>
+                    <div class="card">
+                        <div class="card-body">
+                            <a href="news.php?id=<?= $news['id'] ?><?= !empty($search) ? '&search=' . urlencode($search) : '' ?><?= $page > 1 ? '&page=' . $page : '' ?>"
+                               class="news-list-item">
+                                <?php if (!empty($news['image_filename'])): ?>
+                                    <img src="api/get_news_image.php?id=<?= $news['id'] ?>&thumbnail=true"
+                                         alt="<?= htmlspecialchars($news['title']) ?>"
+                                         class="news-thumbnail">
+                                <?php else: ?>
+                                    <div class="news-thumbnail" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
+                                    </div>
+                                <?php endif; ?>
+
+                                <div class="news-list-content">
+                                    <div class="news-date-badge">
+                                        <i class="bi bi-calendar-event"></i>
+                                        <?= date('d.m.Y', strtotime($news['event_date'])) ?>
+                                    </div>
+
+                                    <h2 class="news-title" style="font-size: 1.2rem; margin: 0.25rem 0 0.5rem;">
+                                        <?= htmlspecialchars($news['title']) ?>
+                                    </h2>
+
+                                    <div class="news-excerpt">
+                                        <?= htmlspecialchars(strip_tags($news['content'])) ?>
+                                    </div>
+
+                                    <div class="news-meta" style="border-top: none; padding-top: 0.5rem; margin-top: 0.5rem; font-size: 0.8rem;">
+                                        <i class="bi bi-clock"></i>
+                                        Veröffentlicht: <?= date('d.m.Y', strtotime($news['created_at'])) ?>
+                                    </div>
+                                </div>
+                            </a>
                         </div>
                     </div>
-                </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
 
-            <!-- Pagination -->
-            <?php if ($totalPages > 1): ?>
-                <nav aria-label="Seitennavigation">
-                    <ul class="pagination">
-                        <?php if ($page > 1): ?>
-                            <li class="page-item">
-                                <a class="page-link" href="?page=<?= $page - 1 ?><?= !empty($search) ? '&search=' . urlencode($search) : '' ?>">
-                                    <i class="bi bi-chevron-left"></i> Zurück
-                                </a>
-                            </li>
-                        <?php endif; ?>
+                <!-- Pagination -->
+                <?php if ($totalPages > 1): ?>
+                    <nav aria-label="Seitennavigation">
+                        <ul class="pagination">
+                            <?php if ($page > 1): ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<?= $page - 1 ?><?= !empty($search) ? '&search=' . urlencode($search) : '' ?>">
+                                        <i class="bi bi-chevron-left"></i> Zurück
+                                    </a>
+                                </li>
+                            <?php endif; ?>
 
-                        <?php
-                        // Show page numbers
-                        $startPage = max(1, $page - 2);
-                        $endPage = min($totalPages, $page + 2);
+                            <?php
+                            // Show page numbers
+                            $startPage = max(1, $page - 2);
+                            $endPage = min($totalPages, $page + 2);
 
-                        if ($startPage > 1) {
-                            echo '<li class="page-item"><a class="page-link" href="?page=1' . (!empty($search) ? '&search=' . urlencode($search) : '') . '">1</a></li>';
-                            if ($startPage > 2) {
-                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                            if ($startPage > 1) {
+                                echo '<li class="page-item"><a class="page-link" href="?page=1' . (!empty($search) ? '&search=' . urlencode($search) : '') . '">1</a></li>';
+                                if ($startPage > 2) {
+                                    echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                }
                             }
-                        }
 
-                        for ($i = $startPage; $i <= $endPage; $i++) {
-                            $active = $i === $page ? ' active' : '';
-                            echo '<li class="page-item' . $active . '"><a class="page-link" href="?page=' . $i . (!empty($search) ? '&search=' . urlencode($search) : '') . '">' . $i . '</a></li>';
-                        }
-
-                        if ($endPage < $totalPages) {
-                            if ($endPage < $totalPages - 1) {
-                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                            for ($i = $startPage; $i <= $endPage; $i++) {
+                                $active = $i === $page ? ' active' : '';
+                                echo '<li class="page-item' . $active . '"><a class="page-link" href="?page=' . $i . (!empty($search) ? '&search=' . urlencode($search) : '') . '">' . $i . '</a></li>';
                             }
-                            echo '<li class="page-item"><a class="page-link" href="?page=' . $totalPages . (!empty($search) ? '&search=' . urlencode($search) : '') . '">' . $totalPages . '</a></li>';
-                        }
-                        ?>
 
-                        <?php if ($page < $totalPages): ?>
-                            <li class="page-item">
-                                <a class="page-link" href="?page=<?= $page + 1 ?><?= !empty($search) ? '&search=' . urlencode($search) : '' ?>">
-                                    Weiter <i class="bi bi-chevron-right"></i>
-                                </a>
-                            </li>
-                        <?php endif; ?>
-                    </ul>
-                </nav>
+                            if ($endPage < $totalPages) {
+                                if ($endPage < $totalPages - 1) {
+                                    echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                }
+                                echo '<li class="page-item"><a class="page-link" href="?page=' . $totalPages . (!empty($search) ? '&search=' . urlencode($search) : '') . '">' . $totalPages . '</a></li>';
+                            }
+                            ?>
 
-                <div class="text-center text-muted mb-4">
-                    Seite <?= $page ?> von <?= $totalPages ?> (<?= $totalNews ?> News gesamt)
-                </div>
+                            <?php if ($page < $totalPages): ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<?= $page + 1 ?><?= !empty($search) ? '&search=' . urlencode($search) : '' ?>">
+                                        Weiter <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </nav>
+
+                    <div class="text-center text-muted mb-4">
+                        Seite <?= $page ?> von <?= $totalPages ?> (<?= $totalNews ?> News gesamt)
+                    </div>
+                <?php endif; ?>
             <?php endif; ?>
         <?php endif; ?>
     </div>
 
-    <!-- Image Modal -->
-    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="imageModalLabel"></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
-                </div>
-                <div class="modal-body">
-                    <img src="" alt="" id="modalImage">
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function showImageModal(newsId, title) {
-            const modal = new bootstrap.Modal(document.getElementById('imageModal'));
-            document.getElementById('imageModalLabel').textContent = title;
-            document.getElementById('modalImage').src = 'api/get_news_image.php?id=' + newsId;
-            document.getElementById('modalImage').alt = title;
-            modal.show();
-        }
-    </script>
 </body>
 </html>
