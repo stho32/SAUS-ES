@@ -276,7 +276,7 @@ include 'includes/header.php';
                                         <?php endif; ?>
                                     </a>
                                 </th>
-                                <th>Bild</th>
+                                <th style="width: 60px;">Bild</th>
                                 <th style="width: 150px;">Aktionen</th>
                             </tr>
                         </thead>
@@ -301,9 +301,15 @@ include 'includes/header.php';
                                     </td>
                                     <td>
                                         <?php if (!empty($news['image_filename'])): ?>
-                                            <i class="bi bi-image text-success" title="Bild vorhanden"></i>
+                                            <img src="api/get_news_image_preview.php?id=<?= $news['id'] ?>&thumbnail=true"
+                                                 alt="Bild"
+                                                 class="rounded"
+                                                 style="width: 40px; height: 40px; object-fit: cover;"
+                                                 title="Bild vorhanden">
                                         <?php else: ?>
-                                            <i class="bi bi-image text-muted" title="Kein Bild"></i>
+                                            <div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="bi bi-image text-muted"></i>
+                                            </div>
                                         <?php endif; ?>
                                     </td>
                                     <td>

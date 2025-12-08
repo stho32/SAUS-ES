@@ -70,7 +70,7 @@ require_once 'includes/header.php';
 
     <form id="newsForm" class="needs-validation" novalidate>
         <div class="row mb-4">
-            <div class="col-md-8">
+            <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title mb-4">Allgemeine Informationen</h5>
@@ -108,26 +108,52 @@ require_once 'includes/header.php';
                             <div class="form-text">Datum der Veranstaltung oder des Events</div>
                             <div class="invalid-feedback">Bitte geben Sie ein Veranstaltungsdatum ein.</div>
                         </div>
+
+                        <?php if ($isEditMode): ?>
+                            <div class="mb-3">
+                                <label class="form-label">Erstellt</label>
+                                <p class="mb-0 text-muted small">
+                                    <?= date('d.m.Y H:i', strtotime($news['created_at'])) ?> Uhr
+                                    von <?= htmlspecialchars($news['created_by']) ?>
+                                </p>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="col-md-4">
+        <div class="row mb-4">
+            <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title mb-4">Bild</h5>
 
-                        <div class="mb-3">
-                            <?php if ($isEditMode && !empty($news['image_filename'])): ?>
-                                <div id="currentImagePreview" class="mb-3">
-                                    <label class="form-label">Aktuelles Bild</label>
-                                    <img src="../public_php_app/api/get_news_image.php?id=<?= $newsId ?>"
+                        <?php if ($isEditMode && !empty($news['image_filename'])): ?>
+                            <div id="currentImagePreview" class="mb-3">
+                                <label class="form-label">Aktuelles Bild</label>
+                                <div class="position-relative" style="max-width: 400px;">
+                                    <img src="api/get_news_image_preview.php?id=<?= $newsId ?>&thumbnail=true&t=<?= time() ?>"
                                          alt="Vorschau"
                                          class="img-fluid rounded mb-2"
-                                         style="max-width: 100%;">
+                                         style="max-width: 100%; cursor: pointer;"
+                                         onclick="showFullImage(<?= $newsId ?>)"
+                                         onerror="console.error('Image load failed:', this.src); this.style.border='2px solid red';"
+                                         onload="console.log('Image loaded successfully:', this.src);">
+                                    <div class="position-absolute top-0 end-0 m-2">
+                                        <button type="button"
+                                                class="btn btn-sm btn-light"
+                                                onclick="showFullImage(<?= $newsId ?>)"
+                                                title="In voller Größe anzeigen">
+                                            <i class="bi bi-arrows-fullscreen"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                            <?php endif; ?>
+                                <small class="text-muted">Klicken Sie auf das Bild, um es in voller Größe anzuzeigen</small>
+                            </div>
+                        <?php endif; ?>
 
+                        <div class="mb-3">
                             <label for="imageUpload" class="form-label">
                                 <?= ($isEditMode && !empty($news['image_filename'])) ? 'Neues Bild hochladen' : 'Bild hochladen' ?>
                             </label>
@@ -152,24 +178,36 @@ require_once 'includes/header.php';
                             </div>
                             <div id="uploadError" class="alert alert-danger mt-2" style="display: none;"></div>
                         </div>
-
-                        <?php if ($isEditMode): ?>
-                            <div class="mb-3">
-                                <label class="form-label">Erstellt</label>
-                                <p class="mb-0 text-muted small">
-                                    <?= date('d.m.Y H:i', strtotime($news['created_at'])) ?> Uhr<br>
-                                    von <?= htmlspecialchars($news['created_by']) ?>
-                                </p>
-                            </div>
-                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
     </form>
+
+    <!-- Modal für Vollbild-Ansicht -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">Bild in voller Größe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="fullSizeImage" src="" alt="Vollbild" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
+function showFullImage(newsId) {
+    const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+    const fullSizeImage = document.getElementById('fullSizeImage');
+    fullSizeImage.src = 'api/get_news_image_preview.php?id=' + newsId + '&t=' + Date.now();
+    imageModal.show();
+}
+
 async function uploadImage() {
     const fileInput = document.getElementById('imageUpload');
     const file = fileInput.files[0];

@@ -59,7 +59,12 @@ function validateNewsImageUpload(array $file): array {
  * @throws RuntimeException if directory cannot be created
  */
 function getNewsUploadPath(int $newsId): string {
-    $basePath = __DIR__ . '/../uploads/news';
+    $basePath = realpath(__DIR__ . '/../uploads/news');
+
+    // If realpath returns false, try to create the directory structure
+    if ($basePath === false) {
+        $basePath = __DIR__ . '/../uploads/news';
+    }
 
     // Create base upload directory if not exists
     if (!is_dir($basePath)) {
