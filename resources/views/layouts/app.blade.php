@@ -30,6 +30,7 @@
     }
     </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         /* Activity color classes: green -> yellow -> red gradient */
         .activity-0 { background-color: #e6ffe6 !important; }
@@ -66,30 +67,49 @@
             <div class="flex items-center justify-between h-16">
                 {{-- Brand --}}
                 <div class="flex items-center">
-                    <a href="{{ url('/') }}" class="text-white font-bold text-xl">SAUS-ES</a>
+                    <a href="{{ url('/') }}" class="text-white font-bold text-xl">SAUS-i</a>
                 </div>
 
                 {{-- Desktop Navigation --}}
                 <div class="hidden lg:flex lg:items-center lg:space-x-1">
+                    {{-- New Ticket Button (prominent, first) --}}
+                    <a href="{{ route('tickets.create') }}"
+                       class="bg-green-500 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-green-600 transition mr-2">
+                        <i class="bi bi-plus-lg"></i> Neues Ticket
+                    </a>
+
                     <a href="{{ url('/') }}"
                        class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('/') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-list-ul"></i> Uebersicht
                     </a>
                     <a href="{{ url('/follow-up') }}"
                        class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('follow-up') ? 'bg-brand-600 rounded' : '' }}">
-                        <i class="bi bi-calendar-check"></i> Wiedervorlage
+                        <i class="bi bi-calendar-check"></i> Dran bleiben
                     </a>
-                    <a href="{{ url('/website-view') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('website-view') ? 'bg-brand-600 rounded' : '' }}">
-                        <i class="bi bi-globe"></i> Webseite
-                    </a>
-                    <a href="{{ url('/news') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('news*') ? 'bg-brand-600 rounded' : '' }}">
-                        <i class="bi bi-megaphone"></i> News
-                    </a>
+
+                    {{-- Webseite Dropdown --}}
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" @click.away="open = false"
+                                class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition flex items-center gap-1 {{ request()->is('website-view') || request()->is('news*') ? 'bg-brand-600 rounded' : '' }}">
+                            <i class="bi bi-globe"></i> Webseite
+                            <i class="bi bi-chevron-down text-xs"></i>
+                        </button>
+                        <div x-show="open" x-transition
+                             class="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                            <a href="{{ url('/website-view') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->is('website-view') ? 'bg-gray-100 font-semibold' : '' }}">
+                                <i class="bi bi-eye"></i> Oeffentliche Tickets
+                            </a>
+                            <a href="{{ url('/news') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->is('news*') ? 'bg-gray-100 font-semibold' : '' }}">
+                                <i class="bi bi-megaphone"></i> News verwalten
+                            </a>
+                        </div>
+                    </div>
+
                     <a href="{{ url('/statistics') }}"
                        class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('statistics') ? 'bg-brand-600 rounded' : '' }}">
-                        <i class="bi bi-graph-up"></i> Statistik
+                        <i class="bi bi-graph-up"></i> Statistiken
                     </a>
                     <a href="{{ url('/saus-news') }}"
                        class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('saus-news') ? 'bg-brand-600 rounded' : '' }}">
@@ -98,12 +118,6 @@
                     <a href="{{ url('/contact-persons') }}"
                        class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('contact-persons') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-people"></i> Ansprechpartner
-                    </a>
-
-                    {{-- New Ticket Button --}}
-                    <a href="{{ route('tickets.create') }}"
-                       class="ml-2 bg-white text-brand-500 px-4 py-2 rounded text-sm font-semibold hover:bg-gray-100 transition">
-                        <i class="bi bi-plus-lg"></i> Neues Ticket
                     </a>
                 </div>
 
@@ -143,15 +157,16 @@
                 </a>
                 <a href="{{ url('/follow-up') }}"
                    class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('follow-up') ? 'bg-brand-800' : '' }}">
-                    <i class="bi bi-calendar-check"></i> Wiedervorlage
+                    <i class="bi bi-calendar-check"></i> Dran bleiben
                 </a>
+                <div class="text-white/60 text-xs px-3 pt-2 uppercase tracking-wider">Webseite</div>
                 <a href="{{ url('/website-view') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('website-view') ? 'bg-brand-800' : '' }}">
-                    <i class="bi bi-globe"></i> Webseite
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 pl-6 {{ request()->is('website-view') ? 'bg-brand-800' : '' }}">
+                    <i class="bi bi-eye"></i> Oeffentliche Tickets
                 </a>
                 <a href="{{ url('/news') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('news*') ? 'bg-brand-800' : '' }}">
-                    <i class="bi bi-megaphone"></i> News
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 pl-6 {{ request()->is('news*') ? 'bg-brand-800' : '' }}">
+                    <i class="bi bi-megaphone"></i> News verwalten
                 </a>
                 <a href="{{ url('/statistics') }}"
                    class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('statistics') ? 'bg-brand-800' : '' }}">
