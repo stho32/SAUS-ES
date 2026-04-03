@@ -59,7 +59,7 @@
     </style>
     @yield('styles')
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col" style="background-color: #f0efe8; color: #3c3c3c;">
     {{-- Navigation --}}
     <nav class="bg-brand-500 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

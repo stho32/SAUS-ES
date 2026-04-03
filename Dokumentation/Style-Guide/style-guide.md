@@ -12,17 +12,20 @@ Abgeleitet von der Hauptseite [1892.de](https://1892.de/) und angepasst fuer die
 | **Brand Blue Dark** | `#0675a9` | Button-Hover, aktive Elemente |
 | **Brand Blue Darker** | `#0073aa` | Focus-States, Formular-Buttons |
 
-### Neutralfarben
+### Neutralfarben (von 1892.de)
 
 | Farbe | Hex | Verwendung |
 |-------|-----|------------|
-| **Weiss** | `#ffffff` | Hintergrund Karten, Hauptbereich |
-| **Hellgrau** | `#f1f1f1` | Seiten-Hintergrund, Suchfeld |
-| **Mittelgrau** | `#eeeeee` | Trennlinien, deaktivierte Elemente |
-| **Grau** | `#d8d8d8` | Raender, Separator |
-| **Dunkelgrau** | `#3c3c3c` | Primaerer Text |
-| **Sehr Dunkelgrau** | `#313131` | Navigation-Hintergrund, Footer |
-| **Schwarz** | `#000000` | Ueberschriften, starker Kontrast |
+| **Weiss** | `#ffffff` | Hintergrund Karten, Hauptinhalt |
+| **Warmes Beige** | `#f0efe8` | Seiten-Hintergrund, Sektionswechsel (statt kaltes Grau) |
+| **Helles Beige** | `#edece7` | Banner-Hintergruende, Kontaktbereich |
+| **Blasses Grau** | `#e3e2dd` | Sekundaere Hintergruende, Menue geoeffnet |
+| **Mittelgrau** | `#c8c8c8` | Raender, Icons |
+| **Dunkelgrau** | `#3c3c3c` | **Primaerer Text** (nicht schwarz!) |
+| **Sehr Dunkelgrau** | `#292b2d` | Hover-Links, starker Kontrast |
+
+> **Wichtig:** 1892.de nutzt warme Beige/Off-White-Toene statt kaltem Grau fuer Hintergruende.
+> Der Seiten-Hintergrund ist `#f0efe8` (warmes Beige), nicht `#f1f1f1` (kaltes Grau).
 
 ### Funktionale Farben
 
