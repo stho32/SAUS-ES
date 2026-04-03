@@ -2,17 +2,25 @@
 id: R00012
 titel: "Oeffentlicher Bereich vollstaendig abbilden"
 typ: Feature
-status: Offen
+status: Teilweise umgesetzt
 erstellt: 2026-04-03
 ---
 
 # R00012: Oeffentlicher Bereich vollstaendig abbilden
 
 ## Zusammenfassung
-Der oeffentliche Bereich (public_information_saus/) der alten Anwendung hat eine reichhaltigere Struktur als die aktuelle Laravel-Portierung. Fehlende Elemente muessen ergaenzt werden.
+Der oeffentliche Bereich (alt: `public_information_saus/`) ist bewusst vom Admin-Tool getrennt, damit Webcrawler, die die oeffentlichen Seiten finden, nicht den Weg zum Verwaltungstool entdecken.
 
-## Ist-Zustand
-Die oeffentliche Ticket-Seite (`/public`) zeigt nur eine einfache Tabelle mit Tickets. Die alte Anwendung hatte:
+## Sicherheitskonzept (bereits umgesetzt)
+- **Konfigurierbarer Route-Prefix**: `SAUS_PUBLIC_ROUTE_PREFIX` in `.env` (Standard: `public-information`)
+- **robots.txt**: Blockt alles (`Disallow: /`) ausser den oeffentlichen Bereich (`Allow: /public-information/`)
+- **Kein Link zum Admin-Tool**: Oeffentliches Layout nennt weder "SAUS-i" noch verlinkt es zum Admin
+- **Generischer Titel**: "Siedlungsausschuss" statt "SAUS-ES Ticket-System"
+- **Separate Layouts**: `layouts/public.blade.php` hat keine Navigation zum Admin
+- In der Produktion war der oeffentliche Bereich unter einem eigenen Verzeichnis (`public_information_saus/`) gehostet, um die Trennung auch auf Dateisystem-Ebene sicherzustellen
+
+## Ist-Zustand (was noch fehlt)
+Die oeffentliche Ticket-Seite zeigt aktuell nur eine einfache Tabelle. Die alte Anwendung hatte:
 - Intro-Text mit Informationen ueber aktuelle Vorgaenge
 - Einladung zur Teilnahme an der Sitzung
 - Sitzungstermin (erster Montag im Monat, 19:30 Uhr)
@@ -32,6 +40,9 @@ Die oeffentliche Ticket-Seite (`/public`) zeigt nur eine einfache Tabelle mit Ti
 - Auto-Hide fuer inaktive Tickets (>3 Monate) mit Toggle
 
 ## Akzeptanzkriterien
+- [x] Route-Prefix konfigurierbar via .env
+- [x] robots.txt blockt Admin-Bereich
+- [x] Oeffentliches Layout ohne Admin-Links
 - [ ] Intro-Bereich mit Willkommenstext und Teilnahme-Einladung
 - [ ] Kontakt-Box mit konfigurierbaren Kontaktdaten
 - [ ] Inhaltsverzeichnis am Seitenanfang mit Anker-Links

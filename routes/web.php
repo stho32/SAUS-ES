@@ -95,7 +95,9 @@ Route::middleware(['master_link', 'ensure_username'])->group(function () {
 });
 
 // Public routes (no auth required)
-Route::prefix('public')->group(function () {
+// Prefix is configurable to keep admin tool hidden from crawlers
+// that discover the public pages (security by obscurity separation)
+Route::prefix(config('saus.public_route_prefix', 'public-information'))->group(function () {
     Route::get('/', [PublicTicketController::class, 'index'])->name('public.tickets.index');
     Route::get('/news', [PublicNewsController::class, 'index'])->name('public.news.index');
     Route::get('/news/{news}', [PublicNewsController::class, 'show'])->name('public.news.show');

@@ -1,2 +1,6 @@
+# SAUS-ES: Only the public information area should be indexed.
+# The admin tool must remain hidden from search engines.
 User-agent: *
-Disallow:
+Disallow: /
+Allow: /public-information/
+Allow: /public-information/news
