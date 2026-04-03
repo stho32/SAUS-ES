@@ -6,7 +6,7 @@
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
     <h1 class="text-2xl font-bold text-gray-900">News verwalten</h1>
     <a href="{{ route('news.create') }}"
-       class="inline-flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">
+       class="inline-flex items-center bg-brand-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-brand-600 transition text-sm">
         <i class="bi bi-plus-lg mr-2"></i> Neuer Artikel
     </a>
 </div>
@@ -23,14 +23,14 @@
                    name="search"
                    value="{{ $search ?? '' }}"
                    placeholder="Titel, Inhalt oder Ersteller durchsuchen..."
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
         </div>
         <div class="md:col-span-3">
             <label for="sort" class="block text-sm font-medium text-gray-700 mb-1">
                 <i class="bi bi-sort-down"></i> Sortieren nach
             </label>
             <select id="sort" name="sort"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
                 <option value="id" {{ ($sortBy ?? '') === 'id' ? 'selected' : '' }}>ID</option>
                 <option value="title" {{ ($sortBy ?? '') === 'title' ? 'selected' : '' }}>Titel</option>
                 <option value="event_date" {{ ($sortBy ?? '') === 'event_date' ? 'selected' : '' }}>Veranstaltungsdatum</option>
@@ -41,13 +41,13 @@
         <div class="md:col-span-2">
             <label for="dir" class="block text-sm font-medium text-gray-700 mb-1">Reihenfolge</label>
             <select id="dir" name="dir"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
                 <option value="desc" {{ ($sortDir ?? 'desc') === 'desc' ? 'selected' : '' }}>Absteigend</option>
                 <option value="asc" {{ ($sortDir ?? '') === 'asc' ? 'selected' : '' }}>Aufsteigend</option>
             </select>
         </div>
         <div class="md:col-span-2 flex items-end gap-2">
-            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-sm">
+            <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded-lg hover:bg-brand-600 transition text-sm">
                 <i class="bi bi-funnel"></i> Filtern
             </button>
             @if(($search ?? '') !== '' || ($sortBy ?? 'created_at') !== 'created_at' || ($sortDir ?? 'desc') !== 'desc')
@@ -84,7 +84,7 @@
                     Keine News-Artikel vorhanden.
                 @endif
             </p>
-            <a href="{{ route('news.create') }}" class="inline-flex items-center mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-sm">
+            <a href="{{ route('news.create') }}" class="inline-flex items-center mt-4 bg-brand-500 text-white px-4 py-2 rounded-lg hover:bg-brand-600 transition text-sm">
                 <i class="bi bi-plus-lg mr-2"></i> Erste News erstellen
             </a>
         </div>
@@ -129,7 +129,7 @@
                             <td class="px-4 py-3 text-center">
                                 <div class="inline-flex gap-1">
                                     <a href="{{ route('news.edit', $article) }}"
-                                       class="inline-flex items-center justify-center w-8 h-8 border border-indigo-300 text-indigo-600 rounded hover:bg-indigo-50 transition"
+                                       class="inline-flex items-center justify-center w-8 h-8 border border-brand-300 text-brand-500 rounded hover:bg-brand-50 transition"
                                        title="Bearbeiten">
                                         <i class="bi bi-pencil"></i>
                                     </a>

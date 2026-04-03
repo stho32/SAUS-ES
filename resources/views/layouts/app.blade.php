@@ -3,10 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="#0786c0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>SAUS-ES - @yield('title', 'Ticket-System')</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    brand: {
+                        50:  '#e6f4fb',
+                        100: '#cce9f7',
+                        200: '#99d3ef',
+                        300: '#66bde7',
+                        400: '#33a7df',
+                        500: '#0786c0',
+                        600: '#0675a9',
+                        700: '#056492',
+                        800: '#04537b',
+                        900: '#034264',
+                    }
+                }
+            }
+        }
+    }
+    </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         /* Activity color classes: green -> yellow -> red gradient */
@@ -39,7 +61,7 @@
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
     {{-- Navigation --}}
-    <nav class="bg-indigo-600 shadow-md">
+    <nav class="bg-brand-500 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 {{-- Brand --}}
@@ -50,37 +72,37 @@
                 {{-- Desktop Navigation --}}
                 <div class="hidden lg:flex lg:items-center lg:space-x-1">
                     <a href="{{ url('/') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-indigo-700 rounded transition {{ request()->is('/') ? 'bg-indigo-700 rounded' : '' }}">
+                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('/') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-list-ul"></i> Uebersicht
                     </a>
                     <a href="{{ url('/follow-up') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-indigo-700 rounded transition {{ request()->is('follow-up') ? 'bg-indigo-700 rounded' : '' }}">
+                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('follow-up') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-calendar-check"></i> Wiedervorlage
                     </a>
                     <a href="{{ url('/website-view') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-indigo-700 rounded transition {{ request()->is('website-view') ? 'bg-indigo-700 rounded' : '' }}">
+                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('website-view') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-globe"></i> Webseite
                     </a>
                     <a href="{{ url('/news') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-indigo-700 rounded transition {{ request()->is('news*') ? 'bg-indigo-700 rounded' : '' }}">
+                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('news*') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-megaphone"></i> News
                     </a>
                     <a href="{{ url('/statistics') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-indigo-700 rounded transition {{ request()->is('statistics') ? 'bg-indigo-700 rounded' : '' }}">
+                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('statistics') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-graph-up"></i> Statistik
                     </a>
                     <a href="{{ url('/saus-news') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-indigo-700 rounded transition {{ request()->is('saus-news') ? 'bg-indigo-700 rounded' : '' }}">
+                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('saus-news') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-newspaper"></i> SAUS-News
                     </a>
                     <a href="{{ url('/contact-persons') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-indigo-700 rounded transition {{ request()->is('contact-persons') ? 'bg-indigo-700 rounded' : '' }}">
+                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('contact-persons') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-people"></i> Ansprechpartner
                     </a>
 
                     {{-- New Ticket Button --}}
                     <a href="{{ route('tickets.create') }}"
-                       class="ml-2 bg-white text-indigo-600 px-4 py-2 rounded text-sm font-semibold hover:bg-gray-100 transition">
+                       class="ml-2 bg-white text-brand-500 px-4 py-2 rounded text-sm font-semibold hover:bg-gray-100 transition">
                         <i class="bi bi-plus-lg"></i> Neues Ticket
                     </a>
                 </div>
@@ -88,10 +110,10 @@
                 {{-- User Display & Logout (Desktop) --}}
                 <div class="hidden lg:flex lg:items-center lg:space-x-3">
                     @if(session('username'))
-                        <span class="text-indigo-100 text-sm">
+                        <span class="text-brand-100 text-sm">
                             <i class="bi bi-person"></i> {{ session('username') }}
                         </span>
-                        <a href="{{ route('logout') }}" class="text-white border border-white/50 px-3 py-1.5 rounded text-sm hover:bg-indigo-700 transition">
+                        <a href="{{ route('logout') }}" class="text-white border border-white/50 px-3 py-1.5 rounded text-sm hover:bg-brand-600 transition">
                             <i class="bi bi-box-arrow-right"></i> Abmelden
                         </a>
                     @endif
@@ -100,7 +122,7 @@
                 {{-- Mobile Hamburger Button --}}
                 <div class="lg:hidden">
                     <button type="button" id="mobile-menu-btn"
-                            class="text-white hover:bg-indigo-700 p-2 rounded focus:outline-none focus:ring-2 focus:ring-white"
+                            class="text-white hover:bg-brand-600 p-2 rounded focus:outline-none focus:ring-2 focus:ring-white"
                             aria-expanded="false">
                         <i class="bi bi-list text-2xl"></i>
                     </button>
@@ -109,48 +131,48 @@
         </div>
 
         {{-- Mobile Menu --}}
-        <div id="mobile-menu" class="hidden lg:hidden bg-indigo-700">
+        <div id="mobile-menu" class="hidden lg:hidden bg-brand-600">
             <div class="px-4 pt-2 pb-4 space-y-1">
                 <a href="{{ route('tickets.create') }}"
-                   class="block bg-white text-indigo-600 px-3 py-2 rounded text-sm font-semibold text-center mb-2">
+                   class="block bg-white text-brand-500 px-3 py-2 rounded text-sm font-semibold text-center mb-2">
                     <i class="bi bi-plus-lg"></i> Neues Ticket
                 </a>
                 <a href="{{ url('/') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-indigo-800 {{ request()->is('/') ? 'bg-indigo-800' : '' }}">
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('/') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-list-ul"></i> Uebersicht
                 </a>
                 <a href="{{ url('/follow-up') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-indigo-800 {{ request()->is('follow-up') ? 'bg-indigo-800' : '' }}">
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('follow-up') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-calendar-check"></i> Wiedervorlage
                 </a>
                 <a href="{{ url('/website-view') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-indigo-800 {{ request()->is('website-view') ? 'bg-indigo-800' : '' }}">
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('website-view') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-globe"></i> Webseite
                 </a>
                 <a href="{{ url('/news') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-indigo-800 {{ request()->is('news*') ? 'bg-indigo-800' : '' }}">
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('news*') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-megaphone"></i> News
                 </a>
                 <a href="{{ url('/statistics') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-indigo-800 {{ request()->is('statistics') ? 'bg-indigo-800' : '' }}">
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('statistics') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-graph-up"></i> Statistik
                 </a>
                 <a href="{{ url('/saus-news') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-indigo-800 {{ request()->is('saus-news') ? 'bg-indigo-800' : '' }}">
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('saus-news') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-newspaper"></i> SAUS-News
                 </a>
                 <a href="{{ url('/contact-persons') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-indigo-800 {{ request()->is('contact-persons') ? 'bg-indigo-800' : '' }}">
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('contact-persons') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-people"></i> Ansprechpartner
                 </a>
 
                 @if(session('username'))
-                    <div class="border-t border-indigo-600 mt-2 pt-2">
-                        <span class="block text-indigo-200 px-3 py-1 text-sm">
+                    <div class="border-t border-brand-600 mt-2 pt-2">
+                        <span class="block text-brand-200 px-3 py-1 text-sm">
                             <i class="bi bi-person"></i> {{ session('username') }}
                         </span>
                         <a href="{{ route('logout') }}"
-                           class="block text-white px-3 py-2 text-sm rounded hover:bg-indigo-800">
+                           class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800">
                             <i class="bi bi-box-arrow-right"></i> Abmelden
                         </a>
                     </div>

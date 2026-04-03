@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Bilder zu Ticket #{{ $ticket->ticket_number ?? $ticket->id }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    brand: {
+                        50:  "#e6f4fb",
+                        100: "#cce9f7",
+                        200: "#99d3ef",
+                        300: "#66bde7",
+                        400: "#33a7df",
+                        500: "#0786c0",
+                        600: "#0675a9",
+                        700: "#056492",
+                        800: "#04537b",
+                        900: "#034264",
+                    }
+                }
+            }
+        }
+    }
+    </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -12,7 +34,7 @@
         {{-- Header --}}
         <div class="mb-8 pb-4 border-b border-gray-300">
             <h1 class="text-2xl font-bold text-gray-900">
-                <i class="bi bi-images mr-2 text-indigo-600"></i>
+                <i class="bi bi-images mr-2 text-brand-500"></i>
                 Bilder zu Ticket #{{ $ticket->ticket_number ?? $ticket->id }}
             </h1>
             <p class="text-gray-600 mt-1">{{ $ticket->title }}</p>

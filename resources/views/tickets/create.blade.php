@@ -24,7 +24,7 @@
                    name="title"
                    value="{{ old('title') }}"
                    required
-                   class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition @error('title') border-red-500 @enderror"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition @error('title') border-red-500 @enderror"
                    placeholder="Kurze Beschreibung des Problems">
             @error('title')
                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -38,7 +38,7 @@
                       name="description"
                       rows="5"
                       required
-                      class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition @error('description') border-red-500 @enderror"
+                      class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition @error('description') border-red-500 @enderror"
                       placeholder="Detaillierte Beschreibung des Problems...">{{ old('description') }}</textarea>
             @error('description')
                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -51,7 +51,7 @@
             <select id="status"
                     name="status_id"
                     required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition @error('status_id') border-red-500 @enderror">
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition @error('status_id') border-red-500 @enderror">
                 <option value="">Bitte waehlen...</option>
                 @foreach($statuses ?? [] as $status)
                     <option value="{{ $status['id'] }}" {{ old('status_id') == $status['id'] ? 'selected' : '' }}>
@@ -71,14 +71,14 @@
                    id="assignee"
                    name="assignee"
                    value="{{ old('assignee') }}"
-                   class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition"
                    placeholder="Name des zustaendigen Bearbeiters (optional)">
         </div>
 
         {{-- Submit --}}
         <div class="flex justify-end pt-2">
             <button type="submit"
-                    class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 transition">
+                    class="bg-brand-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-brand-600 focus:ring-4 focus:ring-brand-300 transition">
                 <i class="bi bi-check-lg"></i> Ticket erstellen
             </button>
         </div>

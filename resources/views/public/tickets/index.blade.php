@@ -15,7 +15,7 @@
                     <i class="bi bi-sort-down"></i> Sortierung
                 </label>
                 <select id="sort" name="sort" onchange="document.getElementById('filterForm').submit()"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm">
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm">
                     <option value="last_activity" {{ ($sortBy ?? 'last_activity') === 'last_activity' ? 'selected' : '' }}>Letzte Aktivitaet</option>
                     <option value="title" {{ ($sortBy ?? '') === 'title' ? 'selected' : '' }}>Titel</option>
                     <option value="id" {{ ($sortBy ?? '') === 'id' ? 'selected' : '' }}>Vorgangs-Nr</option>
@@ -31,7 +31,7 @@
                 <input type="text" id="search" name="search"
                        value="{{ $search ?? '' }}"
                        placeholder="Suchbegriff eingeben..."
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm">
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm">
             </div>
 
             {{-- Inactive Toggle --}}
@@ -40,11 +40,11 @@
                     <input type="checkbox" name="show_all" value="1"
                            {{ ($showAll ?? false) ? 'checked' : '' }}
                            onchange="document.getElementById('filterForm').submit()"
-                           class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                           class="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500">
                     <span class="ml-2 text-sm text-gray-700">Inaktive anzeigen</span>
                 </label>
 
-                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-sm">
+                <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded-lg hover:bg-brand-600 transition text-sm">
                     <i class="bi bi-filter"></i> Anwenden
                 </button>
 
@@ -101,7 +101,7 @@
                     @foreach($tickets as $ticket)
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-4 py-3">
-                                <span class="text-indigo-600 font-medium">#{{ $ticket->ticket_number ?? $ticket->id }}</span>
+                                <span class="text-brand-500 font-medium">#{{ $ticket->ticket_number ?? $ticket->id }}</span>
                             </td>
                             <td class="px-4 py-3 font-medium text-gray-900">
                                 {{ $ticket->title }}

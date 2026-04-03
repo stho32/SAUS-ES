@@ -8,7 +8,7 @@
         <h1 class="text-2xl font-bold text-gray-900">Ticket-Uebersicht</h1>
         <p class="text-gray-500 text-sm mt-1">
             Brauchen Sie Hilfe?
-            <a href="https://chatgpt.com/g/g-AYCDjxFTR-saus" target="_blank" class="text-indigo-600 hover:underline">
+            <a href="https://chatgpt.com/g/g-AYCDjxFTR-saus" target="_blank" class="text-brand-500 hover:underline">
                 <i class="bi bi-robot"></i> SAUS-Berater-GPT
             </a>
         </p>
@@ -30,11 +30,11 @@
                        name="search"
                        value="{{ $search ?? '' }}"
                        placeholder="Suche in Tickets..."
-                       class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                       class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <i class="bi bi-search text-gray-400"></i>
                 </div>
-                <button type="submit" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-indigo-600">
+                <button type="submit" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-brand-500">
                     <i class="bi bi-arrow-right-circle"></i>
                 </button>
             </div>
@@ -63,8 +63,8 @@
                     <a href="{{ request()->fullUrlWithQuery(['filter_applied' => '1', 'category' => array_values($toggledCategories)]) }}"
                        class="px-3 py-1.5 rounded-full text-sm font-medium border transition
                               {{ $isSelected
-                                  ? 'bg-indigo-600 text-white border-indigo-600'
-                                  : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-400 hover:text-indigo-600' }}">
+                                  ? 'bg-brand-500 text-white border-brand-600'
+                                  : 'bg-white text-gray-700 border-gray-300 hover:border-brand-400 hover:text-brand-500' }}">
                         {{ $categoryLabels[$category['filter_category']] ?? $category['filter_category'] }}
                     </a>
                 @endforeach
@@ -76,7 +76,7 @@
             <div class="flex items-center gap-2">
                 <label for="sort" class="text-sm font-medium text-gray-700">Sortierung:</label>
                 <select name="sort" id="sort" onchange="this.form.submit()"
-                        class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                        class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
                     <option value="last_activity" {{ ($sort ?? 'last_activity') === 'last_activity' ? 'selected' : '' }}>Letzte Aktivitaet</option>
                     <option value="id" {{ ($sort ?? '') === 'id' ? 'selected' : '' }}>ID</option>
                     <option value="title" {{ ($sort ?? '') === 'title' ? 'selected' : '' }}>Titel</option>
@@ -87,7 +87,7 @@
             </div>
             <div class="flex items-center gap-2">
                 <select name="order" onchange="this.form.submit()"
-                        class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                        class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
                     <option value="desc" {{ ($order ?? 'desc') === 'desc' ? 'selected' : '' }}>Absteigend</option>
                     <option value="asc" {{ ($order ?? '') === 'asc' ? 'selected' : '' }}>Aufsteigend</option>
                 </select>
@@ -96,7 +96,7 @@
                 <input type="hidden" name="category[]" value="{{ $cat }}">
             @endforeach
             <a href="{{ route('tickets.index', ['filter_applied' => '1', 'category' => ['in_bearbeitung']]) }}"
-               class="text-sm text-gray-500 hover:text-indigo-600 transition">
+               class="text-sm text-gray-500 hover:text-brand-500 transition">
                 <i class="bi bi-x-lg"></i> Filter zuruecksetzen
             </a>
         </div>
@@ -130,11 +130,11 @@
 
                         {{-- Ticket Number --}}
                         <td class="px-4 py-3 {{ $activityClass }}">
-                            <a href="{{ route('tickets.show', $ticket['id']) }}" class="text-indigo-600 hover:underline font-medium">
+                            <a href="{{ route('tickets.show', $ticket['id']) }}" class="text-brand-500 hover:underline font-medium">
                                 #{{ $ticket['id'] }}
                             </a>
                             <a href="{{ route('tickets.show', $ticket['id']) }}" target="_blank"
-                               class="ml-1 text-gray-400 hover:text-indigo-600" onclick="event.stopPropagation();" title="In neuem Tab oeffnen">
+                               class="ml-1 text-gray-400 hover:text-brand-500" onclick="event.stopPropagation();" title="In neuem Tab oeffnen">
                                 <i class="bi bi-box-arrow-up-right text-xs"></i>
                             </a>
                         </td>
@@ -142,14 +142,14 @@
                         {{-- Website Icon --}}
                         <td class="px-2 py-3 text-center {{ $activityClass }}">
                             @if($ticket['show_on_website'] ?? false)
-                                <i class="bi bi-globe text-indigo-500" title="Oeffentlich auf der Website sichtbar"></i>
+                                <i class="bi bi-globe text-brand-400" title="Oeffentlich auf der Website sichtbar"></i>
                             @endif
                         </td>
 
                         {{-- Title & Details --}}
                         <td class="px-4 py-3 {{ $activityClass }}">
                             <div>
-                                <a href="{{ route('tickets.show', $ticket['id']) }}" class="text-gray-900 hover:text-indigo-600 font-medium">
+                                <a href="{{ route('tickets.show', $ticket['id']) }}" class="text-gray-900 hover:text-brand-500 font-medium">
                                     {{ $ticket['title'] }}
                                 </a>
                             </div>
@@ -174,7 +174,7 @@
                                     </div>
                                 @endif
                                 @if(!empty($ticket['contacts_genossenschaft']))
-                                    <div class="text-indigo-600">
+                                    <div class="text-brand-500">
                                         + {{ $ticket['contacts_genossenschaft'] }}
                                     </div>
                                 @endif

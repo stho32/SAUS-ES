@@ -7,6 +7,7 @@
     .comment-content a { color: #4f46e5; text-decoration: underline; }
     .comment-content a:hover { color: #3730a3; }
     .thumbnail-img { max-width: 80px; max-height: 80px; object-fit: cover; border-radius: 0.375rem; cursor: pointer; }
+    .comment-hidden { display: none; }
 </style>
 @endsection
 
@@ -50,7 +51,7 @@
 
                 {{-- Action Buttons --}}
                 <a href="{{ route('tickets.edit', $ticket) }}"
-                   class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">
+                   class="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition">
                     <i class="bi bi-pencil"></i> Bearbeiten
                 </a>
                 <a href="{{ route('tickets.email', $ticket) }}" target="_blank"
@@ -77,7 +78,7 @@
                     <h6 class="text-xs font-medium text-gray-500 uppercase">Zustaendig</h6>
                     <p class="text-lg mt-0.5">
                         <button type="button" onclick="document.getElementById('assignee-modal').classList.remove('hidden')"
-                                class="text-gray-900 hover:text-indigo-600 transition">
+                                class="text-gray-900 hover:text-brand-500 transition">
                             {{ $ticket->assignee ?: 'Nicht zugewiesen' }}
                             <i class="bi bi-pencil-square ml-1 text-sm text-gray-400"></i>
                         </button>
@@ -100,7 +101,7 @@
                     <h6 class="text-xs font-medium text-gray-500 uppercase">Status</h6>
                     <p class="text-lg mt-0.5">
                         <button type="button" onclick="document.getElementById('status-modal').classList.remove('hidden')"
-                                class="text-gray-900 hover:text-indigo-600 transition">
+                                class="text-gray-900 hover:text-brand-500 transition">
                             @if($ticket->status)
                                 <span class="inline-block px-2 py-0.5 rounded text-sm font-medium"
                                       style="background-color: {{ $ticket->status->background_color }}">
@@ -127,7 +128,7 @@
                     <h6 class="text-xs font-medium text-gray-500 uppercase">Wiedervorlage</h6>
                     <p class="text-sm mt-0.5">
                         <button type="button" onclick="document.getElementById('followup-modal').classList.remove('hidden')"
-                                class="text-gray-900 hover:text-indigo-600 transition">
+                                class="text-gray-900 hover:text-brand-500 transition">
                             {{ $ticket->follow_up_date ? $ticket->follow_up_date->format('d.m.Y') : 'Kein Datum gesetzt' }}
                             <i class="bi bi-pencil-square ml-1 text-xs text-gray-400"></i>
                         </button>
@@ -172,7 +173,7 @@
         <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
             <h5 class="font-semibold text-gray-900">Ansprechpartner bei der Genossenschaft</h5>
             <button type="button" onclick="document.getElementById('add-contact-modal').classList.remove('hidden')"
-                    class="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded font-medium hover:bg-indigo-700 transition">
+                    class="bg-brand-500 text-white text-xs px-3 py-1.5 rounded font-medium hover:bg-brand-600 transition">
                 <i class="bi bi-plus-lg"></i> Hinzufuegen
             </button>
         </div>
@@ -215,7 +216,7 @@
                 </div>
             @endif
             <div class="mt-3">
-                <a href="{{ route('contact-persons.index') }}" class="text-sm text-gray-500 hover:text-indigo-600 transition">
+                <a href="{{ route('contact-persons.index') }}" class="text-sm text-gray-500 hover:text-brand-500 transition">
                     <i class="bi bi-gear"></i> Ansprechpartner verwalten
                 </a>
             </div>
@@ -280,8 +281,8 @@
             <form id="uploadForm" class="mb-4">
                 <div class="flex gap-2">
                     <input type="file" id="fileInput" name="file"
-                           class="flex-1 text-sm text-gray-700 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
-                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition whitespace-nowrap">
+                           class="flex-1 text-sm text-gray-700 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                    <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition whitespace-nowrap">
                         <i class="bi bi-upload mr-1"></i> Hochladen
                     </button>
                 </div>
@@ -338,7 +339,7 @@
             </h5>
             <div class="flex items-center gap-3">
                 <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                    <input type="checkbox" id="showAllComments" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <input type="checkbox" id="showAllComments" class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
                     Alle anzeigen
                 </label>
             </div>
@@ -373,12 +374,14 @@
                                 <div class="inline-flex rounded overflow-hidden border border-gray-200 text-xs">
                                     <button type="button"
                                             class="px-2 py-1 transition bg-white text-green-600 hover:bg-green-50"
-                                            onclick="voteComment({{ $comment->id }}, 'up')">
+                                            onclick="voteComment({{ $comment->id }}, 'up')"
+                                            title="{{ $comment->upvoters ?: 'Keine Upvotes' }}">
                                         <i class="bi bi-hand-thumbs-up"></i> <span id="comment-up-{{ $comment->id }}">{{ $comment->up_votes }}</span>
                                     </button>
                                     <button type="button"
                                             class="px-2 py-1 border-l border-gray-200 transition bg-white text-red-600 hover:bg-red-50"
-                                            onclick="voteComment({{ $comment->id }}, 'down')">
+                                            onclick="voteComment({{ $comment->id }}, 'down')"
+                                            title="{{ $comment->downvoters ?: 'Keine Downvotes' }}">
                                         <i class="bi bi-hand-thumbs-down"></i> <span id="comment-down-{{ $comment->id }}">{{ $comment->down_votes }}</span>
                                     </button>
                                 </div>
@@ -387,7 +390,7 @@
                             {{-- Edit Button (own comments only) --}}
                             @if($comment->username === $username && $comment->username !== 'System')
                                 <button type="button" onclick="startEditComment({{ $comment->id }})"
-                                        class="text-gray-400 hover:text-indigo-600 text-xs p-1" title="Bearbeiten">
+                                        class="text-gray-400 hover:text-brand-500 text-xs p-1" title="Bearbeiten">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                             @endif
@@ -396,7 +399,7 @@
                             @if($comment->username !== 'System')
                                 <button type="button"
                                         onclick="toggleCommentVisibility({{ $comment->id }})"
-                                        class="text-gray-400 hover:text-indigo-600 text-xs p-1"
+                                        class="text-gray-400 hover:text-brand-500 text-xs p-1"
                                         title="{{ $comment->is_visible ? 'Ausblenden' : 'Einblenden' }}">
                                     <i class="bi {{ $comment->is_visible ? 'bi-eye' : 'bi-eye-slash' }}"></i>
                                 </button>
@@ -423,14 +426,14 @@
         <h5 class="font-semibold text-gray-900 mb-3">Neuer Kommentar</h5>
         <div>
             <textarea id="commentContent" rows="3"
-                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition"
                       placeholder="Kommentar eingeben..."></textarea>
             <p class="text-xs text-gray-500 mt-1">
                 Formatierung: **fett**, *kursiv*, [ ] Checkbox leer, [x] Checkbox voll. URLs werden automatisch verlinkt.
             </p>
             <div class="text-right mt-2">
                 <button type="button" onclick="addComment()"
-                        class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">
+                        class="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition">
                     <i class="bi bi-send"></i> Kommentar speichern
                 </button>
             </div>
@@ -454,14 +457,14 @@
             <input type="text" id="assigneeInput"
                    value="{{ $ticket->assignee ?? '' }}"
                    placeholder="Name oder Gruppe eingeben"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
             <p class="text-xs text-gray-500 mt-1">Mehrere Zustaendige koennen durch Komma getrennt werden.</p>
         </div>
         <div class="flex justify-end gap-2 px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
             <button type="button" onclick="document.getElementById('assignee-modal').classList.add('hidden')"
                     class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">Abbrechen</button>
             <button type="button" onclick="updateAssignee()"
-                    class="px-4 py-2 text-sm text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">Speichern</button>
+                    class="px-4 py-2 text-sm text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition">Speichern</button>
         </div>
     </div>
 </div>
@@ -478,7 +481,7 @@
         <div class="p-4">
             <label for="statusSelect" class="block text-sm font-medium text-gray-700 mb-1">Neuer Status</label>
             <select id="statusSelect"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
                 @foreach(\App\Models\TicketStatus::active()->orderBy('sort_order')->get() as $status)
                     <option value="{{ $status->id }}" {{ $status->id == $ticket->status_id ? 'selected' : '' }}>
                         {{ $status->name }}
@@ -490,7 +493,7 @@
             <button type="button" onclick="document.getElementById('status-modal').classList.add('hidden')"
                     class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">Abbrechen</button>
             <button type="button" onclick="updateStatus()"
-                    class="px-4 py-2 text-sm text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">Speichern</button>
+                    class="px-4 py-2 text-sm text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition">Speichern</button>
         </div>
     </div>
 </div>
@@ -508,13 +511,13 @@
             <label for="followUpDate" class="block text-sm font-medium text-gray-700 mb-1">Wiedervorlagedatum</label>
             <input type="date" id="followUpDate"
                    value="{{ $ticket->follow_up_date ? $ticket->follow_up_date->format('Y-m-d') : '' }}"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
         </div>
         <div class="flex justify-end gap-2 px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
             <button type="button" onclick="document.getElementById('followup-modal').classList.add('hidden')"
                     class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">Abbrechen</button>
             <button type="button" onclick="updateFollowUpDate()"
-                    class="px-4 py-2 text-sm text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">Speichern</button>
+                    class="px-4 py-2 text-sm text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition">Speichern</button>
         </div>
     </div>
 </div>
@@ -541,7 +544,7 @@
             @else
                 <label for="contactPersonSelect" class="block text-sm font-medium text-gray-700 mb-1">Ansprechpartner auswaehlen</label>
                 <select id="contactPersonSelect"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
                     <option value="">-- Bitte waehlen --</option>
                     @foreach($allContactPersons as $person)
                         @if(!in_array($person->id, $linkedIds))
@@ -555,7 +558,7 @@
             <button type="button" onclick="document.getElementById('add-contact-modal').classList.add('hidden')"
                     class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">Abbrechen</button>
             <button type="button" onclick="addContactPerson()"
-                    class="px-4 py-2 text-sm text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">Hinzufuegen</button>
+                    class="px-4 py-2 text-sm text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition">Hinzufuegen</button>
         </div>
     </div>
 </div>
@@ -660,11 +663,11 @@ function startEditComment(commentId) {
 
     commentDiv.innerHTML =
         '<div class="mb-2">' +
-            '<textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" id="edit-comment-' + commentId + '" rows="3">' + content + '</textarea>' +
+            '<textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none" id="edit-comment-' + commentId + '" rows="3">' + content + '</textarea>' +
         '</div>' +
         '<div class="text-xs text-gray-500 mb-2">**fett**, *kursiv*, [ ] Checkbox leer, [x] Checkbox voll</div>' +
         '<div class="flex gap-2">' +
-            '<button class="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-indigo-700" onclick="saveCommentEdit(' + commentId + ')">Speichern</button>' +
+            '<button class="bg-brand-500 text-white px-3 py-1 rounded text-xs font-medium hover:bg-brand-600" onclick="saveCommentEdit(' + commentId + ')">Speichern</button>' +
             '<button class="bg-white text-gray-700 border border-gray-300 px-3 py-1 rounded text-xs hover:bg-gray-50" onclick="location.reload()">Abbrechen</button>' +
         '</div>';
 }
@@ -692,9 +695,13 @@ async function saveCommentEdit(commentId) {
 // Toggle Comment Visibility
 async function toggleCommentVisibility(commentId) {
     try {
+        var commentEl = document.getElementById('comment-' + commentId);
+        var isCurrentlyVisible = commentEl.getAttribute('data-visible') === 'true';
+
         const response = await fetch('/api/comments/' + commentId + '/visibility', {
             method: 'POST',
-            headers: apiHeaders()
+            headers: apiHeaders(),
+            body: JSON.stringify({ is_visible: !isCurrentlyVisible })
         });
         const data = await response.json();
         if (data.success) {

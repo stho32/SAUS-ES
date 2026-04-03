@@ -49,7 +49,7 @@
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-4 py-3 {{ $activityClass }}">
                                 <a href="{{ route('tickets.show', $ticket) }}?ref=website-view"
-                                   class="text-indigo-600 hover:text-indigo-800 font-medium transition">
+                                   class="text-brand-500 hover:text-brand-800 font-medium transition">
                                     #{{ $ticket->ticket_number ?? $ticket->id }}: {{ $ticket->title }}
                                 </a>
                                 @if($ticket->assignee)

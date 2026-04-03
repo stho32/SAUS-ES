@@ -24,12 +24,12 @@
                            name="search"
                            value="{{ $search ?? '' }}"
                            placeholder="Tickets durchsuchen..."
-                           class="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                           class="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
                     <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
             </div>
             <div class="md:col-span-4 flex items-end gap-2">
-                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-sm">
+                <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded-lg hover:bg-brand-600 transition text-sm">
                     <i class="bi bi-search mr-1"></i> Suchen
                 </button>
                 @if($search)
@@ -46,7 +46,7 @@
             @foreach($statusCategories as $key => $label)
                 <a href="{{ route('follow-up.index', array_merge(request()->except('filter', 'page'), ['filter' => $key])) }}"
                    class="px-3 py-1.5 rounded-lg text-sm font-medium transition
-                          {{ $filterCategory === $key ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                          {{ $filterCategory === $key ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
                     {{ $label }}
                 </a>
             @endforeach
@@ -110,12 +110,12 @@
                         <tr class="{{ $rowBg }} hover:bg-opacity-80 transition cursor-pointer"
                             onclick="window.location='{{ route('tickets.show', $ticket) }}?ref=follow-up'">
                             <td class="px-4 py-3 {{ $activityClass }}">
-                                <span class="text-indigo-600 font-medium">#{{ $ticket->ticket_number ?? $ticket->id }}</span>
+                                <span class="text-brand-500 font-medium">#{{ $ticket->ticket_number ?? $ticket->id }}</span>
                             </td>
                             <td class="px-4 py-3 {{ $activityClass }}">
                                 <div>
                                     <a href="{{ route('tickets.show', $ticket) }}?ref=follow-up"
-                                       class="text-gray-900 font-medium hover:text-indigo-600 transition">
+                                       class="text-gray-900 font-medium hover:text-brand-500 transition">
                                         {{ $ticket->title }}
                                         @if($ticket->show_on_website)
                                             <i class="bi bi-globe ml-1 text-gray-400" title="Wird auf der Website angezeigt"></i>

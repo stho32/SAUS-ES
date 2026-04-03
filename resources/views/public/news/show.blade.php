@@ -3,7 +3,7 @@
 @section('title', $news->title)
 
 @section('content')
-<a href="{{ route('public.news.index') }}" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 text-sm mb-6 transition">
+<a href="{{ route('public.news.index') }}" class="inline-flex items-center text-brand-500 hover:text-brand-800 text-sm mb-6 transition">
     <i class="bi bi-arrow-left mr-1"></i> Zurueck zur Uebersicht
 </a>
 

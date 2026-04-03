@@ -8,7 +8,7 @@
 {{-- Status Distribution --}}
 <div class="bg-white rounded-lg shadow p-6 mb-6">
     <h2 class="text-lg font-semibold text-gray-900 mb-4">
-        <i class="bi bi-bar-chart-fill text-indigo-600 mr-2"></i>
+        <i class="bi bi-bar-chart-fill text-brand-500 mr-2"></i>
         Ticket-Verteilung nach Status
     </h2>
     <div class="relative" style="height: 400px;">
@@ -53,9 +53,9 @@
         Betroffene Nachbarn
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-6 text-center">
-            <p class="text-3xl font-bold text-indigo-600" id="totalNeighbors">-</p>
-            <p class="text-sm text-indigo-600 mt-1">
+        <div class="bg-brand-50 border border-brand-200 rounded-lg p-6 text-center">
+            <p class="text-3xl font-bold text-brand-500" id="totalNeighbors">-</p>
+            <p class="text-sm text-brand-500 mt-1">
                 <i class="bi bi-people-fill mr-1"></i>
                 Nachbarn insgesamt betroffen
             </p>

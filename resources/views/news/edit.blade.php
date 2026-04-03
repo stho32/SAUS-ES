@@ -17,7 +17,7 @@
             <i class="bi bi-x-lg mr-1"></i> Abbrechen
         </a>
         <button type="button" id="saveButton" onclick="saveNews()"
-                class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">
+                class="bg-brand-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-brand-600 transition text-sm">
             <i class="bi bi-check-lg mr-1"></i> Speichern
         </button>
     </div>
@@ -40,7 +40,7 @@
                    value="{{ $news->title ?? '' }}"
                    required
                    maxlength="255"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
             <p class="hidden text-red-500 text-xs mt-1" id="title-error">Bitte geben Sie einen Titel ein.</p>
         </div>
 
@@ -51,7 +51,7 @@
             <textarea id="content"
                       rows="10"
                       required
-                      class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">{{ $news->content ?? '' }}</textarea>
+                      class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">{{ $news->content ?? '' }}</textarea>
             <p class="text-gray-500 text-xs mt-1">
                 Formatierung: **fett**, *kursiv*, URLs werden automatisch erkannt. HTML ist erlaubt.
             </p>
@@ -66,7 +66,7 @@
                    id="eventDate"
                    value="{{ isset($news) ? $news->event_date->format('Y-m-d') : '' }}"
                    required
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
             <p class="text-gray-500 text-xs mt-1">Datum der Veranstaltung oder des Events</p>
             <p class="hidden text-red-500 text-xs mt-1" id="eventDate-error">Bitte geben Sie ein Veranstaltungsdatum ein.</p>
         </div>
@@ -113,12 +113,12 @@
                    id="imageUpload"
                    accept="image/jpeg,image/png,image/gif"
                    onchange="uploadImage()"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100">
             <p class="text-gray-500 text-xs mt-1">Max. 2MB, nur JPG, PNG oder GIF</p>
 
             <div id="uploadProgress" class="hidden mt-2">
                 <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-indigo-600 h-2 rounded-full animate-pulse w-full"></div>
+                    <div class="bg-brand-500 h-2 rounded-full animate-pulse w-full"></div>
                 </div>
                 <p class="text-xs text-gray-500 mt-1">Wird hochgeladen...</p>
             </div>
@@ -148,7 +148,7 @@
 </div>
 
 <div class="mb-6">
-    <a href="{{ route('news.index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm">
+    <a href="{{ route('news.index') }}" class="text-brand-500 hover:text-brand-800 text-sm">
         <i class="bi bi-arrow-left mr-1"></i> Zurueck zur Uebersicht
     </a>
 </div>

@@ -18,23 +18,23 @@
                     Name <span class="text-red-500">*</span>
                 </label>
                 <input type="text" id="name" name="name" required
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
             </div>
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-Mail</label>
                 <input type="email" id="email" name="email"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
             </div>
             <div>
                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
                 <input type="text" id="phone" name="phone"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">&nbsp;</label>
                 <label class="inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="is_active" name="is_active" checked
-                           class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                           class="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500">
                     <span class="ml-2 text-sm text-gray-700">Aktiv</span>
                 </label>
             </div>
@@ -42,16 +42,16 @@
         <div>
             <label for="contact_notes" class="block text-sm font-medium text-gray-700 mb-1">Notizen</label>
             <textarea id="contact_notes" name="contact_notes" rows="2"
-                      class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
                       placeholder="Weitere Kontaktinformationen..."></textarea>
         </div>
         <div>
             <label for="responsibility_notes" class="block text-sm font-medium text-gray-700 mb-1">Zustaendigkeit</label>
             <textarea id="responsibility_notes" name="responsibility_notes" rows="2"
-                      class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
                       placeholder="Zustaendigkeitsbereiche..."></textarea>
         </div>
-        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-brand-600 transition text-sm">
             <i class="bi bi-plus-lg mr-1"></i> Hinzufuegen
         </button>
     </form>
@@ -105,7 +105,7 @@
                                 <div class="inline-flex gap-1">
                                     <button type="button"
                                             onclick="openEditModal({{ json_encode($person) }})"
-                                            class="inline-flex items-center justify-center w-8 h-8 border border-indigo-300 text-indigo-600 rounded hover:bg-indigo-50 transition"
+                                            class="inline-flex items-center justify-center w-8 h-8 border border-brand-300 text-brand-500 rounded hover:bg-brand-50 transition"
                                             title="Bearbeiten">
                                         <i class="bi bi-pencil"></i>
                                     </button>
@@ -141,33 +141,33 @@
                     Name <span class="text-red-500">*</span>
                 </label>
                 <input type="text" id="edit-name" required
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
             </div>
             <div>
                 <label for="edit-email" class="block text-sm font-medium text-gray-700 mb-1">E-Mail</label>
                 <input type="email" id="edit-email"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
             </div>
             <div>
                 <label for="edit-phone" class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
                 <input type="text" id="edit-phone"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
             </div>
             <div>
                 <label for="edit-contact_notes" class="block text-sm font-medium text-gray-700 mb-1">Notizen</label>
                 <textarea id="edit-contact_notes" rows="3"
-                          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"></textarea>
+                          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"></textarea>
             </div>
             <div>
                 <label for="edit-responsibility_notes" class="block text-sm font-medium text-gray-700 mb-1">Zustaendigkeit</label>
                 <textarea id="edit-responsibility_notes" rows="3"
-                          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"></textarea>
+                          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"></textarea>
             </div>
             <div class="flex items-center justify-between pt-2">
                 <button type="button" onclick="closeEditModal()" class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition text-sm">
                     Abbrechen
                 </button>
-                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">
+                <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-brand-600 transition text-sm">
                     Speichern
                 </button>
             </div>

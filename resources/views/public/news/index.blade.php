@@ -15,9 +15,9 @@
                    name="search"
                    value="{{ $search ?? '' }}"
                    placeholder="Suchbegriff eingeben..."
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm">
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm">
         </div>
-        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-sm">
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded-lg hover:bg-brand-600 transition text-sm">
             <i class="bi bi-search"></i> Suchen
         </button>
         @if($search)
@@ -59,7 +59,7 @@
                                 {{ $article->event_date?->format('d.m.Y') ?? '-' }}
                             </p>
 
-                            <h2 class="text-xl font-semibold text-gray-900 group-hover:text-indigo-600 transition mb-2">
+                            <h2 class="text-xl font-semibold text-gray-900 group-hover:text-brand-500 transition mb-2">
                                 {{ $article->title }}
                             </h2>
 

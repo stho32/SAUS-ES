@@ -14,7 +14,7 @@
             <i class="bi bi-x-lg"></i> Abbrechen
         </a>
         <button type="button" id="saveButton" onclick="updateTicket()"
-                class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition">
+                class="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-brand-600 transition">
             <i class="bi bi-check-lg"></i> Speichern
         </button>
     </div>
@@ -40,14 +40,14 @@
             <div class="mb-4">
                 <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Titel</label>
                 <input type="text" id="title" value="{{ $ticket->title }}" required
-                       class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
             </div>
 
             {{-- Description --}}
             <div class="mb-4">
                 <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
                 <textarea id="description" rows="5" required
-                          class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">{{ $ticket->description }}</textarea>
+                          class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">{{ $ticket->description }}</textarea>
             </div>
 
             {{-- Assignee --}}
@@ -55,7 +55,7 @@
                 <label for="assignee" class="block text-sm font-medium text-gray-700 mb-1">Zustaendige Bearbeiter</label>
                 <input type="text" id="assignee" value="{{ $ticket->assignee ?? '' }}" maxlength="200"
                        placeholder="Namen der zustaendigen Bearbeiter"
-                       class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
             </div>
 
             {{-- Affected Neighbors --}}
@@ -64,7 +64,7 @@
                 <input type="number" id="affectedNeighbors" min="0"
                        value="{{ $ticket->affected_neighbors !== null ? $ticket->affected_neighbors : '' }}"
                        placeholder="Anzahl der betroffenen Nachbarn"
-                       class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
                 <p class="text-xs text-gray-500 mt-1">Leer lassen wenn unbekannt.</p>
             </div>
 
@@ -99,7 +99,7 @@
             <div class="mb-4">
                 <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 <select id="status" required
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
                     @foreach($statuses as $status)
                         <option value="{{ $status->id }}" {{ $status->id == $ticket->status_id ? 'selected' : '' }}>
                             {{ $status->name }}
@@ -114,7 +114,7 @@
                 <div class="flex gap-2">
                     <input type="date" id="followUpDate"
                            value="{{ $ticket->follow_up_date ? $ticket->follow_up_date->format('Y-m-d') : '' }}"
-                           class="flex-1 border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                           class="flex-1 border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
                     <button type="button" id="clearFollowUpDate"
                             class="text-gray-500 hover:text-gray-700 border border-gray-300 px-3 py-2 rounded-lg transition" title="Datum loeschen">
                         <i class="bi bi-x-lg"></i>
@@ -126,7 +126,7 @@
             {{-- Do Not Track --}}
             <div class="mb-4">
                 <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" id="doNotTrack" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    <input type="checkbox" id="doNotTrack" class="rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                            {{ $ticket->do_not_track ? 'checked' : '' }}>
                     <span class="text-sm text-gray-700">Nicht verfolgen</span>
                 </label>
@@ -136,7 +136,7 @@
             {{-- Show on Website --}}
             <div class="mb-4">
                 <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" id="showOnWebsite" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    <input type="checkbox" id="showOnWebsite" class="rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                            {{ $ticket->show_on_website ? 'checked' : '' }}>
                     <span class="text-sm text-gray-700">Auf Website anzeigen</span>
                 </label>
@@ -147,7 +147,7 @@
                 <label for="publicComment" class="block text-sm font-medium text-gray-700 mb-1">Oeffentlicher Kommentar</label>
                 <textarea id="publicComment" rows="3"
                           placeholder="Dieser Kommentar wird auf der Website angezeigt"
-                          class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">{{ $ticket->public_comment ?? '' }}</textarea>
+                          class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">{{ $ticket->public_comment ?? '' }}</textarea>
                 <p class="text-xs text-gray-500 mt-1">Dieser Text wird auf der Website neben dem Ticket-Titel angezeigt.</p>
             </div>
         </div>
@@ -155,7 +155,7 @@
 </div>
 
 <div class="mt-6 mb-6">
-    <a href="{{ route('tickets.show', $ticket) }}" class="text-indigo-600 hover:text-indigo-800 text-sm">
+    <a href="{{ route('tickets.show', $ticket) }}" class="text-brand-500 hover:text-brand-800 text-sm">
         <i class="bi bi-arrow-left mr-1"></i> Zurueck zum Ticket
     </a>
 </div>

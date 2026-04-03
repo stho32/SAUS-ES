@@ -145,7 +145,16 @@ class TicketController extends Controller
             ->where('username', $username)
             ->first();
 
-        return view('tickets.show', compact('ticket', 'formatter', 'username', 'userTicketVote'));
+        // Load voter names for comment tooltips
+        foreach ($ticket->comments as $comment) {
+            $comment->upvoters = $comment->votes()->where('value', 'up')->pluck('username')->implode(', ');
+            $comment->downvoters = $comment->votes()->where('value', 'down')->pluck('username')->implode(', ');
+        }
+
+        $allContactPersons = \App\Models\ContactPerson::active()->orderBy('name')->get();
+        $statuses = TicketStatus::active()->orderBy('sort_order')->get();
+
+        return view('tickets.show', compact('ticket', 'formatter', 'username', 'userTicketVote', 'allContactPersons', 'statuses'));
     }
 
     public function edit(Ticket $ticket): View

@@ -23,16 +23,16 @@
             <label for="from" class="block text-sm font-medium text-gray-700 mb-1">Von:</label>
             <input type="date" id="from" name="from"
                    value="{{ $from->format('Y-m-d') }}"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
         </div>
         <div class="md:col-span-5">
             <label for="to" class="block text-sm font-medium text-gray-700 mb-1">Bis:</label>
             <input type="date" id="to" name="to"
                    value="{{ $to->format('Y-m-d') }}"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
         </div>
         <div class="md:col-span-2 flex items-end">
-            <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-sm">
+            <button type="submit" class="w-full bg-brand-500 text-white px-4 py-2 rounded-lg hover:bg-brand-600 transition text-sm">
                 <i class="bi bi-search mr-1"></i> Anzeigen
             </button>
         </div>
@@ -61,7 +61,7 @@
             {{-- Ticket Header --}}
             <div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <h2 class="text-base font-semibold text-gray-900">
-                    <a href="{{ route('tickets.show', $ticket) }}" class="text-indigo-600 hover:text-indigo-800 transition">
+                    <a href="{{ route('tickets.show', $ticket) }}" class="text-brand-500 hover:text-brand-800 transition">
                         #{{ $ticket->ticket_number ?? $ticket->id }} &mdash; {{ $ticket->title }}
                     </a>
                 </h2>
@@ -85,7 +85,7 @@
                             <span class="text-sm font-semibold text-gray-900">{{ $comment->username }}</span>
                             <span class="text-xs text-gray-500">{{ $comment->created_at->format('d.m.Y H:i') }}</span>
                         </div>
-                        <div class="text-sm text-gray-700 pl-0 border-l-2 border-indigo-200 pl-3">
+                        <div class="text-sm text-gray-700 pl-0 border-l-2 border-brand-200 pl-3">
                             {!! nl2br(e($comment->content)) !!}
                         </div>
                         @if(!$loop->last)

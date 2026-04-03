@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ticket {{ $ticket->ticket_number }} - E-Mail Ansicht</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    brand: {
+                        50:  "#e6f4fb",
+                        100: "#cce9f7",
+                        200: "#99d3ef",
+                        300: "#66bde7",
+                        400: "#33a7df",
+                        500: "#0786c0",
+                        600: "#0675a9",
+                        700: "#056492",
+                        800: "#04537b",
+                        900: "#034264",
+                    }
+                }
+            }
+        }
+    }
+    </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         @media print {
@@ -19,10 +41,10 @@
     {{-- Top bar (not printed) --}}
     <div class="no-print bg-white shadow-sm border-b border-gray-200 py-3">
         <div class="max-w-4xl mx-auto px-4 flex items-center justify-between">
-            <a href="{{ route('tickets.show', $ticket) }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+            <a href="{{ route('tickets.show', $ticket) }}" class="text-brand-500 hover:text-brand-800 text-sm font-medium">
                 <i class="bi bi-arrow-left"></i> Zurueck zum Ticket
             </a>
-            <button onclick="window.print()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">
+            <button onclick="window.print()" class="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition">
                 <i class="bi bi-printer"></i> Drucken
             </button>
         </div>
