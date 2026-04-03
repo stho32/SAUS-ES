@@ -4,128 +4,146 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-### Database Setup
+### Quick Start (Docker)
 ```bash
-# Create database and user
-mysql -u root -p -e "CREATE DATABASE saus_es CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p -e "CREATE USER 'saus_user'@'localhost' IDENTIFIED BY 'password'; GRANT ALL PRIVILEGES ON saus_es.* TO 'saus_user'@'localhost'; FLUSH PRIVILEGES;"
-
-# Run all migrations in order (01 through 16)
-for file in mysql/*.sql; do mysql -u saus_user -p saus_es < "$file"; done
+docker-compose up -d
+# App available at http://localhost:8000
+# Login with: http://localhost:8000/?master_code=test_master_2025
 ```
 
-### Configuration
+### Quick Start (Laravel Herd / local PHP)
 ```bash
-# Copy all configuration templates
-cp php/config.example.php php/config.php
-cp php/includes/paths_config.example.php php/includes/paths_config.php
-cp public_php_app/includes/config.example.php public_php_app/includes/config.php
-cp public_php_app/imageview/paths_config.example.php public_php_app/imageview/paths_config.php
+composer install
+cp .env.example .env
+php artisan key:generate
+# Configure DB_* in .env to point to your MariaDB
+php artisan migrate --seed
+php artisan serve
+# App available at http://localhost:8000
 ```
 
-### Development
-- **Run locally**: Use Apache with PHP 8.0+ and mod_rewrite enabled
-- **No build process**: Static assets served directly from php/assets/
-- **Database migrations**: Execute mysql/*.sql files in numerical order (no migration tracking table)
-- **Error logs**: Check logs/error.log for application errors
-- **Maintenance**: Backup database with `mysqldump -u saus_user -p saus_es > backup_$(date +%Y%m%d).sql`
+### Tests
+```bash
+php artisan test                          # All tests (137 tests)
+php artisan test --filter=TicketTest      # Specific test file
+php artisan test --filter="kann erstellt" # By test name
+```
+
+### Database
+```bash
+php artisan migrate              # Run pending migrations
+php artisan migrate:fresh --seed # Reset DB with test data
+php artisan db:seed              # Seed data only
+```
+
+### Maintenance
+```bash
+php artisan route:list           # Show all routes
+php artisan config:clear         # Clear config cache
+mysqldump -u saus_user -p saus_es > backup_$(date +%Y%m%d).sql
+```
 
 ## Architecture
 
 ### Overview
-SAUS-ES is a ticket management system for German housing cooperatives with two main interfaces:
-1. **Internal management** (`/php/`): Authenticated ticket management with full CRUD operations
-2. **Public view** (`/public_php_app/`): Read-only public ticket display
+SAUS-ES is a ticket management system for German housing cooperatives ("Wohnungsbaugenossenschaften"), built with **Laravel 13 + Blade + Tailwind CSS**.
+
+Two main interfaces:
+1. **Internal management** (`/`): Authenticated ticket management with full CRUD — requires master_link
+2. **Public view** (`/public/`): Read-only public ticket and news display — no authentication
+
+### Technology Stack
+- **Backend**: Laravel 13.3, PHP 8.4
+- **Frontend**: Tailwind CSS (CDN), Chart.js, Bootstrap Icons
+- **Database**: MariaDB 10.6 / MySQL (SQLite for tests)
+- **Testing**: Pest 4 (137 tests, 264 assertions)
+- **Dev Environment**: Docker (PHP 8.4 + Apache + MariaDB) or Laravel Herd
 
 ### Key Design Patterns
 
-#### Authentication
+#### Authentication (Custom — no Laravel Auth)
 - **Master-link system**: No traditional login; uses secure tokens in `master_links` table
+- **MasterLinkAuth middleware**: Validates `?master_code=` parameter or session value
+- **EnsureUsername middleware**: Requires "Namenskuerzel" before accessing protected routes
 - **Partner-links**: Limited access tokens for specific tickets
-- **SecretString**: Public image viewing authentication
+- **SecretString**: Public image viewing authentication (50-char random code per ticket)
 
 #### Multi-Assignee Support
-Tickets can have multiple assignees separated by comma or plus sign. Functions in `includes/ticket_functions.php` handle parsing and statistics attribution.
+Tickets can have multiple assignees separated by comma or plus sign. `StatisticsController` handles parsing and attribution.
 
 #### Comment System
-- Threaded comments with voting (👍/👎)
-- Edit history tracking in `comment_edits` table
-- Visibility control (public/private toggle)
-- Markdown-like formatting via `comment_formatter.php`
+- Comments with voting (up/down)
+- Edit history tracking (is_edited flag)
+- Visibility control (public/private toggle via master-link users)
+- Markdown-like formatting via `App\Services\CommentFormatter`
+- System comments auto-generated for status changes, follow-up dates, contact person links
 
 #### File Handling
-- Attachments stored in `uploads/tickets/` with metadata in `ticket_attachments` table
-- External image viewing via `public_php_app/imageview/` using SecretString authentication
-- Maximum file size and allowed types configured in `config.php`
+- Ticket attachments stored in `php/uploads/tickets/{ticketId}/` (compatible with legacy paths)
+- News images stored in `php/uploads/news/`
+- Image thumbnails generated via GD library (200px width)
+- External image viewing via `/public/imageview/{code}` using SecretString
 
-### Database Considerations
-- All tables use InnoDB for transaction support
-- UTF8MB4 encoding for full Unicode support (including emojis)
-- Prepared statements via PDO for all queries
-- Views for complex statistics queries
-
-### Frontend
-- Bootstrap 5.3 for responsive design
-- Chart.js for statistics visualization
-- DataTables for sortable/searchable tables
-- Mobile-first with 44px minimum touch targets
-- No JavaScript build process; all assets served statically
-
-### Security
-- XSS protection via htmlspecialchars() on all output
-- CSRF protection via session tokens
-- SQL injection prevention via PDO prepared statements
-- File upload validation and sanitization
-- Secure random token generation for authentication links
-
-## Core Components
-
-### Database Layer
-- **Singleton pattern**: `Database::getInstance()` provides centralized connection management
-- **PDO configuration**: `ERRMODE_EXCEPTION`, `FETCH_ASSOC`, `EMULATE_PREPARES => false`
-- **Error handling**: All database errors logged via ErrorLogger singleton
-
-### Authentication Flow
-1. User visits with `?master_code=<code>` parameter
-2. `auth_check.php` validates code against `master_links` table
-3. Valid code stored in `$_SESSION['master_code']`
-4. First-time users prompted for "Namenskürzel" (stored in `$_SESSION['username']`)
-5. Partner links follow similar pattern but with restricted access
-
-### Key Database Features
-- **Triggers**: Auto-update `partners.partner_list` on insert/update/delete
-- **Functions**: `get_ticket_partners()`, `has_sufficient_positive_votes()`, `generate_random_string()`
-- **Views**: `comment_statistics`, `ticket_statistics` for aggregated vote counts
-- **SecretString**: Auto-generated 50-char code for public image viewing (created by trigger on ticket insert)
-
-### Ticket Number Format
-Generated as `YYYYMMDD-XXXX` where XXXX is a sequential number for that day.
-
-### API Endpoints
-All API files in `php/api/` return JSON and use `api_auth_check.php` for validation. Common pattern:
-```php
-header('Content-Type: application/json');
-require_once __DIR__ . '/../includes/api_auth_check.php';
-// Process request
-echo json_encode(['success' => true, 'data' => $result]);
+### Project Structure (Laravel)
+```
+app/
+  Http/Controllers/       # 12 page controllers + 6 API controllers
+  Http/Middleware/         # MasterLinkAuth, EnsureUsername, PartnerLinkAuth
+  Models/                 # 10 Eloquent models (existing DB schema)
+  Services/               # CommentFormatter, TicketNumberGenerator, ActivityHelper
+  Providers/              # AppServiceProvider (rate limiting)
+bootstrap/app.php         # Middleware aliases, exception handling
+config/saus.php           # SAUS-specific config (upload paths, vote threshold)
+database/
+  migrations/             # Single migration matching existing DB schema
+  seeders/                # TicketStatusSeeder, TestDataSeeder
+resources/views/
+  layouts/                # app.blade.php (internal), public.blade.php
+  tickets/                # index, show, create, edit, email
+  news/, statistics/, follow-up/, contact-persons/, saus-news/, website-view/
+  public/                 # Public ticket/news views
+  auth/                   # username, error, logout
+routes/web.php            # 49 routes (protected + public + API)
+tests/Feature/            # 8 test files (auth, tickets, comments, votes, news, etc.)
+tests/Unit/               # 2 test files (CommentFormatter, TicketNumberGenerator)
 ```
 
-### Comment Formatting
-`comment_formatter.php` provides Markdown-like features:
-- Bold: `**text**`
-- Italic: `*text*`
-- Links: Auto-detected and converted to clickable links
-- Line breaks preserved
+### Database Compatibility
+- **100% compatible** with existing MariaDB 10.6 database
+- Eloquent models map to existing table names and columns exactly
+- Existing triggers, functions, and views preserved
+- File storage paths unchanged (`php/uploads/tickets/`, `php/uploads/news/`)
 
-### File Uploads
-- Stored in `uploads/tickets/` with sanitized filenames
-- Metadata in `ticket_attachments` table
-- Validation for file type and size in `attachment_functions.php`
+### Database Features
+- **Triggers**: `tickets_before_insert` auto-generates secret_string
+- **Functions**: `get_ticket_partners()`, `has_sufficient_positive_votes()`, `generate_random_string()`
+- **Views**: `comment_statistics`, `ticket_statistics` for aggregated vote counts
+- **Ticket Number**: `YYYYMMDD-XXXX` format via `TicketNumberGenerator` service
+
+### Security
+- **CSRF**: Laravel built-in (all forms use @csrf, API uses X-CSRF-TOKEN header)
+- **XSS**: Blade auto-escaping {{ }} + CommentFormatter with htmlspecialchars()
+- **SQL Injection**: Eloquent ORM with parameterized queries
+- **Rate Limiting**: Configured in AppServiceProvider (60/min API, 10/min auth)
+- **File Upload**: MIME validation, extension whitelist, safe filename generation
+- **Session**: Secure, httponly cookies via Laravel session config
+- **Headers**: X-Frame-Options, X-Content-Type-Options, HSTS via Apache config
+
+### API Endpoints
+All API endpoints under `/api/` require master_link session and return JSON:
+```php
+// Success: {"success": true, "data": {...}}
+// Error:   {"success": false, "message": "..."}
+```
+
+### Legacy Code
+The original vanilla PHP code remains in `php/` and `public_php_app/` for reference. The Laravel app (`app/`, `resources/`, `routes/`) is the active codebase.
 
 ## Important Notes
 
-- **No package managers**: This project has no npm, composer, or build tools
-- **Strict typing**: All PHP files use `declare(strict_types=1)`
-- **German language**: UI, comments, and variable names are primarily in German
-- **No automated tests**: Testing is manual via browser
-- **Windows development**: File paths use backslashes on Windows systems
+- **German language**: UI, domain variables, and database columns are in German
+- **Strict typing**: All custom PHP files use `declare(strict_types=1)`
+- **Windows development**: File paths use backslashes on Windows (Herd)
+- **Docker alternative**: `docker-compose up` for full environment
+- **Test DB**: SQLite in-memory (phpunit.xml) — MySQL-specific features skipped in tests
+- **Anforderungen**: Requirements documented in `Anforderungen/R00001-R00011`

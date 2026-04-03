@@ -1,1 +1,52 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Aider
 .aider*
+
+# Laravel
+/vendor/
+/node_modules/
+.env
+.env.backup
+.env.production
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+
+# Laravel generated
+/storage/*.key
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/bootstrap/cache/*
+
+# SQLite
+database/database.sqlite
+
+# Konfigurationsdateien mit Credentials
+php/config.php
+php/includes/paths_config.php
+public_php_app/includes/config.php
+public_php_app/imageview/paths_config.php
+
+# Logs
+logs/*.log
+storage/logs/*.log
+
+# Uploads (Dateien, nicht Verzeichnisstruktur)
+php/uploads/tickets/*
+!php/uploads/tickets/.htaccess
+php/uploads/news/*
+
+# Docker
+docker/init-db/
+
+# OS
+.DS_Store
+Thumbs.db

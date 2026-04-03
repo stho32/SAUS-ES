@@ -1,32 +1,27 @@
-# Aktiviere RewriteEngine
-RewriteEngine On
+# Redirect all requests to the Laravel public directory
+# This file is only used when the web root points to the repository root
+# (e.g., legacy Apache setup). For Docker, the DocumentRoot is public/.
 
-# Verhindere Zugriff auf .git, .env und andere sensible Dateien
-RedirectMatch 403 /\..*$
+<IfModule mod_rewrite.c>
+    RewriteEngine On
 
-# Verhindere direkten Zugriff auf die includes Directory
-RedirectMatch 403 ^/includes/.*$
+    # Verhindere Zugriff auf .git, .env und andere sensible Dateien
+    RedirectMatch 403 /\..*$
 
-# Setze Sicherheitsheader
+    # Verhindere direkten Zugriff auf die includes Directory
+    RedirectMatch 403 ^/includes/.*$
+
+    # Redirect to public/ for Laravel
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Sicherheitsheader
 <IfModule mod_headers.c>
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-XSS-Protection "1; mode=block"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 </IfModule>
-
-# PHP Fehlerbehandlung
-php_flag display_errors off
-php_value error_reporting E_ALL & ~E_NOTICE
-
-# Maximale Upload-Größe
-php_value upload_max_filesize 10M
-php_value post_max_size 10M
-
-# Session Sicherheit
-php_value session.cookie_httponly 1
-php_value session.cookie_secure 1
-php_value session.use_only_cookies 1
 
 # Zeichensatz
 AddDefaultCharset UTF-8
