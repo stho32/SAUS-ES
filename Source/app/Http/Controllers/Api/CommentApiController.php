@@ -22,7 +22,14 @@ class CommentApiController extends Controller
             'content' => ['required', 'string'],
         ]);
 
-        $username = session('username', 'Unbekannt');
+        $username = session('username');
+
+        if (!$username) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Benutzername nicht gesetzt.',
+            ], 401);
+        }
 
         $comment = Comment::create([
             'ticket_id' => $ticket->id,

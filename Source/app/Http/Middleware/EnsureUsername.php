@@ -11,7 +11,14 @@ class EnsureUsername
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->session()->has('username') && !$request->is('username', 'api/*', 'error*', 'logout')) {
+        if (!$request->session()->has('username')) {
+            if ($request->is('*/api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Benutzername nicht gesetzt.',
+                ], 401);
+            }
+
             return redirect()->route('username.form');
         }
 

@@ -101,6 +101,13 @@ class TicketApiController extends Controller
 
     public function updateStatus(Request $request, Ticket $ticket): JsonResponse
     {
+        if ($ticket->status && $ticket->status->is_archived) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Archivierte Tickets können nicht mehr geändert werden.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'status_id' => ['required', 'exists:ticket_status,id'],
         ]);
@@ -127,6 +134,13 @@ class TicketApiController extends Controller
 
     public function updateAssignee(Request $request, Ticket $ticket): JsonResponse
     {
+        if ($ticket->status && ($ticket->status->is_closed || $ticket->status->is_archived)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Geschlossene oder archivierte Tickets können nicht mehr geändert werden.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'assignee' => ['nullable', 'string', 'max:255'],
         ]);
@@ -138,6 +152,13 @@ class TicketApiController extends Controller
 
     public function updateFollowUp(Request $request, Ticket $ticket): JsonResponse
     {
+        if ($ticket->status && ($ticket->status->is_closed || $ticket->status->is_archived)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Geschlossene oder archivierte Tickets können nicht mehr geändert werden.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'follow_up_date' => ['nullable', 'date'],
         ]);

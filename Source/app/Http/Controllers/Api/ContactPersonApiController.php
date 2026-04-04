@@ -15,10 +15,10 @@ class ContactPersonApiController extends Controller
     public function linkToTicket(Request $request, Ticket $ticket): JsonResponse
     {
         $validated = $request->validate([
-            'contactPersonId' => ['required', 'exists:contact_persons,id'],
+            'contact_person_id' => ['required', 'exists:contact_persons,id'],
         ]);
 
-        $contactPerson = ContactPerson::findOrFail($validated['contactPersonId']);
+        $contactPerson = ContactPerson::findOrFail($validated['contact_person_id']);
 
         // Check if already linked
         if ($ticket->contactPersons()->where('contact_person_id', $contactPerson->id)->exists()) {

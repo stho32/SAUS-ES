@@ -569,6 +569,7 @@
 <script>
 const TICKET_ID = {{ $ticket->id }};
 const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
+const API_BASE = '{{ url(config("saus.admin_route_prefix", "saus") . "/api") }}';
 
 function apiHeaders() {
     return {
@@ -592,7 +593,7 @@ function showAlert(type, message) {
 // Ticket Voting
 async function voteTicket(value) {
     try {
-        const response = await fetch('/api/tickets/' + TICKET_ID + '/vote', {
+        const response = await fetch(API_BASE + '/tickets/' + TICKET_ID + '/vote', {
             method: 'POST',
             headers: apiHeaders(),
             body: JSON.stringify({ value: value })
@@ -611,7 +612,7 @@ async function voteTicket(value) {
 // Comment Voting
 async function voteComment(commentId, value) {
     try {
-        const response = await fetch('/api/comments/' + commentId + '/vote', {
+        const response = await fetch(API_BASE + '/comments/' + commentId + '/vote', {
             method: 'POST',
             headers: apiHeaders(),
             body: JSON.stringify({ value: value })
@@ -640,7 +641,7 @@ async function addComment() {
     if (!content) { showAlert('warning', 'Bitte geben Sie einen Kommentar ein.'); return; }
 
     try {
-        const response = await fetch('/api/tickets/' + TICKET_ID + '/comments', {
+        const response = await fetch(API_BASE + '/tickets/' + TICKET_ID + '/comments', {
             method: 'POST',
             headers: apiHeaders(),
             body: JSON.stringify({ content: content })
@@ -675,7 +676,7 @@ function startEditComment(commentId) {
 async function saveCommentEdit(commentId) {
     const content = document.getElementById('edit-comment-' + commentId).value;
     try {
-        const response = await fetch('/api/comments/' + commentId, {
+        const response = await fetch(API_BASE + '/comments/' + commentId, {
             method: 'PUT',
             headers: apiHeaders(),
             body: JSON.stringify({ content: content })
@@ -698,7 +699,7 @@ async function toggleCommentVisibility(commentId) {
         var commentEl = document.getElementById('comment-' + commentId);
         var isCurrentlyVisible = commentEl.getAttribute('data-visible') === 'true';
 
-        const response = await fetch('/api/comments/' + commentId + '/visibility', {
+        const response = await fetch(API_BASE + '/comments/' + commentId + '/visibility', {
             method: 'POST',
             headers: apiHeaders(),
             body: JSON.stringify({ is_visible: !isCurrentlyVisible })
@@ -718,7 +719,7 @@ async function toggleCommentVisibility(commentId) {
 async function updateStatus() {
     const statusId = document.getElementById('statusSelect').value;
     try {
-        const response = await fetch('/api/tickets/' + TICKET_ID + '/status', {
+        const response = await fetch(API_BASE + '/tickets/' + TICKET_ID + '/status', {
             method: 'POST',
             headers: apiHeaders(),
             body: JSON.stringify({ status_id: statusId })
@@ -738,7 +739,7 @@ async function updateStatus() {
 async function updateAssignee() {
     const assignee = document.getElementById('assigneeInput').value.trim();
     try {
-        const response = await fetch('/api/tickets/' + TICKET_ID + '/assignee', {
+        const response = await fetch(API_BASE + '/tickets/' + TICKET_ID + '/assignee', {
             method: 'POST',
             headers: apiHeaders(),
             body: JSON.stringify({ assignee: assignee })
@@ -758,7 +759,7 @@ async function updateAssignee() {
 async function updateFollowUpDate() {
     const followUpDate = document.getElementById('followUpDate').value;
     try {
-        const response = await fetch('/api/tickets/' + TICKET_ID + '/follow-up', {
+        const response = await fetch(API_BASE + '/tickets/' + TICKET_ID + '/follow-up', {
             method: 'POST',
             headers: apiHeaders(),
             body: JSON.stringify({ follow_up_date: followUpDate })
@@ -790,7 +791,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     formData.append('file', fileInput.files[0]);
 
     try {
-        var response = await fetch('/api/tickets/' + TICKET_ID + '/attachments', {
+        var response = await fetch(API_BASE + '/tickets/' + TICKET_ID + '/attachments', {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
             body: formData
@@ -812,7 +813,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
 async function deleteAttachment(attachmentId) {
     if (!confirm('Anhang wirklich löschen?')) return;
     try {
-        var response = await fetch('/api/attachments/' + attachmentId, {
+        var response = await fetch(API_BASE + '/attachments/' + attachmentId, {
             method: 'DELETE',
             headers: apiHeaders()
         });
@@ -834,7 +835,7 @@ async function addContactPerson() {
     var select = document.getElementById('contactPersonSelect');
     if (!select || !select.value) { showAlert('warning', 'Bitte wählen Sie einen Ansprechpartner aus.'); return; }
     try {
-        var response = await fetch('/api/tickets/' + TICKET_ID + '/contact-persons', {
+        var response = await fetch(API_BASE + '/tickets/' + TICKET_ID + '/contact-persons', {
             method: 'POST',
             headers: apiHeaders(),
             body: JSON.stringify({ contact_person_id: select.value })
@@ -854,7 +855,7 @@ async function addContactPerson() {
 async function removeContactPerson(contactId, contactName) {
     if (!confirm('Ansprechpartner "' + contactName + '" wirklich entfernen?')) return;
     try {
-        var response = await fetch('/api/tickets/' + TICKET_ID + '/contact-persons/' + contactId, {
+        var response = await fetch(API_BASE + '/tickets/' + TICKET_ID + '/contact-persons/' + contactId, {
             method: 'DELETE',
             headers: apiHeaders()
         });
