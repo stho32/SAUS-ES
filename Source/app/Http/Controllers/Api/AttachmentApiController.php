@@ -15,22 +15,22 @@ class AttachmentApiController extends Controller
 {
     public function store(Request $request, Ticket $ticket): JsonResponse
     {
-        $allowedTypes = config('saus.allowed_file_types', [
-            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-            'application/pdf', 'text/plain',
+        $allowedExtensions = config('saus.allowed_file_types', [
+            'jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt',
         ]);
-        $maxSize = config('saus.max_file_size', 10240); // KB
+        $maxSize = (int) (config('saus.max_file_size', 10 * 1024 * 1024) / 1024); // bytes to KB
 
         $request->validate([
             'file' => ['required', 'file', 'max:' . $maxSize],
         ]);
 
         $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
 
-        if (!in_array($file->getMimeType(), $allowedTypes)) {
+        if (!in_array($extension, $allowedExtensions)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Dateityp nicht erlaubt.',
+                'message' => 'Dateityp "' . $extension . '" nicht erlaubt. Erlaubt: ' . implode(', ', $allowedExtensions),
             ], 422);
         }
 
