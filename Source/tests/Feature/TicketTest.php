@@ -75,7 +75,7 @@ test('ticket show page loads', function () {
     $this->get(route('tickets.show', $ticket))->assertOk()->assertSee('Test Ticket');
 });
 
-test('ticket edit page loads', function () {
+test('ticket edit route no longer exists', function () {
     $ticket = Ticket::create([
         'ticket_number' => '20250113-0001',
         'title' => 'Test',
@@ -83,7 +83,7 @@ test('ticket edit page loads', function () {
         'status_id' => TicketStatus::first()->id,
     ]);
 
-    $this->get(route('tickets.edit', $ticket))->assertOk();
+    $this->get('/saus/tickets/' . $ticket->id . '/edit')->assertNotFound();
 });
 
 test('ticket can be updated via API', function () {

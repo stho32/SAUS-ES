@@ -87,15 +87,14 @@ class TicketFlowTest extends DuskTestCase
         });
     }
 
-    public function test_ticket_edit_page_loads(): void
+    public function test_ticket_edit_route_no_longer_exists(): void
     {
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
             $browser->visit('/saus/tickets/1/edit')
                 ->pause(1000)
-                ->assertSee('Ticket bearbeiten')
-                ->assertPresent('#title');
+                ->assertSee('404');
         });
     }
 

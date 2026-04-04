@@ -50,10 +50,6 @@
                 </div>
 
                 {{-- Action Buttons --}}
-                <a href="{{ route('tickets.edit', $ticket) }}"
-                   class="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition">
-                    <i class="bi bi-pencil"></i> Bearbeiten
-                </a>
                 <a href="{{ route('tickets.email', $ticket) }}" target="_blank"
                    class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
                     <i class="bi bi-envelope"></i> E-Mail Ansicht

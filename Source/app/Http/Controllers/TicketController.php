@@ -157,13 +157,6 @@ class TicketController extends Controller
         return view('tickets.show', compact('ticket', 'formatter', 'username', 'userTicketVote', 'allContactPersons', 'statuses'));
     }
 
-    public function edit(Ticket $ticket): View
-    {
-        $statuses = TicketStatus::active()->orderBy('sort_order')->get();
-
-        return view('tickets.edit', compact('ticket', 'statuses'));
-    }
-
     public function email(Ticket $ticket): View
     {
         $ticket->load([

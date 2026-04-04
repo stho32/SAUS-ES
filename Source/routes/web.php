@@ -51,7 +51,6 @@ Route::prefix($adminPrefix)->middleware(['master_link', 'ensure_username'])->gro
     Route::get('/tickets/create', [TicketController::class, 'create'])->name('tickets.create');
     Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
     Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
-    Route::get('/tickets/{ticket}/edit', [TicketController::class, 'edit'])->name('tickets.edit');
     Route::get('/tickets/{ticket}/email', [TicketController::class, 'email'])->name('tickets.email');
 
     // Special views
