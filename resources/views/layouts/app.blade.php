@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="theme-color" content="#0786c0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>SAUS-ES - @yield('title', 'Ticket-System')</title>
+    <title>SAUS-i - @yield('title', 'Ticket-System')</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
     tailwind.config = {
@@ -67,7 +67,7 @@
             <div class="flex items-center justify-between h-16">
                 {{-- Brand --}}
                 <div class="flex items-center">
-                    <a href="{{ url('/') }}" class="text-white font-bold text-xl">SAUS-i</a>
+                    <a href="{{ route('tickets.index') }}" class="text-white font-bold text-xl">SAUS-i</a>
                 </div>
 
                 {{-- Desktop Navigation --}}
@@ -78,45 +78,45 @@
                         <i class="bi bi-plus-lg"></i> Neues Ticket
                     </a>
 
-                    <a href="{{ url('/') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('/') ? 'bg-brand-600 rounded' : '' }}">
+                    <a href="{{ route('tickets.index') }}"
+                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->routeIs('tickets.index') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-list-ul"></i> Uebersicht
                     </a>
-                    <a href="{{ url('/follow-up') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('follow-up') ? 'bg-brand-600 rounded' : '' }}">
+                    <a href="{{ route('follow-up.index') }}"
+                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->routeIs('follow-up.*') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-calendar-check"></i> Dran bleiben
                     </a>
 
                     {{-- Webseite Dropdown --}}
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" @click.away="open = false"
-                                class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition flex items-center gap-1 {{ request()->is('website-view') || request()->is('news*') ? 'bg-brand-600 rounded' : '' }}">
+                                class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition flex items-center gap-1 {{ request()->routeIs('website-view.*') || request()->routeIs('news.*') ? 'bg-brand-600 rounded' : '' }}">
                             <i class="bi bi-globe"></i> Webseite
                             <i class="bi bi-chevron-down text-xs"></i>
                         </button>
                         <div x-show="open" x-transition
                              class="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                            <a href="{{ url('/website-view') }}"
-                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->is('website-view') ? 'bg-gray-100 font-semibold' : '' }}">
+                            <a href="{{ route('website-view.index') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('website-view.*') ? 'bg-gray-100 font-semibold' : '' }}">
                                 <i class="bi bi-eye"></i> Oeffentliche Tickets
                             </a>
-                            <a href="{{ url('/news') }}"
-                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->is('news*') ? 'bg-gray-100 font-semibold' : '' }}">
+                            <a href="{{ route('news.index') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('news.*') ? 'bg-gray-100 font-semibold' : '' }}">
                                 <i class="bi bi-megaphone"></i> News verwalten
                             </a>
                         </div>
                     </div>
 
-                    <a href="{{ url('/statistics') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('statistics') ? 'bg-brand-600 rounded' : '' }}">
+                    <a href="{{ route('statistics.index') }}"
+                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->routeIs('statistics.*') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-graph-up"></i> Statistiken
                     </a>
-                    <a href="{{ url('/saus-news') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('saus-news') ? 'bg-brand-600 rounded' : '' }}">
+                    <a href="{{ route('saus-news.index') }}"
+                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->routeIs('saus-news.*') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-newspaper"></i> SAUS-News
                     </a>
-                    <a href="{{ url('/contact-persons') }}"
-                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->is('contact-persons') ? 'bg-brand-600 rounded' : '' }}">
+                    <a href="{{ route('contact-persons.index') }}"
+                       class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->routeIs('contact-persons.*') ? 'bg-brand-600 rounded' : '' }}">
                         <i class="bi bi-people"></i> Ansprechpartner
                     </a>
                 </div>
@@ -151,33 +151,33 @@
                    class="block bg-white text-brand-500 px-3 py-2 rounded text-sm font-semibold text-center mb-2">
                     <i class="bi bi-plus-lg"></i> Neues Ticket
                 </a>
-                <a href="{{ url('/') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('/') ? 'bg-brand-800' : '' }}">
+                <a href="{{ route('tickets.index') }}"
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->routeIs('tickets.index') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-list-ul"></i> Uebersicht
                 </a>
-                <a href="{{ url('/follow-up') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('follow-up') ? 'bg-brand-800' : '' }}">
+                <a href="{{ route('follow-up.index') }}"
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->routeIs('follow-up.*') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-calendar-check"></i> Dran bleiben
                 </a>
                 <div class="text-white/60 text-xs px-3 pt-2 uppercase tracking-wider">Webseite</div>
-                <a href="{{ url('/website-view') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 pl-6 {{ request()->is('website-view') ? 'bg-brand-800' : '' }}">
+                <a href="{{ route('website-view.index') }}"
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 pl-6 {{ request()->routeIs('website-view.*') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-eye"></i> Oeffentliche Tickets
                 </a>
-                <a href="{{ url('/news') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 pl-6 {{ request()->is('news*') ? 'bg-brand-800' : '' }}">
+                <a href="{{ route('news.index') }}"
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 pl-6 {{ request()->routeIs('news.*') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-megaphone"></i> News verwalten
                 </a>
-                <a href="{{ url('/statistics') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('statistics') ? 'bg-brand-800' : '' }}">
-                    <i class="bi bi-graph-up"></i> Statistik
+                <a href="{{ route('statistics.index') }}"
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->routeIs('statistics.*') ? 'bg-brand-800' : '' }}">
+                    <i class="bi bi-graph-up"></i> Statistiken
                 </a>
-                <a href="{{ url('/saus-news') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('saus-news') ? 'bg-brand-800' : '' }}">
+                <a href="{{ route('saus-news.index') }}"
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->routeIs('saus-news.*') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-newspaper"></i> SAUS-News
                 </a>
-                <a href="{{ url('/contact-persons') }}"
-                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->is('contact-persons') ? 'bg-brand-800' : '' }}">
+                <a href="{{ route('contact-persons.index') }}"
+                   class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->routeIs('contact-persons.*') ? 'bg-brand-800' : '' }}">
                     <i class="bi bi-people"></i> Ansprechpartner
                 </a>
 

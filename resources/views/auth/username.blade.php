@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>SAUS-ES - Anmeldung</title>
+    <title>SAUS-i - Anmeldung</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
     tailwind.config = {
@@ -37,7 +37,7 @@
                 <div class="inline-flex items-center justify-center w-16 h-16 bg-brand-100 rounded-full mb-4">
                     <i class="bi bi-person-circle text-3xl text-brand-500"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900">Willkommen bei SAUS-ES</h1>
+                <h1 class="text-2xl font-bold text-gray-900">Willkommen bei SAUS-i</h1>
                 <p class="text-gray-600 mt-2">Bitte geben Sie Ihr Namenskuerzel ein</p>
             </div>
 
