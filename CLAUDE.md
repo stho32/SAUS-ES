@@ -13,11 +13,12 @@ docker-compose up -d
 
 ### Quick Start (Laravel Herd / local PHP)
 ```bash
+docker compose up -d db            # MariaDB starten (Port 3307)
 cd Source
 composer install
 cp .env.example .env
 php artisan key:generate
-# Configure DB_* in .env to point to your MariaDB
+# .env: DB_CONNECTION=mysql, DB_HOST=127.0.0.1, DB_PORT=3307, DB_DATABASE=saus_es
 php artisan migrate --seed
 php artisan serve
 # Admin:  http://localhost:8000/saus/?master_code=test_master_2025
@@ -59,7 +60,7 @@ Two main interfaces:
 ### Technology Stack
 - **Backend**: Laravel 13.3, PHP 8.4
 - **Frontend**: Tailwind CSS (CDN), Chart.js, Bootstrap Icons
-- **Database**: MariaDB 10.6 / MySQL (SQLite for tests)
+- **Database**: MariaDB 10.6 — immer MariaDB verwenden, auch in Entwicklung und Tests (kein SQLite)
 - **Testing**: Pest 4 (137 tests, 264 assertions)
 - **Dev Environment**: Docker (PHP 8.4 + Apache + MariaDB) or Laravel Herd
 
@@ -132,6 +133,7 @@ SAUS-ES/                        # Repository root
 - Eloquent models map to existing table names and columns exactly
 - Existing triggers, functions, and views preserved
 - File storage paths unchanged (`php/uploads/tickets/`, `php/uploads/news/`)
+- **Kein SQLite**: PHP-Anwendungen laufen in Produktion immer mit MariaDB — daher auch in Entwicklung und Tests ausschließlich MariaDB verwenden. SQLite hat subtile Verhaltensunterschiede (fehlende Trigger, andere Typisierung, kein ENUM), die erst in Produktion auffallen. Die MariaDB-Instanz wird per `docker compose up -d db` gestartet (Port 3307 lokal).
 
 ### Database Features
 - **Triggers**: `tickets_before_insert` auto-generates secret_string
@@ -163,5 +165,5 @@ All API endpoints under `/api/` require master_link session and return JSON:
 - **Strict typing**: All custom PHP files use `declare(strict_types=1)`
 - **Windows development**: File paths use backslashes on Windows (Herd)
 - **Docker**: `docker-compose up` from repo root starts the full environment
-- **Test DB**: SQLite in-memory (phpunit.xml) — MySQL-specific features skipped in tests
+- **Test DB**: MariaDB (via Docker, Port 3307) — kein SQLite, damit Tests identisch zur Produktion laufen
 - **Anforderungen**: Requirements documented in `Anforderungen/R00001-R00017`
