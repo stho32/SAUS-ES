@@ -119,7 +119,7 @@ test('contact person can be linked to ticket', function () {
     ]);
 
     $this->postJson(route('api.contact-persons.link', $ticket), [
-        'contactPersonId' => $contact->id,
+        'contact_person_id' => $contact->id,
     ])->assertOk()->assertJson([
         'success' => true,
         'data' => ['name' => 'Verknuepft'],
@@ -141,7 +141,7 @@ test('linking contact person creates system comment', function () {
     ]);
 
     $this->postJson(route('api.contact-persons.link', $ticket), [
-        'contactPersonId' => $contact->id,
+        'contact_person_id' => $contact->id,
     ]);
 
     $this->assertDatabaseHas('comments', [
@@ -165,7 +165,7 @@ test('duplicate linking is rejected', function () {
     $ticket->contactPersons()->attach($contact->id);
 
     $this->postJson(route('api.contact-persons.link', $ticket), [
-        'contactPersonId' => $contact->id,
+        'contact_person_id' => $contact->id,
     ])->assertStatus(422)->assertJson(['success' => false]);
 });
 
