@@ -74,8 +74,8 @@ class TicketContactPersonTest extends DuskTestCase
             $options = $browser->elements('#contactPersonSelect option');
             $this->assertGreaterThan(1, count($options), 'Should have contact persons available to add');
 
-            $browser->script("var sel = document.getElementById('contactPersonSelect'); sel.selectedIndex = 1;")
-                ->script("addContactPerson()");
+            $browser->script("var sel = document.getElementById('contactPersonSelect'); sel.value = sel.options[1].value;");
+            $browser->script("addContactPerson()");
 
             $browser->pause(3000);
 
@@ -99,8 +99,8 @@ class TicketContactPersonTest extends DuskTestCase
             $browser->pause(300);
             $options = $browser->elements('#contactPersonSelect option');
             if (count($options) > 1) {
-                $browser->script("var sel = document.getElementById('contactPersonSelect'); sel.selectedIndex = 1;")
-                    ->script("addContactPerson()");
+                $browser->script("var sel = document.getElementById('contactPersonSelect'); sel.value = sel.options[1].value;");
+            $browser->script("addContactPerson()");
                 $browser->pause(3000);
             }
 
@@ -108,8 +108,8 @@ class TicketContactPersonTest extends DuskTestCase
             $contactElements = $browser->elements('[id^="cp-"]');
             $this->assertGreaterThan(0, count($contactElements), 'Should have at least one linked contact');
 
-            // Verify contact element has name text
-            $contactHtml = $contactElements[0]->getAttribute('innerHTML');
+            // Verify contact element has name text (use JS because getAttribute('innerHTML') returns null in some drivers)
+            $contactHtml = $browser->script("return document.querySelector('[id^=\"cp-\"]').innerHTML")[0];
             $this->assertNotEmpty($contactHtml, 'Contact element should have content');
             $this->assertStringContainsString('font-medium', $contactHtml, 'Contact should display name with styling');
         });
@@ -129,8 +129,8 @@ class TicketContactPersonTest extends DuskTestCase
             $browser->pause(300);
             $options = $browser->elements('#contactPersonSelect option');
             if (count($options) > 1) {
-                $browser->script("var sel = document.getElementById('contactPersonSelect'); sel.selectedIndex = 1;")
-                    ->script("addContactPerson()");
+                $browser->script("var sel = document.getElementById('contactPersonSelect'); sel.value = sel.options[1].value;");
+            $browser->script("addContactPerson()");
                 $browser->pause(3000);
             }
 

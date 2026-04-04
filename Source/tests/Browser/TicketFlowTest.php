@@ -25,7 +25,7 @@ class TicketFlowTest extends DuskTestCase
             $this->loginAs($browser);
 
             $browser->assertPathIs('/saus')
-                ->assertSee('Ticket-Uebersicht')
+                ->assertSee('Ticket-Übersicht')
                 ->assertPresent('table');
 
             // Verify actual ticket rows exist (seeder creates 20 tickets)

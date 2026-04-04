@@ -17,7 +17,7 @@ class PublicPagesFlowTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $browser->visit($this->publicPrefix())
                 ->pause(1000)
-                ->assertSee('Aktuelle Vorgaenge');
+                ->assertSee('Aktuelle Vorgänge');
         });
     }
 

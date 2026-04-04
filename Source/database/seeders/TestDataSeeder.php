@@ -267,6 +267,14 @@ class TestDataSeeder extends Seeder
                 $data
             );
 
+            // System-Kommentar wie vom Controller erstellt
+            $statusName = $statuses->search($data['status_id']);
+            Comment::firstOrCreate([
+                'ticket_id' => $ticket->id,
+                'username' => 'System',
+                'content' => "Ticket erstellt mit Status: {$statusName}",
+            ]);
+
             $tickets->push($ticket);
         }
 

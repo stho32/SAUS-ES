@@ -81,13 +81,16 @@ class CommentFunctionsTest extends DuskTestCase
             $browser->visit('/saus/tickets/1')
                 ->pause(1000);
 
-            $systemComments = $browser->elements('.comment-system');
-            $this->assertGreaterThan(0, count($systemComments), 'Should have system comments from seeder');
-
-            foreach ($systemComments as $comment) {
-                $html = $comment->getAttribute('innerHTML');
-                $this->assertStringNotContainsString('bi-hand-thumbs-up', $html, 'System comment should not have vote buttons');
-            }
+            $systemHasVotes = $browser->script("
+                var sys = document.querySelectorAll('.comment-system');
+                if (sys.length === 0) return null;
+                for (var i = 0; i < sys.length; i++) {
+                    if (sys[i].innerHTML.indexOf('bi-hand-thumbs-up') !== -1) return true;
+                }
+                return false;
+            ")[0];
+            $this->assertNotNull($systemHasVotes, 'Should have system comments from seeder');
+            $this->assertFalse($systemHasVotes, 'System comments should not have vote buttons');
         });
     }
 

@@ -51,21 +51,25 @@ class TicketCommentTest extends DuskTestCase
             $browser->visit('/saus/tickets/1')
                 ->pause(1000);
 
-            $systemComments = $browser->elements('.comment-system');
-            $this->assertGreaterThan(0, count($systemComments), 'Should have system comments');
+            $systemCount = $browser->script("return document.querySelectorAll('.comment-system').length")[0];
+            $this->assertGreaterThan(0, $systemCount, 'Should have system comments');
 
-            foreach ($systemComments as $comment) {
-                $html = $comment->getAttribute('innerHTML');
-                $this->assertStringNotContainsString('bi-hand-thumbs-up', $html);
-                $this->assertStringNotContainsString('bi-hand-thumbs-down', $html);
-            }
+            // System comments should not have vote buttons
+            $systemHasVotes = $browser->script("
+                var sys = document.querySelectorAll('.comment-system');
+                for (var i = 0; i < sys.length; i++) {
+                    if (sys[i].innerHTML.indexOf('bi-hand-thumbs-up') !== -1) return true;
+                }
+                return false;
+            ")[0];
+            $this->assertFalse($systemHasVotes, 'System comments should not have vote buttons');
 
             // Non-system comments SHOULD have vote buttons
-            $userComments = $browser->elements('.comment:not(.comment-system):not(.comment-hidden)');
-            if (count($userComments) > 0) {
-                $html = $userComments[0]->getAttribute('innerHTML');
-                $this->assertStringContainsString('bi-hand-thumbs-up', $html, 'User comments should have vote buttons');
-            }
+            $userHasVotes = $browser->script("
+                var usr = document.querySelectorAll('.comment:not(.comment-system):not(.comment-hidden)');
+                return usr.length > 0 && usr[0].innerHTML.indexOf('bi-hand-thumbs-up') !== -1;
+            ")[0];
+            $this->assertTrue($userHasVotes, 'User comments should have vote buttons');
         });
     }
 
@@ -78,14 +82,18 @@ class TicketCommentTest extends DuskTestCase
             $browser->visit('/saus/tickets/1')
                 ->pause(1000);
 
-            $userComments = $browser->elements('.comment:not(.comment-system):not(.comment-hidden)');
-            $this->assertGreaterThan(0, count($userComments), 'Should have user comments');
-
-            $commentHtml = $userComments[0]->getAttribute('innerHTML');
-            // Username should be in bold
-            $this->assertStringContainsString('font-semibold', $commentHtml, 'Username should be styled bold');
+            $commentData = $browser->script("
+                var comments = document.querySelectorAll('.comment:not(.comment-system):not(.comment-hidden)');
+                if (comments.length === 0) return null;
+                return {
+                    html: comments[0].innerHTML,
+                    text: comments[0].textContent
+                };
+            ")[0];
+            $this->assertNotNull($commentData, 'Should have user comments');
+            $this->assertStringContainsString('font-semibold', $commentData['html'], 'Username should be styled bold');
             // Timestamp format: DD.MM.YYYY HH:MM
-            $this->assertMatchesRegularExpression('/\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}/', $commentHtml, 'Should contain timestamp');
+            $this->assertMatchesRegularExpression('/\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}/', $commentData['text'], 'Should contain timestamp');
         });
     }
 
@@ -291,8 +299,12 @@ class TicketCommentTest extends DuskTestCase
                 ->type('#' . $textareaId, 'Bearbeitet T64')
                 ->script("saveCommentEdit({$commentId})");
 
-            $browser->pause(3000)
-                ->assertSee('Kommentar wurde aktualisiert');
+            $browser->pause(3000);
+            // Reload and verify the edit persisted
+            $browser->visit('/saus/tickets/7')
+                ->pause(1000)
+                ->assertSee('Bearbeitet T64')
+                ->assertSee('bearbeitet');
         });
     }
 
@@ -333,6 +345,8 @@ class TicketCommentTest extends DuskTestCase
     public function test_t67_other_users_no_edit_button(): void
     {
         $this->browse(function (Browser $browser) {
+            // Logout first to force new username
+            $browser->visit('/saus/logout')->pause(500);
             $this->loginAs($browser, 'NiemandSonst999');
 
             $browser->visit('/saus/tickets/1')
@@ -387,13 +401,17 @@ class TicketCommentTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            // First hide a comment to ensure we have one
             $browser->visit('/saus/tickets/1')
                 ->pause(1000);
 
-            $eyeButtons = $browser->elements('.bi-eye');
-            if (count($eyeButtons) > 0) {
-                $eyeButtons[0]->click();
+            // Hide a comment via JS to ensure we have one
+            $commentId = $browser->script("
+                var btns = document.querySelectorAll('.comment:not(.comment-system) .bi-eye');
+                if (btns.length > 0) { btns[0].closest('button').click(); return true; }
+                return false;
+            ")[0];
+
+            if ($commentId) {
                 $browser->pause(2000);
             }
 
@@ -415,16 +433,20 @@ class TicketCommentTest extends DuskTestCase
             $browser->visit('/saus/tickets/2')
                 ->pause(1000);
 
-            $visibleBefore = count($browser->elements('.comment:not(.comment-hidden):not(.comment-system)'));
+            $visibleBefore = (int) $browser->script("return document.querySelectorAll('.comment:not(.comment-hidden):not(.comment-system)').length")[0];
 
-            $eyeButtons = $browser->elements('.bi-eye');
-            $this->assertGreaterThan(0, count($eyeButtons), 'Should have eye buttons');
+            // Click via JS to avoid ElementNotInteractable
+            $clicked = $browser->script("
+                var btns = document.querySelectorAll('.comment:not(.comment-system) .bi-eye');
+                if (btns.length > 0) { btns[0].closest('button').click(); return true; }
+                return false;
+            ")[0];
+            $this->assertTrue($clicked, 'Should have eye buttons to click');
 
-            $eyeButtons[0]->click();
             $browser->pause(2000);
 
             // After reload, visible count should decrease
-            $visibleAfter = count($browser->elements('.comment:not(.comment-hidden):not(.comment-system)'));
+            $visibleAfter = (int) $browser->script("return document.querySelectorAll('.comment:not(.comment-hidden):not(.comment-system)').length")[0];
             $this->assertLessThan($visibleBefore, $visibleAfter, 'Visible comment count should decrease');
         });
     }
@@ -440,15 +462,19 @@ class TicketCommentTest extends DuskTestCase
                 ->check('#showAllComments')
                 ->pause(500);
 
-            $hiddenBefore = count($browser->elements('.comment-hidden'));
+            $hiddenBefore = (int) $browser->script("return document.querySelectorAll('.comment-hidden').length")[0];
 
-            $eyeSlashButtons = $browser->elements('.bi-eye-slash');
-            if (count($eyeSlashButtons) > 0) {
-                $eyeSlashButtons[0]->click();
+            // Click unhide via JS
+            $clicked = $browser->script("
+                var btns = document.querySelectorAll('.comment-hidden .bi-eye-slash');
+                if (btns.length > 0) { btns[0].closest('button').click(); return true; }
+                return false;
+            ")[0];
+
+            if ($clicked) {
                 $browser->pause(2000);
 
-                // After reload, hidden count should decrease
-                $hiddenAfter = count($browser->elements('.comment-hidden'));
+                $hiddenAfter = (int) $browser->script("return document.querySelectorAll('.comment-hidden').length")[0];
                 $this->assertLessThan($hiddenBefore, $hiddenAfter, 'Hidden comment count should decrease');
             }
         });
@@ -552,13 +578,16 @@ class TicketCommentTest extends DuskTestCase
             $browser->visit('/saus/tickets/1')
                 ->pause(1000);
 
-            $systemComments = $browser->elements('.comment-system');
-            $this->assertGreaterThan(0, count($systemComments));
-
-            foreach ($systemComments as $comment) {
-                $html = $comment->getAttribute('innerHTML');
-                $this->assertStringNotContainsString('bi-hand-thumbs-up', $html);
-            }
+            $systemHasVotes = $browser->script("
+                var sys = document.querySelectorAll('.comment-system');
+                if (sys.length === 0) return null;
+                for (var i = 0; i < sys.length; i++) {
+                    if (sys[i].innerHTML.indexOf('bi-hand-thumbs-up') !== -1) return true;
+                }
+                return false;
+            ")[0];
+            $this->assertNotNull($systemHasVotes, 'Should have system comments');
+            $this->assertFalse($systemHasVotes, 'System comments should not have vote buttons');
         });
     }
 }

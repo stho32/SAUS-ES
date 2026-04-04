@@ -39,8 +39,8 @@ class TicketBugfixVerificationTest extends DuskTestCase
             $options = $browser->elements('#contactPersonSelect option');
             $this->assertGreaterThan(1, count($options), 'Should have contact persons available');
 
-            $browser->script("var sel = document.getElementById('contactPersonSelect'); sel.selectedIndex = 1;")
-                ->script("addContactPerson()");
+            $browser->script("var sel = document.getElementById('contactPersonSelect'); sel.value = sel.options[1].value;");
+            $browser->script("addContactPerson()");
 
             $browser->pause(3000);
 
@@ -55,7 +55,14 @@ class TicketBugfixVerificationTest extends DuskTestCase
     public function test_t79_comments_have_correct_username(): void
     {
         $this->browse(function (Browser $browser) {
-            $this->loginAs($browser, 'E2ETestUser');
+            // Logout and login with specific username
+            $browser->visit('/saus/logout')->pause(1000);
+            $browser->visit('/saus/?master_code=test_master_2025')
+                ->pause(1500)
+                ->clear('username')
+                ->type('username', 'E2ETestUser')
+                ->press('Weiter')
+                ->pause(2000);
 
             $uniqueText = 'Username-Test ' . time();
             $browser->visit('/saus/tickets/9')

@@ -956,9 +956,9 @@ async function removeContactPerson(contactId, contactName) {
 // Show/hide all comments toggle
 document.getElementById('showAllComments').addEventListener('change', function() {
     var comments = document.querySelectorAll('.comment-hidden');
-    var self = this;
+    var checked = this.checked;
     comments.forEach(function(c) {
-        c.style.display = self.checked ? '' : 'none';
+        c.style.display = checked ? 'block' : 'none';
     });
 });
 
