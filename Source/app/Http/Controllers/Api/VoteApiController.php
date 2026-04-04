@@ -46,12 +46,16 @@ class VoteApiController extends Controller
 
         $upVotes = $ticket->ticketVotes()->where('value', 'up')->count();
         $downVotes = $ticket->ticketVotes()->where('value', 'down')->count();
+        $upvoters = $ticket->ticketVotes()->where('value', 'up')->pluck('username')->implode(', ');
+        $downvoters = $ticket->ticketVotes()->where('value', 'down')->pluck('username')->implode(', ');
 
         return response()->json([
             'success' => true,
             'data' => [
                 'up_votes' => $upVotes,
                 'down_votes' => $downVotes,
+                'upvoters' => $upvoters ?: 'Keine Upvotes',
+                'downvoters' => $downvoters ?: 'Keine Downvotes',
             ],
         ]);
     }

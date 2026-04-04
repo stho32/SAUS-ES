@@ -685,7 +685,29 @@ async function voteTicket(value) {
             body: JSON.stringify({ value: sendValue })
         });
         const data = await response.json();
-        if (data.success) {
+        if (data.success && data.data) {
+            // Update counts
+            var upEl = document.querySelector('.upvote-count');
+            var downEl = document.querySelector('.downvote-count');
+            if (upEl) upEl.textContent = data.data.up_votes;
+            if (downEl) downEl.textContent = data.data.down_votes;
+
+            // Update tooltips
+            var buttons = document.querySelectorAll('#ticket-voting .vote-btn');
+            if (buttons[0] && data.data.upvoters !== undefined) buttons[0].title = data.data.upvoters;
+            if (buttons[1] && data.data.downvoters !== undefined) buttons[1].title = data.data.downvoters;
+
+            // Update button styles to reflect active vote
+            currentTicketVote = sendValue;
+            if (buttons[0]) {
+                buttons[0].className = buttons[0].className.replace(/bg-green-500 text-white|bg-white text-green-600 hover:bg-green-50/g, '');
+                buttons[0].classList.add(...(sendValue === 'up' ? ['bg-green-500', 'text-white'] : ['bg-white', 'text-green-600', 'hover:bg-green-50']));
+            }
+            if (buttons[1]) {
+                buttons[1].className = buttons[1].className.replace(/bg-red-500 text-white|bg-white text-red-600 hover:bg-red-50/g, '');
+                buttons[1].classList.add(...(sendValue === 'down' ? ['bg-red-500', 'text-white'] : ['bg-white', 'text-red-600', 'hover:bg-red-50']));
+            }
+        } else if (data.success) {
             location.reload();
         } else {
             showAlert('danger', 'Fehler beim Abstimmen: ' + (data.message || ''));

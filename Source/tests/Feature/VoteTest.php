@@ -183,6 +183,24 @@ test('multiple users can vote on same ticket', function () {
     ]);
 });
 
+test('ticket vote response includes voter names', function () {
+    TicketVote::create([
+        'ticket_id' => $this->ticket->id,
+        'username' => 'UserA',
+        'value' => 'up',
+    ]);
+
+    $response = $this->postJson(route('api.tickets.vote', $this->ticket), [
+        'value' => 'up',
+    ])->assertOk();
+
+    $data = $response->json('data');
+    expect($data)->toHaveKey('upvoters');
+    expect($data)->toHaveKey('downvoters');
+    expect($data['upvoters'])->toContain('UserA');
+    expect($data['upvoters'])->toContain('TestUser');
+});
+
 test('multiple users can vote on same comment', function () {
     $comment = Comment::create([
         'ticket_id' => $this->ticket->id,
