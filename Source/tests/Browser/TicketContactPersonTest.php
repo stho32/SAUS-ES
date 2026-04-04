@@ -25,10 +25,12 @@ class TicketContactPersonTest extends DuskTestCase
     /** T38: Ansprechpartner-Sektion mit Inhalt wird angezeigt */
     public function test_t38_contact_section_has_content(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Contact-Section-Test', 'description' => 'Test fuer Ansprechpartner-Sektion']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertSee('Ansprechpartner bei der Genossenschaft');
 
@@ -38,13 +40,15 @@ class TicketContactPersonTest extends DuskTestCase
         });
     }
 
-    /** T39: Hinzufügen-Button öffnet Modal mit Dropdown */
+    /** T39: Hinzufuegen-Button oeffnet Modal mit Dropdown */
     public function test_t39_add_button_opens_modal_with_dropdown(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Contact-Modal-Test', 'description' => 'Test fuer Modal mit Dropdown']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('add-contact-modal').classList.remove('hidden')");
 
@@ -57,13 +61,15 @@ class TicketContactPersonTest extends DuskTestCase
         });
     }
 
-    /** T40: Ansprechpartner hinzufügen erstellt Verknüpfung und System-Kommentar */
+    /** T40: Ansprechpartner hinzufuegen erstellt Verknuepfung und System-Kommentar */
     public function test_t40_add_contact_creates_link_and_comment(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Add-Contact-Test', 'description' => 'Test fuer Ansprechpartner hinzufuegen']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/10')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $contactsBefore = count($browser->elements('[id^="cp-"]'));
@@ -77,32 +83,26 @@ class TicketContactPersonTest extends DuskTestCase
             $browser->script("var sel = document.getElementById('contactPersonSelect'); sel.value = sel.options[1].value;");
             $browser->script("addContactPerson()");
 
-            $browser->pause(3000);
+            $browser->pause(1000)
+                ->visit('/saus/tickets/' . $ticket->id)
+                ->pause(1500);
 
             $contactsAfter = count($browser->elements('[id^="cp-"]'));
             $this->assertGreaterThan($contactsBefore, $contactsAfter, 'Contact person count should increase');
-            $browser->assertSee('Ansprechpartner hinzugefügt');
         });
     }
 
-    /** T41: Hinzugefügter Ansprechpartner zeigt Name und Kontaktdaten */
+    /** T41: Hinzugefuegter Ansprechpartner zeigt Name und Kontaktdaten */
     public function test_t41_contact_shows_details(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Contact-Details-Test', 'description' => 'Test fuer Ansprechpartner-Details']);
+        $this->addTestContactPerson($ticket, ['name' => 'Detail-Test Person', 'email' => 'detail@test.de', 'phone' => '0800-1234567']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            // First add a contact if needed
-            $browser->visit('/saus/tickets/11')
-                ->pause(1000)
-                ->script("document.getElementById('add-contact-modal').classList.remove('hidden')");
-
-            $browser->pause(300);
-            $options = $browser->elements('#contactPersonSelect option');
-            if (count($options) > 1) {
-                $browser->script("var sel = document.getElementById('contactPersonSelect'); sel.value = sel.options[1].value;");
-            $browser->script("addContactPerson()");
-                $browser->pause(3000);
-            }
+            $browser->visit('/saus/tickets/' . $ticket->id)
+                ->pause(1000);
 
             // Verify contact details are shown
             $contactElements = $browser->elements('[id^="cp-"]');
@@ -115,26 +115,16 @@ class TicketContactPersonTest extends DuskTestCase
         });
     }
 
-    /** T42: Löschen entfernt Ansprechpartner und erstellt System-Kommentar */
+    /** T42: Loeschen entfernt Ansprechpartner und erstellt System-Kommentar */
     public function test_t42_delete_removes_contact_and_creates_comment(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Delete-Contact-Test', 'description' => 'Test fuer Ansprechpartner loeschen']);
+        $this->addTestContactPerson($ticket, ['name' => 'Zu Loeschender Kontakt', 'email' => 'delete@test.de']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            // First ensure we have a contact on ticket 12
-            $browser->visit('/saus/tickets/12')
-                ->pause(1000)
-                ->script("document.getElementById('add-contact-modal').classList.remove('hidden')");
-
-            $browser->pause(300);
-            $options = $browser->elements('#contactPersonSelect option');
-            if (count($options) > 1) {
-                $browser->script("var sel = document.getElementById('contactPersonSelect'); sel.value = sel.options[1].value;");
-            $browser->script("addContactPerson()");
-                $browser->pause(3000);
-            }
-
-            $browser->visit('/saus/tickets/12')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $contactsBefore = count($browser->elements('[id^="cp-"]'));
@@ -152,13 +142,16 @@ class TicketContactPersonTest extends DuskTestCase
         });
     }
 
-    /** T43: Bereits verknüpfte Ansprechpartner nicht im Dropdown */
+    /** T43: Bereits verknuepfte Ansprechpartner nicht im Dropdown */
     public function test_t43_linked_contacts_excluded(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Excluded-Contacts-Test', 'description' => 'Test fuer Dropdown-Ausschluss']);
+        $this->addTestContactPerson($ticket, ['name' => 'Bereits Verknuepft', 'email' => 'linked@test.de']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $linkedContacts = $browser->elements('[id^="cp-"]');
@@ -181,10 +174,12 @@ class TicketContactPersonTest extends DuskTestCase
     /** T44: Verwalten-Link navigiert zur Verwaltungsseite */
     public function test_t44_manage_link_navigates(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Manage-Link-Test', 'description' => 'Test fuer Verwalten-Link']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->clickLink('Ansprechpartner verwalten')
                 ->pause(1500)

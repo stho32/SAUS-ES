@@ -6,7 +6,7 @@ use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 
 /**
- * E2E Tests T45-T52: Datei-Uploads (Anhänge)
+ * E2E Tests T45-T52: Datei-Uploads (Anhaenge)
  */
 class TicketAttachmentTest extends DuskTestCase
 {
@@ -25,10 +25,12 @@ class TicketAttachmentTest extends DuskTestCase
     /** T45: Upload-Formular akzeptiert Dateien */
     public function test_t45_upload_form_accepts_files(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Upload-Form-Test', 'description' => 'Ticket fuer Upload-Formular-Test']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertPresent('#uploadForm')
                 ->assertPresent('#fileInput');
@@ -42,7 +44,9 @@ class TicketAttachmentTest extends DuskTestCase
     /** T46: Bild-Upload erscheint im Attachment-Grid */
     public function test_t46_image_upload_appears_in_grid(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Image-Upload-Test', 'description' => 'Ticket fuer Bild-Upload-Test']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
             $testImagePath = storage_path('app/test_upload.jpg');
@@ -52,7 +56,7 @@ class TicketAttachmentTest extends DuskTestCase
             imagejpeg($img, $testImagePath);
             imagedestroy($img);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $attachmentsBefore = count($browser->elements('#attachmentGrid [id^="attachment-"]'));
@@ -76,13 +80,15 @@ class TicketAttachmentTest extends DuskTestCase
     /** T47: PDF-Upload erscheint mit Datei-Icon */
     public function test_t47_pdf_upload_appears_with_icon(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'PDF-Upload-Test', 'description' => 'Ticket fuer PDF-Upload-Test']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
             $testPdfPath = storage_path('app/test_upload.pdf');
             file_put_contents($testPdfPath, "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF");
 
-            $browser->visit('/saus/tickets/2')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $attachmentsBefore = count($browser->elements('#attachmentGrid [id^="attachment-"]'));
@@ -106,7 +112,9 @@ class TicketAttachmentTest extends DuskTestCase
     /** T48: Anhang kann heruntergeladen werden */
     public function test_t48_attachment_link_is_valid(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Download-Test', 'description' => 'Ticket fuer Anhang-Download-Test']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
             // First upload a file
@@ -115,7 +123,7 @@ class TicketAttachmentTest extends DuskTestCase
             imagejpeg($img, $testImagePath);
             imagedestroy($img);
 
-            $browser->visit('/saus/tickets/3')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->attach('#fileInput', $testImagePath)
                 ->script("document.getElementById('uploadForm').dispatchEvent(new Event('submit'))");
@@ -133,10 +141,12 @@ class TicketAttachmentTest extends DuskTestCase
         });
     }
 
-    /** T49: Datei löschen entfernt Anhang aus Grid */
+    /** T49: Datei loeschen entfernt Anhang aus Grid */
     public function test_t49_delete_removes_from_grid(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Delete-Attachment-Test', 'description' => 'Ticket fuer Anhang-Loeschen-Test']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
             // First upload
@@ -145,7 +155,7 @@ class TicketAttachmentTest extends DuskTestCase
             imagejpeg($img, $testImagePath);
             imagedestroy($img);
 
-            $browser->visit('/saus/tickets/4')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->attach('#fileInput', $testImagePath)
                 ->script("document.getElementById('uploadForm').dispatchEvent(new Event('submit'))");
@@ -168,16 +178,18 @@ class TicketAttachmentTest extends DuskTestCase
         });
     }
 
-    /** T50: Ungültiger Dateityp zeigt Fehlermeldung */
+    /** T50: Ungueltiger Dateityp zeigt Fehlermeldung */
     public function test_t50_invalid_type_shows_error(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Invalid-Type-Test', 'description' => 'Ticket fuer ungueltigen Dateityp-Test']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
             $testExePath = storage_path('app/test_malware.exe');
             file_put_contents($testExePath, 'fake exe content');
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $attachmentsBefore = count($browser->elements('#attachmentGrid [id^="attachment-"]'));
@@ -203,13 +215,15 @@ class TicketAttachmentTest extends DuskTestCase
         });
     }
 
-    /** T51: Anhänge-Zähler im Header stimmt */
+    /** T51: Anhaenge-Zaehler im Header stimmt */
     public function test_t51_attachment_count_matches(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Attachment-Count-Test', 'description' => 'Ticket fuer Anhaenge-Zaehler-Test']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             // Count actual attachments in grid
@@ -217,7 +231,7 @@ class TicketAttachmentTest extends DuskTestCase
 
             // Verify the header shows the count
             $headerText = $browser->text('h5:has(span)');
-            // The header format is "Anhänge (N)"
+            // The header format is "Anhaenge (N)"
             $this->assertStringContainsString('Anhänge', $browser->driver->getPageSource());
         });
     }

@@ -21,10 +21,12 @@ class CommentFunctionsTest extends DuskTestCase
 
     public function test_can_add_comment_and_it_appears(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Kommentar-Test Ticket', 'description' => 'Ticket fuer Kommentar-Tests']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $commentsBefore = count($browser->elements('#comments-container .comment'));
@@ -41,10 +43,14 @@ class CommentFunctionsTest extends DuskTestCase
 
     public function test_hidden_comments_are_not_visible_by_default(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Hidden-Comment-Test', 'description' => 'Ticket mit versteckten Kommentaren']);
+        $this->addTestComment($ticket, ['content' => 'Sichtbarer Kommentar', 'is_visible' => true]);
+        $this->addTestComment($ticket, ['content' => 'Versteckter Kommentar', 'is_visible' => false, 'hidden_by' => 'Admin', 'hidden_at' => now()]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $hiddenComments = $browser->elements('.comment-hidden');
@@ -57,10 +63,14 @@ class CommentFunctionsTest extends DuskTestCase
 
     public function test_show_all_checkbox_reveals_hidden_comments(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Show-All-Test', 'description' => 'Ticket fuer Alle-anzeigen-Filter']);
+        $this->addTestComment($ticket, ['content' => 'Sichtbarer Kommentar', 'is_visible' => true]);
+        $this->addTestComment($ticket, ['content' => 'Versteckter Kommentar', 'is_visible' => false, 'hidden_by' => 'Admin', 'hidden_at' => now()]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->check('#showAllComments')
                 ->pause(500);
@@ -75,10 +85,13 @@ class CommentFunctionsTest extends DuskTestCase
 
     public function test_system_comments_have_no_vote_buttons(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'System-Comment-Test', 'description' => 'Ticket mit Systemkommentar']);
+        $this->addTestComment($ticket, ['content' => 'Statusaenderung: offen -> in_bearbeitung', 'username' => 'System', 'is_visible' => true]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $systemHasVotes = $browser->script("
@@ -89,23 +102,25 @@ class CommentFunctionsTest extends DuskTestCase
                 }
                 return false;
             ")[0];
-            $this->assertNotNull($systemHasVotes, 'Should have system comments from seeder');
+            $this->assertNotNull($systemHasVotes, 'Should have system comments');
             $this->assertFalse($systemHasVotes, 'System comments should not have vote buttons');
         });
     }
 
     public function test_own_comments_have_edit_button(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Edit-Button-Test', 'description' => 'Ticket fuer Edit-Button-Test']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser, 'Tester');
 
-            $browser->visit('/saus/tickets/2')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->type('#commentContent', 'Mein bearbeitbarer Kommentar')
                 ->press('Kommentar speichern')
                 ->pause(3000);
 
-            $browser->visit('/saus/tickets/2')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertSee('Mein bearbeitbarer Kommentar')
                 ->assertPresent('.bi-pencil');
@@ -114,16 +129,18 @@ class CommentFunctionsTest extends DuskTestCase
 
     public function test_comment_formatting_renders_html(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Formatting-Test', 'description' => 'Ticket fuer Kommentar-Formatierung']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/3')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->type('#commentContent', '**Fett** und *kursiv* und https://1892.de')
                 ->press('Kommentar speichern')
                 ->pause(3000);
 
-            $browser->visit('/saus/tickets/3')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertPresent('.comment-content strong')
                 ->assertPresent('.comment-content em')

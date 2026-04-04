@@ -2,6 +2,7 @@
 
 namespace Tests\Browser;
 
+use App\Models\CommentVote;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 
@@ -27,10 +28,13 @@ class TicketCommentTest extends DuskTestCase
     /** T53: Kommentar-Sektion zeigt sichtbare Kommentare mit Inhalt */
     public function test_t53_comments_show_with_content(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T53 Kommentaranzeige']);
+        $this->addTestComment($ticket, ['content' => 'Sichtbarer Testkommentar T53', 'username' => 'Tester']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $comments = $browser->elements('#comments-container .comment');
@@ -45,10 +49,14 @@ class TicketCommentTest extends DuskTestCase
     /** T54: System-Kommentare haben keinen Vote-Bereich */
     public function test_t54_system_comments_no_votes(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T54 System-Kommentare']);
+        $this->addTestComment($ticket, ['content' => 'Statusaenderung: offen -> in Bearbeitung', 'username' => 'System']);
+        $this->addTestComment($ticket, ['content' => 'Normaler Kommentar T54', 'username' => 'Tester']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $systemCount = $browser->script("return document.querySelectorAll('.comment-system').length")[0];
@@ -76,10 +84,13 @@ class TicketCommentTest extends DuskTestCase
     /** T55: Kommentar zeigt Benutzername und Zeitstempel */
     public function test_t55_comment_shows_username_and_time(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T55 Username und Zeit']);
+        $this->addTestComment($ticket, ['content' => 'Kommentar mit Zeitstempel T55', 'username' => 'TestUser55']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $commentData = $browser->script("
@@ -100,17 +111,19 @@ class TicketCommentTest extends DuskTestCase
     /** T56: Bearbeitete Kommentare zeigen Indikator */
     public function test_t56_edited_comments_have_indicator(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T56 Bearbeitet-Indikator']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser, 'Tester');
 
             // Create and edit a comment to guarantee edited state
-            $browser->visit('/saus/tickets/5')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->type('#commentContent', 'Wird gleich bearbeitet T56')
                 ->press('Kommentar speichern')
                 ->pause(3000);
 
-            $browser->visit('/saus/tickets/5')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             // Find our comment and edit it
@@ -129,7 +142,7 @@ class TicketCommentTest extends DuskTestCase
                 ->script("saveCommentEdit({$commentId})");
 
             $browser->pause(3000);
-            $browser->visit('/saus/tickets/5')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertSee('bearbeitet');
         });
@@ -138,16 +151,18 @@ class TicketCommentTest extends DuskTestCase
     /** T57: Kommentar-Formatierung rendert HTML */
     public function test_t57_formatting_renders(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T57 Formatierung']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/3')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->type('#commentContent', '**Wichtig** und *kursiv* und https://example.com')
                 ->press('Kommentar speichern')
                 ->pause(3000);
 
-            $browser->visit('/saus/tickets/3')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertPresent('.comment-content strong')
                 ->assertPresent('.comment-content em')
@@ -160,10 +175,12 @@ class TicketCommentTest extends DuskTestCase
     /** T58: Kommentar-Formular funktioniert */
     public function test_t58_comment_form_submits(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T58 Formular']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/4')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $commentsBefore = count($browser->elements('#comments-container .comment'));
@@ -180,11 +197,13 @@ class TicketCommentTest extends DuskTestCase
     /** T59: Kommentar erscheint mit eingegebenem Text */
     public function test_t59_comment_shows_entered_text(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T59 Text anzeigen']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
             $uniqueText = 'E2E Kommentar ' . time();
-            $browser->visit('/saus/tickets/4')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->type('#commentContent', $uniqueText)
                 ->press('Kommentar speichern')
@@ -196,10 +215,12 @@ class TicketCommentTest extends DuskTestCase
     /** T60: Leerer Kommentar zeigt Warnung */
     public function test_t60_empty_comment_warns(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T60 Leerer Kommentar']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $commentsBefore = count($browser->elements('#comments-container .comment'));
@@ -220,10 +241,12 @@ class TicketCommentTest extends DuskTestCase
     /** T61: Formatierungshilfe ist sichtbar */
     public function test_t61_formatting_help_visible(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T61 Formatierungshilfe']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertSee('**fett**')
                 ->assertSee('*kursiv*');
@@ -235,16 +258,18 @@ class TicketCommentTest extends DuskTestCase
     /** T62: Eigene Kommentare haben Bearbeiten-Button */
     public function test_t62_own_comments_have_edit(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T62 Edit-Button']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser, 'Tester');
 
-            $browser->visit('/saus/tickets/6')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->type('#commentContent', 'Eigener Kommentar T62')
                 ->press('Kommentar speichern')
                 ->pause(3000);
 
-            $browser->visit('/saus/tickets/6')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertSee('Eigener Kommentar T62')
                 ->assertPresent('.bi-pencil');
@@ -254,10 +279,13 @@ class TicketCommentTest extends DuskTestCase
     /** T63: Edit-Klick öffnet Textarea */
     public function test_t63_edit_opens_textarea(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T63 Edit-Textarea']);
+        $this->addTestComment($ticket, ['content' => 'Kommentar zum Bearbeiten T63', 'username' => 'Tester']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser, 'Tester');
 
-            $browser->visit('/saus/tickets/6')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $editButtons = $browser->elements('.bi-pencil');
@@ -274,17 +302,19 @@ class TicketCommentTest extends DuskTestCase
     /** T64: Bearbeiteten Kommentar speichern */
     public function test_t64_edit_saves_content(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T64 Edit speichern']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser, 'Tester');
 
             // Create a comment to edit
-            $browser->visit('/saus/tickets/7')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->type('#commentContent', 'Original T64')
                 ->press('Kommentar speichern')
                 ->pause(3000);
 
-            $browser->visit('/saus/tickets/7')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $editButtons = $browser->elements('.bi-pencil');
@@ -301,7 +331,7 @@ class TicketCommentTest extends DuskTestCase
 
             $browser->pause(3000);
             // Reload and verify the edit persisted
-            $browser->visit('/saus/tickets/7')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertSee('Bearbeitet T64')
                 ->assertSee('bearbeitet');
@@ -311,10 +341,13 @@ class TicketCommentTest extends DuskTestCase
     /** T66: Abbrechen verwirft Bearbeitungsänderungen */
     public function test_t66_edit_cancel_discards(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T66 Edit abbrechen']);
+        $this->addTestComment($ticket, ['content' => 'Kommentar zum Abbrechen T66', 'username' => 'Tester']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser, 'Tester');
 
-            $browser->visit('/saus/tickets/6')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $editButtons = $browser->elements('.bi-pencil');
@@ -337,15 +370,18 @@ class TicketCommentTest extends DuskTestCase
     /** T67: Fremde Kommentare haben keinen Edit-Button */
     public function test_t67_other_users_no_edit_button(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T67 Fremde Kommentare']);
+        $this->addTestComment($ticket, ['content' => 'Kommentar von Anderer T67', 'username' => 'Anderer']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             // Logout first to force new username
             $browser->visit('/saus/logout')->pause(500);
             $this->loginAs($browser, 'NiemandSonst999');
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
-            // With this unique username, no seeder comments belong to us
+            // With this unique username, no comments belong to us
             // So no edit buttons should exist (except system comments which also don't have them)
             $editButtons = $browser->elements('.bi-pencil');
             $this->assertEquals(0, count($editButtons), 'Should have no edit buttons for foreign comments');
@@ -357,10 +393,20 @@ class TicketCommentTest extends DuskTestCase
     /** T68: Unsichtbare Kommentare sind ausgeblendet */
     public function test_t68_hidden_comments_invisible(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T68 Unsichtbare Kommentare']);
+        $this->addTestComment($ticket, ['content' => 'Sichtbar T68', 'username' => 'Tester']);
+        $this->addTestComment($ticket, [
+            'content' => 'Ausgeblendet T68',
+            'username' => 'Tester',
+            'is_visible' => false,
+            'hidden_by' => 'Admin',
+            'hidden_at' => now(),
+        ]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $hiddenComments = $browser->elements('.comment-hidden');
@@ -373,10 +419,20 @@ class TicketCommentTest extends DuskTestCase
     /** T69: "Alle anzeigen" macht unsichtbare sichtbar */
     public function test_t69_show_all_reveals_hidden(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T69 Alle anzeigen']);
+        $this->addTestComment($ticket, ['content' => 'Sichtbar T69', 'username' => 'Tester']);
+        $this->addTestComment($ticket, [
+            'content' => 'Ausgeblendet T69',
+            'username' => 'Tester',
+            'is_visible' => false,
+            'hidden_by' => 'Admin',
+            'hidden_at' => now(),
+        ]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->check('#showAllComments')
                 ->pause(500);
@@ -391,22 +447,21 @@ class TicketCommentTest extends DuskTestCase
     /** T70: Ausgeblendete Kommentare zeigen Info */
     public function test_t70_hidden_comments_show_info_text(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T70 Ausgeblendet-Info']);
+        $this->addTestComment($ticket, ['content' => 'Sichtbarer Kommentar T70', 'username' => 'Tester']);
+        $this->addTestComment($ticket, [
+            'content' => 'Versteckter Kommentar T70',
+            'username' => 'Tester',
+            'is_visible' => false,
+            'hidden_by' => 'Admin',
+            'hidden_at' => now(),
+        ]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
-
-            // Hide a comment via JS to ensure we have one
-            $commentId = $browser->script("
-                var btns = document.querySelectorAll('.comment:not(.comment-system) .bi-eye');
-                if (btns.length > 0) { btns[0].closest('button').click(); return true; }
-                return false;
-            ")[0];
-
-            if ($commentId) {
-                $browser->pause(2000);
-            }
 
             // Now check hidden comments show info
             $browser->check('#showAllComments')
@@ -420,10 +475,14 @@ class TicketCommentTest extends DuskTestCase
     /** T71: Augen-Icon blendet Kommentar aus */
     public function test_t71_eye_icon_hides(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T71 Augen-Icon']);
+        $this->addTestComment($ticket, ['content' => 'Kommentar 1 T71', 'username' => 'Tester']);
+        $this->addTestComment($ticket, ['content' => 'Kommentar 2 T71', 'username' => 'Tester']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/2')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $visibleBefore = (int) $browser->script("return document.querySelectorAll('.comment:not(.comment-hidden):not(.comment-system)').length")[0];
@@ -447,10 +506,20 @@ class TicketCommentTest extends DuskTestCase
     /** T72: Ausgeblendeten Kommentar wieder einblenden */
     public function test_t72_unhide_comment(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T72 Wieder einblenden']);
+        $this->addTestComment($ticket, ['content' => 'Sichtbar T72', 'username' => 'Tester']);
+        $this->addTestComment($ticket, [
+            'content' => 'Ausgeblendet T72',
+            'username' => 'Tester',
+            'is_visible' => false,
+            'hidden_by' => 'Admin',
+            'hidden_at' => now(),
+        ]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/2')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->check('#showAllComments')
                 ->pause(500);
@@ -476,19 +545,22 @@ class TicketCommentTest extends DuskTestCase
     /** T72b: "Alle anzeigen"-Filter bleibt aktiv nach Visibility-Toggle */
     public function test_t72b_show_all_filter_persists_after_visibility_toggle(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T72b Visibility-Filter']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/119')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(2000);
 
             // Create two test comments via API
+            $ticketId = $ticket->id;
             $createdIds = [];
             for ($i = 1; $i <= 2; $i++) {
                 $result = $browser->script("
                     var result = null;
                     var xhr = new XMLHttpRequest();
-                    xhr.open('POST', API_BASE + '/tickets/' + TICKET_ID + '/comments', false);
+                    xhr.open('POST', API_BASE + '/tickets/' + {$ticketId} + '/comments', false);
                     xhr.setRequestHeader('Content-Type', 'application/json');
                     xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name=csrf-token]').content);
                     xhr.send(JSON.stringify({ content: 'Test-Kommentar-Visibility-{$i}' }));
@@ -517,7 +589,7 @@ class TicketCommentTest extends DuskTestCase
             }
 
             // Reload page to see the hidden comments
-            $browser->visit('/saus/tickets/119')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(2000);
 
             // Activate "Alle anzeigen" filter
@@ -575,10 +647,13 @@ class TicketCommentTest extends DuskTestCase
     /** T74: Up-Vote bei Kommentar erhöht Zähler */
     public function test_t74_comment_upvote_increases(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T74 Upvote']);
+        $comment = $this->addTestComment($ticket, ['content' => 'Kommentar fuer Upvote T74', 'username' => 'Anderer']);
+
+        $this->browse(function (Browser $browser) use ($ticket, $comment) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $upSpans = $browser->elements('[id^="comment-up-"]');
@@ -600,10 +675,13 @@ class TicketCommentTest extends DuskTestCase
     /** T75: Down-Vote bei Kommentar erhöht Zähler */
     public function test_t75_comment_downvote_increases(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T75 Downvote']);
+        $comment = $this->addTestComment($ticket, ['content' => 'Kommentar fuer Downvote T75', 'username' => 'Anderer']);
+
+        $this->browse(function (Browser $browser) use ($ticket, $comment) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/2')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $downSpans = $browser->elements('[id^="comment-down-"]');
@@ -624,15 +702,13 @@ class TicketCommentTest extends DuskTestCase
     /** T76: Doppelklick entfernt Vote — gleichen Button zweimal klicken */
     public function test_t76_comment_vote_toggle(): void
     {
-        $ticket = \App\Models\Ticket::whereHas('comments', function ($q) {
-            $q->where('username', '!=', 'System');
-        })->first();
-        $this->assertNotNull($ticket, 'Need a ticket with non-system comments');
+        $ticket = $this->createTestTicket(['title' => 'T76 Vote-Toggle']);
+        $comment = $this->addTestComment($ticket, ['content' => 'Kommentar fuer Toggle T76', 'username' => 'Anderer']);
 
         // Bestehende Votes dieses Testusers entfernen, damit der Test sauber startet
-        \App\Models\CommentVote::where('username', 'ToggleTester')->delete();
+        CommentVote::where('username', 'ToggleTester')->delete();
 
-        $this->browse(function (Browser $browser) use ($ticket) {
+        $this->browse(function (Browser $browser) use ($ticket, $comment) {
             $this->loginAs($browser, 'ToggleTester');
 
             $browser->visit('/saus/tickets/' . $ticket->id)
@@ -664,32 +740,29 @@ class TicketCommentTest extends DuskTestCase
     /** Tooltip aktualisiert sich nach Vote (Bug: Tooltip blieb stale) */
     public function test_comment_vote_updates_tooltip(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Tooltip Vote Update']);
+        $comment = $this->addTestComment($ticket, ['content' => 'Kommentar fuer Tooltip-Test', 'username' => 'Anderer']);
+        $commentId = $comment->id;
+
+        $this->browse(function (Browser $browser) use ($ticket, $commentId) {
+            // Clear session to force new username entry
+            $browser->visit('/saus/logout')->pause(500);
             $this->loginAs($browser, 'TooltipTester');
 
-            $browser->visit('/saus/tickets/5')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
-            // Find an upvote button with a tooltip
-            $upButtons = $browser->elements('#comments-container button[onclick^="voteComment"]');
-            $this->assertGreaterThan(0, count($upButtons), 'Should have vote buttons');
+            // Verify vote button exists for our comment
+            $upBtn = $browser->elements("#comment-up-{$commentId}");
+            $this->assertGreaterThan(0, count($upBtn), 'Should have upvote span for comment');
 
-            // Get the first upvote button (every other button is upvote)
-            $upButton = $upButtons[0];
-            $tooltipBefore = $upButton->getAttribute('title');
-
-            // Extract comment ID from onclick attribute
-            $onclick = $upButton->getAttribute('onclick');
-            preg_match('/voteComment\((\d+)/', $onclick, $matches);
-            $commentId = $matches[1];
-
-            // Vote up
+            // Vote up using the known comment ID
             $browser->script("voteComment({$commentId}, 'up')");
             $browser->pause(2000);
 
             // Re-read the tooltip after voting
             $tooltipAfter = $browser->script(
-                "return document.querySelector('button[onclick*=\"voteComment({$commentId}\"]').title"
+                "return document.getElementById('comment-up-{$commentId}').closest('button').title"
             )[0];
 
             // The tooltip must contain the voter's username after voting
@@ -705,10 +778,13 @@ class TicketCommentTest extends DuskTestCase
     /** T77: System-Kommentare haben keine Vote-Buttons */
     public function test_t77_system_no_votes(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'T77 System keine Votes']);
+        $this->addTestComment($ticket, ['content' => 'Statusaenderung: offen -> geschlossen', 'username' => 'System']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $systemHasVotes = $browser->script("

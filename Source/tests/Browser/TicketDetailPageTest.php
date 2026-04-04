@@ -22,13 +22,19 @@ class TicketDetailPageTest extends DuskTestCase
         }
     }
 
-    /** T01: Detailseite zeigt tatsächlichen Ticket-Inhalt */
+    /** T01: Detailseite zeigt tatsaechlichen Ticket-Inhalt */
     public function test_t01_detail_page_shows_ticket_content(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket([
+            'title' => 'Detailseite Inhaltstest',
+            'description' => 'Beschreibung fuer den Inhaltstest der Detailseite.',
+        ]);
+        $this->addTestComment($ticket, ['content' => 'Erster Kommentar zum Inhaltstest', 'username' => 'Tester']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             // Verify actual content, not just element presence
@@ -40,7 +46,7 @@ class TicketDetailPageTest extends DuskTestCase
 
             // Verify structural sections have content
             $comments = $browser->elements('#comments-container .comment');
-            $this->assertGreaterThan(0, count($comments), 'Should have comments from seeder');
+            $this->assertGreaterThan(0, count($comments), 'Should have comments');
 
             // Check section labels (uppercase CSS transforms them)
             $browser->assertSee('Kommentare')
@@ -50,13 +56,15 @@ class TicketDetailPageTest extends DuskTestCase
         });
     }
 
-    /** T02: Zurück-Button navigiert zur Ticket-Liste */
+    /** T02: Zurueck-Button navigiert zur Ticket-Liste */
     public function test_t02_back_button_navigates_to_list(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Zurueck-Button-Test', 'description' => 'Test fuer Navigation zurueck zur Liste']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->clickLink('Zurück')
                 ->pause(1500)
@@ -64,30 +72,34 @@ class TicketDetailPageTest extends DuskTestCase
         });
     }
 
-    /** T03: E-Mail-Link öffnet E-Mail-Ansicht */
+    /** T03: E-Mail-Link oeffnet E-Mail-Ansicht */
     public function test_t03_email_link_opens_email_view(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Email-Link-Test', 'description' => 'Test fuer E-Mail-Link']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             // Verify the email link has correct href
             $emailLink = $browser->element('a[href*="email"]');
             $this->assertNotNull($emailLink, 'Email link should exist');
             $href = $emailLink->getAttribute('href');
-            $this->assertStringContainsString('/tickets/1/email', $href);
+            $this->assertStringContainsString('/tickets/' . $ticket->id . '/email', $href);
         });
     }
 
-    /** T04: Up-Vote erhöht den Zähler */
+    /** T04: Up-Vote erhoeht den Zaehler */
     public function test_t04_upvote_increases_count(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Upvote-Test', 'description' => 'Test fuer Upvote-Zaehler']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $initialCount = (int) $browser->text('.upvote-count');
@@ -100,13 +112,15 @@ class TicketDetailPageTest extends DuskTestCase
         });
     }
 
-    /** T05: Down-Vote erhöht den Zähler */
+    /** T05: Down-Vote erhoeht den Zaehler */
     public function test_t05_downvote_increases_count(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Downvote-Test', 'description' => 'Test fuer Downvote-Zaehler']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/2')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $initialCount = (int) $browser->text('.downvote-count');
@@ -122,11 +136,12 @@ class TicketDetailPageTest extends DuskTestCase
     /** T06: Doppelklick auf Vote entfernt den Vote */
     public function test_t06_double_vote_toggles(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Vote-Toggle-Test', 'description' => 'Test fuer Vote-Toggle']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            // Use ticket 13 to avoid state from other tests
-            $browser->visit('/saus/tickets/13')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $countBefore = (int) $browser->text('.upvote-count');
@@ -150,10 +165,12 @@ class TicketDetailPageTest extends DuskTestCase
     /** T07: Wechsel von Up- zu Down-Vote */
     public function test_t07_switch_vote_direction(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Vote-Switch-Test', 'description' => 'Test fuer Vote-Richtungswechsel']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/4')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $upBefore = (int) $browser->text('.upvote-count');

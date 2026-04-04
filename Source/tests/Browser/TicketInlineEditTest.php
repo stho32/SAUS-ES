@@ -27,10 +27,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T08: Klick auf Zuständigkeits-Karte öffnet das Modal */
     public function test_t08_assignee_card_opens_modal(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['assignee' => 'SH']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertPresent('#assignee-modal.hidden');
 
@@ -45,10 +47,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T09: Zuständigkeit ändern aktualisiert die Anzeige */
     public function test_t09_assignee_change_updates_display(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['assignee' => 'SH']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('assignee-modal').classList.remove('hidden')");
 
@@ -65,10 +69,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T10: Mehrere Zuständige kommagetrennt */
     public function test_t10_multiple_assignees_saved(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['assignee' => 'SH']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/2')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('assignee-modal').classList.remove('hidden')");
 
@@ -85,10 +91,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T11: Leere Zuständigkeit zeigt "Nicht zugewiesen" */
     public function test_t11_empty_assignee_shows_not_assigned(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['assignee' => 'SH']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('assignee-modal').classList.remove('hidden')");
 
@@ -104,10 +112,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T12: Abbrechen verwirft Änderungen */
     public function test_t12_assignee_cancel_discards(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['assignee' => 'SH']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $originalText = $browser->driver->getPageSource();
@@ -128,10 +138,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T13: Status-Modal öffnet sich */
     public function test_t13_status_modal_opens(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['status' => 'offen']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('status-modal').classList.remove('hidden')");
 
@@ -143,20 +155,30 @@ class TicketInlineEditTest extends DuskTestCase
     /** T14: Statusänderung erstellt System-Kommentar */
     public function test_t14_status_change_creates_system_comment(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['status' => 'offen']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/5')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $commentsBefore = count($browser->elements('.comment-system'));
 
             $browser->script("document.getElementById('status-modal').classList.remove('hidden')");
-            $browser->pause(300)
-                ->select('#statusSelect', '2')
-                ->script("updateStatus()");
+            // Select a different status than current
+            $browser->pause(300);
+            $browser->script("
+                var sel = document.getElementById('statusSelect');
+                for (var i = 0; i < sel.options.length; i++) {
+                    if (!sel.options[i].selected) { sel.selectedIndex = i; break; }
+                }
+            ");
+            $browser->script("updateStatus()");
 
-            $browser->pause(2000);
+            $browser->pause(1000)
+                ->visit('/saus/tickets/' . $ticket->id)
+                ->pause(1500);
             $commentsAfter = count($browser->elements('.comment-system'));
             $this->assertGreaterThan($commentsBefore, $commentsAfter, 'Status change should create a system comment');
             $browser->assertSee('Status geändert');
@@ -166,18 +188,27 @@ class TicketInlineEditTest extends DuskTestCase
     /** T15: Statusänderung wird angezeigt */
     public function test_t15_status_change_visible(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['status' => 'in Bearbeitung']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/6')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('status-modal').classList.remove('hidden')");
 
-            $browser->pause(300)
-                ->select('#statusSelect', '1');
+            $browser->pause(300);
+            $browser->script("
+                var sel = document.getElementById('statusSelect');
+                for (var i = 0; i < sel.options.length; i++) {
+                    if (!sel.options[i].selected) { sel.selectedIndex = i; break; }
+                }
+            ");
             $browser->script("updateStatus()");
 
-            $browser->pause(3000)
+            $browser->pause(1000)
+                ->visit('/saus/tickets/' . $ticket->id)
+                ->pause(1500)
                 ->assertSee('Status geändert');
         });
     }
@@ -185,10 +216,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T16: Abbrechen im Status-Modal speichert nichts */
     public function test_t16_status_cancel_no_save(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['status' => 'offen']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $commentsBefore = count($browser->elements('.comment-system'));
@@ -208,10 +241,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T17: Wiedervorlage-Modal öffnet */
     public function test_t17_followup_modal_opens(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['status' => 'offen']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('followup-modal').classList.remove('hidden')");
 
@@ -223,10 +258,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T18: Datum setzen aktualisiert Anzeige */
     public function test_t18_followup_date_updates(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['status' => 'offen', 'follow_up_date' => '2025-03-15']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/7')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('followup-modal').classList.remove('hidden')");
 
@@ -243,18 +280,22 @@ class TicketInlineEditTest extends DuskTestCase
     /** T19: Datum ändern erstellt System-Kommentar */
     public function test_t19_followup_creates_system_comment(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['status' => 'offen']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/8')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('followup-modal').classList.remove('hidden')");
 
             $browser->pause(300)
-                ->type('#followUpDate', '2026-11-15')
-                ->script("updateFollowUpDate()");
+                ->script("document.getElementById('followUpDate').value = '2026-11-15'");
+            $browser->script("updateFollowUpDate()");
 
-            $browser->pause(2000)
+            $browser->pause(1000)
+                ->visit('/saus/tickets/' . $ticket->id)
+                ->pause(1500)
                 ->assertSee('Wiedervorlage gesetzt auf');
         });
     }
@@ -262,10 +303,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T20: Abbrechen speichert kein Datum */
     public function test_t20_followup_cancel_no_save(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['status' => 'offen']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $commentsBefore = count($browser->elements('.comment-system'));
@@ -285,10 +328,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T21: Klick auf Titel aktiviert Edit-Modus */
     public function test_t21_title_edit_activates(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Titel fuer T21 Test']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertPresent('#title-display:not(.hidden)')
                 ->assertPresent('#title-edit.hidden')
@@ -304,10 +349,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T22: Titel speichern aktualisiert Anzeige ohne Reload */
     public function test_t22_title_saves_inline(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Alter Titel T22']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("startInlineEdit('title')");
 
@@ -325,10 +372,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T23: Leerer Titel zeigt Fehler */
     public function test_t23_empty_title_shows_error(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Titel fuer T23 Test']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("startInlineEdit('title')");
 
@@ -347,10 +396,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T24: Abbrechen verwirft Titeländerung */
     public function test_t24_title_cancel_discards(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Originaltitel T24']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/2')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $originalTitle = $browser->text('#title-text');
@@ -371,10 +422,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T25: Klick auf Beschreibung aktiviert Edit-Modus */
     public function test_t25_description_edit_activates(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['description' => 'Beschreibung fuer T25']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("startInlineEdit('description')");
 
@@ -387,10 +440,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T26: Beschreibung speichern aktualisiert Anzeige */
     public function test_t26_description_saves(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['description' => 'Alte Beschreibung T26']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("startInlineEdit('description')");
 
@@ -407,10 +462,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T27: Leere Beschreibung zeigt Fehler */
     public function test_t27_empty_description_shows_error(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['description' => 'Beschreibung fuer T27']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("startInlineEdit('description')");
 
@@ -427,10 +484,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T28: Abbrechen verwirft Beschreibungsänderung */
     public function test_t28_description_cancel_discards(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['description' => 'Originalbeschreibung T28']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/2')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $originalDesc = $browser->text('#description-text');
@@ -451,10 +510,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T29: Nachbarn-Modal öffnet */
     public function test_t29_neighbors_modal_opens(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['affected_neighbors' => 5]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('neighbors-modal').classList.remove('hidden')");
 
@@ -466,10 +527,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T30: Nachbarn-Zahl speichern aktualisiert Anzeige */
     public function test_t30_neighbors_saves(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['affected_neighbors' => 5]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('neighbors-modal').classList.remove('hidden')");
 
@@ -486,10 +549,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T31: Leeres Feld zeigt "Unbekannt" */
     public function test_t31_empty_neighbors_shows_unknown(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['affected_neighbors' => 5]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('neighbors-modal').classList.remove('hidden')");
 
@@ -507,10 +572,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T32: Website-Toggle aktiviert Details-Bereich */
     public function test_t32_website_toggle_shows_details(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['show_on_website' => false]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             // Ensure off first
@@ -529,10 +596,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T33: Public-Comment-Feld erscheint bei Aktivierung */
     public function test_t33_public_comment_field_appears(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['show_on_website' => false]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("document.getElementById('showOnWebsiteToggle').checked = true; toggleShowOnWebsite()");
 
@@ -544,10 +613,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T34: Public Comment speichern und verifizieren */
     public function test_t34_public_comment_saves_and_persists(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['show_on_website' => false]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             // Enable website
@@ -564,7 +635,7 @@ class TicketInlineEditTest extends DuskTestCase
             $browser->pause(2000);
 
             // Reload and verify it persisted
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertSee('E2E Öffentlicher Kommentar Test');
         });
@@ -573,10 +644,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T35: Toggle deaktivieren blendet Details aus */
     public function test_t35_website_toggle_off_hides(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['show_on_website' => false]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             // Enable then disable
@@ -595,10 +668,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T36: Toggle ändert den angezeigten Wert */
     public function test_t36_do_not_track_toggles_display(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['do_not_track' => true]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $textBefore = $browser->text('#do-not-track-text');
@@ -614,10 +689,12 @@ class TicketInlineEditTest extends DuskTestCase
     /** T37: Toggle-Wert persistiert nach Reload */
     public function test_t37_do_not_track_persists(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['do_not_track' => true]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/2')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->script("toggleDoNotTrack()");
 
@@ -625,7 +702,7 @@ class TicketInlineEditTest extends DuskTestCase
             $textAfterToggle = $browser->text('#do-not-track-text');
 
             // Reload and verify persistence
-            $browser->visit('/saus/tickets/2')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $textAfterReload = $browser->text('#do-not-track-text');

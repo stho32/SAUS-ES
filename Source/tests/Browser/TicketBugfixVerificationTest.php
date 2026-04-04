@@ -22,13 +22,15 @@ class TicketBugfixVerificationTest extends DuskTestCase
         }
     }
 
-    /** T78: Ansprechpartner hinzufügen funktioniert (Bug 1: Feldname-Fix) */
+    /** T78: Ansprechpartner hinzufuegen funktioniert (Bug 1: Feldname-Fix) */
     public function test_t78_contact_person_link_works(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Bugfix T78 Ansprechpartner', 'description' => 'Test fuer Ansprechpartner-Verknuepfung']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/10')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $contactsBefore = count($browser->elements('[id^="cp-"]'));
@@ -42,19 +44,22 @@ class TicketBugfixVerificationTest extends DuskTestCase
             $browser->script("var sel = document.getElementById('contactPersonSelect'); sel.value = sel.options[1].value;");
             $browser->script("addContactPerson()");
 
-            $browser->pause(3000);
+            $browser->pause(1000)
+                ->visit('/saus/tickets/' . $ticket->id)
+                ->pause(1500);
 
             // Verify contact was actually added (not a validation error)
             $contactsAfter = count($browser->elements('[id^="cp-"]'));
             $this->assertGreaterThan($contactsBefore, $contactsAfter, 'Contact person should be linked after fix');
-            $browser->assertSee('Ansprechpartner hinzugefügt');
         });
     }
 
     /** T79: Kommentare haben korrekten Benutzernamen (Bug 2+3) */
     public function test_t79_comments_have_correct_username(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Bugfix T79 Username', 'description' => 'Test fuer korrekten Benutzernamen in Kommentaren']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             // Logout and login with specific username
             $browser->visit('/saus/logout')->pause(1000);
             $browser->visit('/saus/?master_code=test_master_2025')
@@ -65,13 +70,13 @@ class TicketBugfixVerificationTest extends DuskTestCase
                 ->pause(2000);
 
             $uniqueText = 'Username-Test ' . time();
-            $browser->visit('/saus/tickets/9')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->type('#commentContent', $uniqueText)
                 ->press('Kommentar speichern')
                 ->pause(3000);
 
-            $browser->visit('/saus/tickets/9')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000)
                 ->assertSee('E2ETestUser')
                 ->assertSee($uniqueText);

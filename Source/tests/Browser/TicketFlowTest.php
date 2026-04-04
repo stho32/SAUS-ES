@@ -75,7 +75,9 @@ class TicketFlowTest extends DuskTestCase
 
     public function test_create_ticket_flow(): void
     {
-        $this->browse(function (Browser $browser) {
+        $statusId = (string) \App\Models\TicketStatus::active()->first()->id;
+
+        $this->browse(function (Browser $browser) use ($statusId) {
             $this->loginAs($browser);
 
             $browser->visit('/saus/tickets/create')
@@ -83,7 +85,7 @@ class TicketFlowTest extends DuskTestCase
                 ->assertSee('Neues Ticket erstellen')
                 ->type('title', 'E2E Test Ticket Dachschaden')
                 ->type('description', 'Das Dach in Haus 7 hat einen Riss.')
-                ->select('status_id', '1')
+                ->select('status_id', $statusId)
                 ->press('Ticket erstellen')
                 ->pause(2000)
                 ->assertSee('E2E Test Ticket Dachschaden');
@@ -92,10 +94,15 @@ class TicketFlowTest extends DuskTestCase
 
     public function test_ticket_detail_shows_ticket_content(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket([
+            'title' => 'Flow-Detail-Test Ticket',
+            'description' => 'Detailansicht fuer Flow-Test.',
+        ]);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1')
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             // Verify actual ticket content loads, not just that h1 exists
@@ -109,10 +116,12 @@ class TicketFlowTest extends DuskTestCase
 
     public function test_ticket_edit_route_no_longer_exists(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Edit-Route-Test', 'description' => 'Test fuer nicht existierende Edit-Route']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1/edit')
+            $browser->visit('/saus/tickets/' . $ticket->id . '/edit')
                 ->pause(1000)
                 ->assertSee('404');
         });
@@ -120,10 +129,12 @@ class TicketFlowTest extends DuskTestCase
 
     public function test_ticket_email_view_shows_ticket_data(): void
     {
-        $this->browse(function (Browser $browser) {
+        $ticket = $this->createTestTicket(['title' => 'Email-View-Test', 'description' => 'Test fuer Email-Ansicht']);
+
+        $this->browse(function (Browser $browser) use ($ticket) {
             $this->loginAs($browser);
 
-            $browser->visit('/saus/tickets/1/email')
+            $browser->visit('/saus/tickets/' . $ticket->id . '/email')
                 ->pause(1000)
                 ->assertSee('Betreff');
 
