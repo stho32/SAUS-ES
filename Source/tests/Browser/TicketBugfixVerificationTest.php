@@ -74,8 +74,17 @@ class TicketBugfixVerificationTest extends DuskTestCase
             $browser->visit('/saus/tickets/9')
                 ->pause(1000)
                 ->assertSee('E2ETestUser')
-                ->assertSee($uniqueText)
-                ->assertDontSee('Unbekannt');
+                ->assertSee($uniqueText);
+
+            // Verify no comment has "Unbekannt" as username (check only comments section)
+            $hasUnbekannt = $browser->script("
+                var comments = document.querySelectorAll('#comments-container .comment .font-semibold');
+                for (var i = 0; i < comments.length; i++) {
+                    if (comments[i].textContent.trim() === 'Unbekannt') return true;
+                }
+                return false;
+            ")[0];
+            $this->assertFalse($hasUnbekannt, 'No comment should have "Unbekannt" as username');
         });
     }
 

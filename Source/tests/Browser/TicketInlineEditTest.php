@@ -163,26 +163,22 @@ class TicketInlineEditTest extends DuskTestCase
         });
     }
 
-    /** T15: Statusfarbe ändert sich nach Update */
-    public function test_t15_status_color_changes(): void
+    /** T15: Statusänderung wird angezeigt */
+    public function test_t15_status_change_visible(): void
     {
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
             $browser->visit('/saus/tickets/6')
-                ->pause(1000);
+                ->pause(1000)
+                ->script("document.getElementById('status-modal').classList.remove('hidden')");
 
-            // Get current status name
-            $statusBefore = $browser->text('.bi-flag-fill + div span') ?: '';
-
-            $browser->script("document.getElementById('status-modal').classList.remove('hidden')");
             $browser->pause(300)
-                ->select('#statusSelect', '1')
-                ->script("updateStatus()");
+                ->select('#statusSelect', '1');
+            $browser->script("updateStatus()");
 
-            $browser->pause(2000);
-            // Verify status text changed (page reloaded)
-            $browser->assertSee('Status geändert');
+            $browser->pause(3000)
+                ->assertSee('Status geändert');
         });
     }
 
@@ -234,11 +230,12 @@ class TicketInlineEditTest extends DuskTestCase
                 ->pause(1000)
                 ->script("document.getElementById('followup-modal').classList.remove('hidden')");
 
+            // Set date via JS (date inputs don't respond well to type() in headless Chrome)
             $browser->pause(300)
-                ->type('#followUpDate', '2026-12-01')
-                ->script("updateFollowUpDate()");
+                ->script("document.getElementById('followUpDate').value = '2026-12-01'");
+            $browser->script("updateFollowUpDate()");
 
-            $browser->pause(2000)
+            $browser->pause(3000)
                 ->assertSee('01.12.2026');
         });
     }

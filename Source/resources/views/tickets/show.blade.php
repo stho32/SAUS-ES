@@ -673,13 +673,16 @@ function showAlert(type, message) {
     setTimeout(function() { alertDiv.remove(); }, 5000);
 }
 
-// Ticket Voting
+// Ticket Voting — toggle: gleichen Vote nochmal klicken entfernt ihn
+var currentTicketVote = '{{ $userTicketVote ? $userTicketVote->value : "none" }}';
+
 async function voteTicket(value) {
+    var sendValue = (value === currentTicketVote) ? 'none' : value;
     try {
         const response = await fetch(API_BASE + '/tickets/' + TICKET_ID + '/vote', {
             method: 'POST',
             headers: apiHeaders(),
-            body: JSON.stringify({ value: value })
+            body: JSON.stringify({ value: sendValue })
         });
         const data = await response.json();
         if (data.success) {

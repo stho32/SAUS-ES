@@ -42,17 +42,13 @@ class TicketFlowTest extends DuskTestCase
             $browser->visit('/saus/')
                 ->pause(500);
 
-            // Get first ticket title before sort
-            $firstTitleBefore = $browser->text('table tbody tr:first-child td:nth-child(2)');
-
             $browser->select('sort', 'title')
                 ->pause(1500)
                 ->assertQueryStringHas('sort', 'title');
 
-            // After sorting by title, first row should be alphabetically first
-            $firstTitleAfter = $browser->text('table tbody tr:first-child td:nth-child(2)');
-            // At minimum verify sort param was applied (order may or may not change)
-            $this->assertNotEmpty($firstTitleAfter);
+            // Verify page still shows tickets after sorting
+            $rows = $browser->elements('table tbody tr');
+            $this->assertGreaterThan(0, count($rows), 'Sorted table should still contain rows');
         });
     }
 
