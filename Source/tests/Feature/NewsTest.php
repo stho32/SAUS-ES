@@ -8,7 +8,9 @@ beforeEach(function () {
 });
 
 test('news index page loads', function () {
-    $this->get(route('news.index'))->assertOk();
+    $this->get(route('news.index'))
+        ->assertOk()
+        ->assertSee('News');
 });
 
 test('news index shows news articles', function () {

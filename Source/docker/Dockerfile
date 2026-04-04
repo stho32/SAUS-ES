@@ -22,6 +22,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         mbstring \
         zip
 
+# Install PCOV for code coverage
+RUN pecl install pcov && docker-php-ext-enable pcov
+
 # Enable Apache modules
 RUN a2enmod rewrite headers
 

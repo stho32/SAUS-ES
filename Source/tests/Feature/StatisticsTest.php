@@ -9,7 +9,10 @@ beforeEach(function () {
 });
 
 test('statistics page loads', function () {
-    $this->get(route('statistics.index'))->assertOk();
+    $this->get(route('statistics.index'))
+        ->assertOk()
+        ->assertSee('Statistik')
+        ->assertSee('Ticket-Verteilung nach Status');
 });
 
 test('statistics page loads with ticket data', function () {
@@ -31,7 +34,10 @@ test('statistics page loads with ticket data', function () {
         'assignee' => 'Bruno',
     ]);
 
-    $this->get(route('statistics.index'))->assertOk();
+    $this->get(route('statistics.index'))
+        ->assertOk()
+        ->assertSee('Anna')
+        ->assertSee('Bruno');
 });
 
 test('statistics page shows status distribution', function () {
@@ -70,7 +76,10 @@ test('statistics handles multi-assignee tickets', function () {
     ]);
 
     // The statistics controller should split multi-assignees
-    $this->get(route('statistics.index'))->assertOk();
+    $this->get(route('statistics.index'))
+        ->assertOk()
+        ->assertSee('Anna')
+        ->assertSee('Bruno');
 });
 
 test('statistics handles multi-assignee with plus sign', function () {
@@ -84,11 +93,17 @@ test('statistics handles multi-assignee with plus sign', function () {
         'assignee' => 'Anna+Bruno',
     ]);
 
-    $this->get(route('statistics.index'))->assertOk();
+    $this->get(route('statistics.index'))
+        ->assertOk()
+        ->assertSee('Anna')
+        ->assertSee('Bruno');
 });
 
 test('statistics page works with no tickets', function () {
-    $this->get(route('statistics.index'))->assertOk();
+    $this->get(route('statistics.index'))
+        ->assertOk()
+        ->assertSee('Statistik')
+        ->assertSee('Keine Tickets in Bearbeitung');
 });
 
 test('statistics counts completed tickets per assignee', function () {
@@ -110,5 +125,7 @@ test('statistics counts completed tickets per assignee', function () {
         'assignee' => 'Anna',
     ]);
 
-    $this->get(route('statistics.index'))->assertOk();
+    $this->get(route('statistics.index'))
+        ->assertOk()
+        ->assertSee('Anna');
 });

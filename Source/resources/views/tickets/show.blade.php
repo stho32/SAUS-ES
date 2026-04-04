@@ -710,6 +710,8 @@ async function voteComment(commentId, value) {
                 var downEl = document.getElementById('comment-down-' + commentId);
                 if (upEl && data.data.up_votes !== undefined) upEl.textContent = data.data.up_votes;
                 if (downEl && data.data.down_votes !== undefined) downEl.textContent = data.data.down_votes;
+                if (upEl && data.data.upvoters !== undefined) upEl.closest('button').title = data.data.upvoters;
+                if (downEl && data.data.downvoters !== undefined) downEl.closest('button').title = data.data.downvoters;
             } else {
                 location.reload();
             }

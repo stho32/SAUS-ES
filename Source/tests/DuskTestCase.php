@@ -6,11 +6,14 @@ use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Artisan;
 use Laravel\Dusk\TestCase as BaseTestCase;
 use PHPUnit\Framework\Attributes\BeforeClass;
 
 abstract class DuskTestCase extends BaseTestCase
 {
+    protected static bool $databaseSeeded = false;
+
     /**
      * Prepare for Dusk test execution.
      */
@@ -19,6 +22,18 @@ abstract class DuskTestCase extends BaseTestCase
     {
         if (! static::runningInSail()) {
             static::startChromeDriver(['--port=9515']);
+        }
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if (! static::$databaseSeeded) {
+            Artisan::call('migrate', ['--force' => true]);
+            Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\TicketStatusSeeder', '--force' => true]);
+            Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\TestDataSeeder', '--force' => true]);
+            static::$databaseSeeded = true;
         }
     }
 

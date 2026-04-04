@@ -88,17 +88,4 @@ class TicketBugfixVerificationTest extends DuskTestCase
         });
     }
 
-    /** T80: Geschlossene Tickets — Bearbeitung via API wird abgelehnt */
-    public function test_t80_closed_ticket_api_rejects_changes(): void
-    {
-        // This test verifies the backend protection via Feature tests:
-        // - TicketInlineEditTest: "closed ticket cannot have assignee updated" (403)
-        // - TicketInlineEditTest: "closed ticket cannot have follow-up date updated" (403)
-        // - TicketInlineEditTest: "archived ticket cannot have status changed" (403)
-        // - CommentTest: "cannot toggle visibility on closed ticket comment" (403)
-        //
-        // Dusk can't easily change a ticket's status to closed mid-test without
-        // database access, so this protection is verified at the API layer.
-        $this->assertTrue(true, 'Covered by 4 Feature tests that verify 403 responses');
-    }
 }

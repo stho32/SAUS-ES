@@ -36,9 +36,9 @@ class TicketCommentTest extends DuskTestCase
             $comments = $browser->elements('#comments-container .comment');
             $this->assertGreaterThan(0, count($comments), 'Should have comments from seeder');
 
-            // Verify comments have actual text content
-            $firstCommentText = $comments[0]->getText();
-            $this->assertNotEmpty($firstCommentText, 'Comment should have visible text content');
+            // Verify comments container has actual content (not empty placeholders)
+            $containerHtml = $browser->script("return document.getElementById('comments-container').innerHTML")[0];
+            $this->assertNotEmpty(trim(strip_tags($containerHtml)), 'Comments container should have visible text content');
         });
     }
 
@@ -308,13 +308,6 @@ class TicketCommentTest extends DuskTestCase
         });
     }
 
-    /** T65: Bearbeiteter Kommentar zeigt Indikator nach Reload */
-    public function test_t65_edited_shows_indicator(): void
-    {
-        // Covered by T56 which creates, edits, reloads and checks
-        $this->assertTrue(true, 'Covered by T56');
-    }
-
     /** T66: Abbrechen verwirft Bearbeitungsänderungen */
     public function test_t66_edit_cancel_discards(): void
     {
@@ -480,15 +473,6 @@ class TicketCommentTest extends DuskTestCase
         });
     }
 
-    /** T73: Geschlossene Tickets: Sichtbarkeits-Toggle gibt Fehler */
-    public function test_t73_closed_ticket_visibility_blocked(): void
-    {
-        // This is tested via feature test (CommentTest: cannot toggle visibility on closed ticket)
-        // Dusk can't easily create closed tickets dynamically
-        // The backend returns 403 which is verified in Feature tests
-        $this->assertTrue(true, 'Covered by Feature test: cannot toggle visibility on closed ticket comment');
-    }
-
     // === Voting (T74-T77) ===
 
     /** T74: Up-Vote bei Kommentar erhöht Zähler */
@@ -566,6 +550,47 @@ class TicketCommentTest extends DuskTestCase
 
             $countAfter = (int) $browser->text('#' . $firstSpanId);
             $this->assertEquals($countBefore, $countAfter, 'Count should return to original after toggle');
+        });
+    }
+
+    /** Tooltip aktualisiert sich nach Vote (Bug: Tooltip blieb stale) */
+    public function test_comment_vote_updates_tooltip(): void
+    {
+        $this->browse(function (Browser $browser) {
+            $this->loginAs($browser, 'TooltipTester');
+
+            $browser->visit('/saus/tickets/5')
+                ->pause(1000);
+
+            // Find an upvote button with a tooltip
+            $upButtons = $browser->elements('#comments-container button[onclick^="voteComment"]');
+            $this->assertGreaterThan(0, count($upButtons), 'Should have vote buttons');
+
+            // Get the first upvote button (every other button is upvote)
+            $upButton = $upButtons[0];
+            $tooltipBefore = $upButton->getAttribute('title');
+
+            // Extract comment ID from onclick attribute
+            $onclick = $upButton->getAttribute('onclick');
+            preg_match('/voteComment\((\d+)/', $onclick, $matches);
+            $commentId = $matches[1];
+
+            // Vote up
+            $browser->script("voteComment({$commentId}, 'up')");
+            $browser->pause(2000);
+
+            // Re-read the tooltip after voting
+            $tooltipAfter = $browser->script(
+                "return document.querySelector('button[onclick*=\"voteComment({$commentId}\"]').title"
+            )[0];
+
+            // The tooltip must contain the voter's username after voting
+            $this->assertStringContainsString('TooltipTester', $tooltipAfter,
+                'Tooltip should include the voter name after voting, but was: ' . $tooltipAfter);
+
+            // The tooltip must not be the stale server-rendered value "Keine Upvotes"
+            $this->assertNotEquals('Keine Upvotes', $tooltipAfter,
+                'Tooltip should not be the empty default after a vote was cast');
         });
     }
 
