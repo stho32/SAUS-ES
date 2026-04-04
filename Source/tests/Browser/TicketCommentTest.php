@@ -473,6 +473,103 @@ class TicketCommentTest extends DuskTestCase
         });
     }
 
+    /** T72b: "Alle anzeigen"-Filter bleibt aktiv nach Visibility-Toggle */
+    public function test_t72b_show_all_filter_persists_after_visibility_toggle(): void
+    {
+        $this->browse(function (Browser $browser) {
+            $this->loginAs($browser);
+
+            $browser->visit('/saus/tickets/119')
+                ->pause(2000);
+
+            // Create two test comments via API
+            $createdIds = [];
+            for ($i = 1; $i <= 2; $i++) {
+                $result = $browser->script("
+                    var result = null;
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', API_BASE + '/tickets/' + TICKET_ID + '/comments', false);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name=csrf-token]').content);
+                    xhr.send(JSON.stringify({ content: 'Test-Kommentar-Visibility-{$i}' }));
+                    if (xhr.status === 200 || xhr.status === 201) {
+                        var data = JSON.parse(xhr.responseText);
+                        result = data.data ? data.data.id : null;
+                    }
+                    return result;
+                ")[0];
+                if ($result) {
+                    $createdIds[] = $result;
+                }
+            }
+
+            $this->assertCount(2, $createdIds, 'Should have created 2 test comments');
+
+            // Hide both comments via synchronous API calls
+            foreach ($createdIds as $cid) {
+                $browser->script("
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', API_BASE + '/comments/' + {$cid} + '/visibility', false);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name=csrf-token]').content);
+                    xhr.send(JSON.stringify({ is_visible: false }));
+                ");
+            }
+
+            // Reload page to see the hidden comments
+            $browser->visit('/saus/tickets/119')
+                ->pause(2000);
+
+            // Activate "Alle anzeigen" filter
+            $browser->check('#showAllComments')
+                ->pause(500);
+
+            $hiddenBefore = (int) $browser->script("return document.querySelectorAll('.comment-hidden').length")[0];
+            $this->assertGreaterThanOrEqual(2, $hiddenBefore, 'Need at least 2 hidden comments for this test');
+
+            // All hidden comments should be visible now
+            $hiddenVisible = $browser->script("
+                var hidden = document.querySelectorAll('.comment-hidden');
+                var allVisible = true;
+                hidden.forEach(function(c) {
+                    if (window.getComputedStyle(c).display === 'none') allVisible = false;
+                });
+                return allVisible;
+            ")[0];
+            $this->assertTrue($hiddenVisible, 'All hidden comments should be visible when filter is active');
+
+            // Now unhide ONE comment via eye-slash button (this triggers the bug)
+            $browser->script("
+                var btns = document.querySelectorAll('.comment-hidden .bi-eye-slash');
+                if (btns.length > 0) { btns[0].closest('button').click(); }
+            ");
+            $browser->pause(3000);
+
+            // The "Alle anzeigen" checkbox should still be checked
+            $isChecked = $browser->script("return document.getElementById('showAllComments').checked")[0];
+            $this->assertTrue($isChecked, 'Show-all checkbox should still be checked after visibility toggle');
+
+            // Remaining hidden comments should STILL be visible (not hidden again)
+            $remainingHidden = $browser->elements('.comment-hidden');
+            $this->assertGreaterThanOrEqual(1, count($remainingHidden), 'Should still have at least 1 hidden comment');
+            foreach ($remainingHidden as $comment) {
+                $display = $comment->getCSSValue('display');
+                $this->assertNotEquals('none', $display, 'Hidden comments should remain visible while "Alle anzeigen" is active');
+            }
+
+            // Cleanup: restore all created comments to visible
+            foreach ($createdIds as $cid) {
+                $browser->script("
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', API_BASE + '/comments/' + {$cid} + '/visibility', false);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name=csrf-token]').content);
+                    xhr.send(JSON.stringify({ is_visible: true }));
+                ");
+            }
+        });
+    }
+
     // === Voting (T74-T77) ===
 
     /** T74: Up-Vote bei Kommentar erhöht Zähler */

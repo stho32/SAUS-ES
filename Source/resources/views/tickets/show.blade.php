@@ -824,15 +824,52 @@ async function toggleCommentVisibility(commentId) {
     try {
         var commentEl = document.getElementById('comment-' + commentId);
         var isCurrentlyVisible = commentEl.getAttribute('data-visible') === 'true';
+        var newVisible = !isCurrentlyVisible;
 
         const response = await fetch(API_BASE + '/comments/' + commentId + '/visibility', {
             method: 'POST',
             headers: apiHeaders(),
-            body: JSON.stringify({ is_visible: !isCurrentlyVisible })
+            body: JSON.stringify({ is_visible: newVisible })
         });
         const data = await response.json();
         if (data.success) {
-            location.reload();
+            // Update data attribute
+            commentEl.setAttribute('data-visible', newVisible ? 'true' : 'false');
+
+            // Update CSS class
+            if (newVisible) {
+                commentEl.classList.remove('comment-hidden');
+                commentEl.style.display = '';
+            } else {
+                commentEl.classList.add('comment-hidden');
+                // Respect "Alle anzeigen" filter
+                var showAll = document.getElementById('showAllComments').checked;
+                commentEl.style.display = showAll ? 'block' : 'none';
+            }
+
+            // Update eye icon and title
+            var toggleBtn = commentEl.querySelector('button[onclick="toggleCommentVisibility(' + commentId + ')"]');
+            if (toggleBtn) {
+                var icon = toggleBtn.querySelector('i');
+                icon.className = newVisible ? 'bi bi-eye' : 'bi bi-eye-slash';
+                toggleBtn.title = newVisible ? 'Ausblenden' : 'Einblenden';
+            }
+
+            // Update hidden info text
+            var headerTextDiv = commentEl.querySelector('.text-sm');
+            var hiddenInfo = headerTextDiv.querySelector('.text-red-500');
+            if (newVisible) {
+                if (hiddenInfo) hiddenInfo.remove();
+            } else {
+                if (!hiddenInfo) {
+                    var info = document.createElement('span');
+                    info.className = 'text-red-500 ml-1';
+                    info.textContent = '(Ausgeblendet)';
+                    headerTextDiv.appendChild(info);
+                }
+            }
+
+            showAlert('success', newVisible ? 'Kommentar eingeblendet' : 'Kommentar ausgeblendet');
         } else {
             showAlert('danger', 'Fehler: ' + (data.message || ''));
         }
