@@ -216,9 +216,31 @@ async function createContactPerson(event) {
         });
 
         const result = await response.json();
-        if (result.success) {
+        if (result.success && result.data) {
+            var p = result.data;
+            var esc = function(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; };
+            var rowHtml = '<tr id="person-row-' + p.id + '">' +
+                '<td class="px-4 py-3 font-medium text-gray-900">' + esc(p.name) + '</td>' +
+                '<td class="px-4 py-3 text-gray-600">' + (esc(p.email) || '-') + '</td>' +
+                '<td class="px-4 py-3 text-gray-600">' + (esc(p.phone) || '-') + '</td>' +
+                '<td class="px-4 py-3 text-gray-500 text-xs">' + (esc(p.contact_notes) || '-') + '</td>' +
+                '<td class="px-4 py-3 text-gray-500 text-xs">' + (esc(p.responsibility_notes) || '-') + '</td>' +
+                '<td class="px-4 py-3 text-center"><span class="inline-block px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-medium">Aktiv</span></td>' +
+                '<td class="px-4 py-3 text-center"><div class="inline-flex gap-1">' +
+                    '<button type="button" onclick="openEditModal(' + JSON.stringify(p).replace(/"/g, '&quot;') + ')" class="inline-flex items-center justify-center w-8 h-8 border border-brand-300 text-brand-500 rounded hover:bg-brand-50 transition" title="Bearbeiten"><i class="bi bi-pencil"></i></button>' +
+                    '<button type="button" onclick="toggleStatus(' + p.id + ', true)" class="inline-flex items-center justify-center w-8 h-8 border border-amber-300 text-amber-600 hover:bg-amber-50 rounded transition" title="Deaktivieren"><i class="bi bi-x-circle"></i></button>' +
+                '</div></td></tr>';
+            var tbody = document.getElementById('contactPersonsBody');
+            if (tbody) {
+                tbody.insertAdjacentHTML('beforeend', rowHtml);
+            }
+            // Clear form
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('contact_notes').value = '';
+            document.getElementById('responsibility_notes').value = '';
             showFlash('Ansprechpartner erfolgreich erstellt.');
-            window.location.reload();
         } else {
             showFlash('Fehler beim Erstellen.', 'error');
         }
@@ -272,9 +294,20 @@ async function updateContactPerson(event) {
 
         const result = await response.json();
         if (result.success) {
+            // Update the row in DOM
+            var row = document.getElementById('person-row-' + id);
+            if (row) {
+                var cells = row.querySelectorAll('td');
+                var esc = function(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; };
+                cells[0].innerHTML = '<span class="font-medium text-gray-900">' + esc(data.name) + '</span>';
+                cells[0].className = 'px-4 py-3 font-medium text-gray-900';
+                cells[1].textContent = data.email || '-';
+                cells[2].textContent = data.phone || '-';
+                cells[3].textContent = data.contact_notes ? (data.contact_notes.length > 60 ? data.contact_notes.substring(0, 60) + '...' : data.contact_notes) : '-';
+                cells[4].textContent = data.responsibility_notes ? (data.responsibility_notes.length > 60 ? data.responsibility_notes.substring(0, 60) + '...' : data.responsibility_notes) : '-';
+            }
             showFlash('Ansprechpartner erfolgreich aktualisiert.');
             closeEditModal();
-            window.location.reload();
         } else {
             showFlash('Fehler beim Aktualisieren.', 'error');
         }
@@ -300,8 +333,25 @@ async function toggleStatus(id, currentlyActive) {
 
         const result = await response.json();
         if (result.success) {
+            var newActive = !currentlyActive;
+            var row = document.getElementById('person-row-' + id);
+            if (row) {
+                row.className = newActive ? '' : 'bg-gray-100 opacity-60';
+                // Update status badge
+                var statusCell = row.querySelectorAll('td')[5];
+                statusCell.innerHTML = newActive
+                    ? '<span class="inline-block px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-medium">Aktiv</span>'
+                    : '<span class="inline-block px-2 py-0.5 bg-gray-200 text-gray-600 rounded text-xs font-medium">Inaktiv</span>';
+                // Update toggle button
+                var toggleBtn = row.querySelector('button[onclick^="toggleStatus"]');
+                if (toggleBtn) {
+                    toggleBtn.setAttribute('onclick', 'toggleStatus(' + id + ', ' + newActive + ')');
+                    toggleBtn.className = 'inline-flex items-center justify-center w-8 h-8 border ' + (newActive ? 'border-amber-300 text-amber-600 hover:bg-amber-50' : 'border-green-300 text-green-600 hover:bg-green-50') + ' rounded transition';
+                    toggleBtn.title = newActive ? 'Deaktivieren' : 'Aktivieren';
+                    toggleBtn.querySelector('i').className = 'bi ' + (newActive ? 'bi-x-circle' : 'bi-check-circle');
+                }
+            }
             showFlash(`Ansprechpartner erfolgreich ${action === 'deaktivieren' ? 'deaktiviert' : 'aktiviert'}.`);
-            window.location.reload();
         } else {
             showFlash('Fehler beim Ändern des Status.', 'error');
         }

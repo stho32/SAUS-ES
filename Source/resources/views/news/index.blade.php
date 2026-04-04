@@ -176,7 +176,12 @@ async function deleteNews(newsId, title) {
         const result = await response.json();
 
         if (result.success) {
-            window.location.reload();
+            // Remove the table row from DOM
+            var btn = document.querySelector('button[onclick*="deleteNews(' + newsId + '"]');
+            if (btn) {
+                var row = btn.closest('tr');
+                if (row) row.remove();
+            }
         } else {
             alert('Fehler beim Löschen: ' + (result.message || 'Unbekannter Fehler'));
         }

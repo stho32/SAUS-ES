@@ -673,6 +673,19 @@ function showAlert(type, message) {
     setTimeout(function() { alertDiv.remove(); }, 5000);
 }
 
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+}
+
+function formatDate(isoString) {
+    if (!isoString) return '';
+    var d = new Date(isoString);
+    var pad = function(n) { return n < 10 ? '0' + n : n; };
+    return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
 // Ticket Voting — toggle: gleichen Vote nochmal klicken entfernt ihn
 var currentTicketVote = '{{ $userTicketVote ? $userTicketVote->value : "none" }}';
 
@@ -708,7 +721,7 @@ async function voteTicket(value) {
                 buttons[1].classList.add(...(sendValue === 'down' ? ['bg-red-500', 'text-white'] : ['bg-white', 'text-red-600', 'hover:bg-red-50']));
             }
         } else if (data.success) {
-            location.reload();
+            showAlert('success', 'Abstimmung gespeichert');
         } else {
             showAlert('danger', 'Fehler beim Abstimmen: ' + (data.message || ''));
         }
@@ -751,7 +764,7 @@ async function voteComment(commentId, value) {
                     buttons[1].classList.add(...(sendValue === 'down' ? ['bg-red-500', 'text-white'] : ['bg-white', 'text-red-600', 'hover:bg-red-50']));
                 }
             } else {
-                location.reload();
+                showAlert('success', 'Abstimmung gespeichert');
             }
         } else {
             showAlert('danger', 'Fehler beim Abstimmen: ' + (data.message || ''));
@@ -773,8 +786,44 @@ async function addComment() {
             body: JSON.stringify({ content: content })
         });
         const data = await response.json();
-        if (data.success) {
-            location.reload();
+        if (data.success && data.data) {
+            var c = data.data;
+            var commentHtml = '<div class="comment pl-4 py-3" id="comment-' + c.id + '" data-visible="true">' +
+                '<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">' +
+                    '<div class="text-sm">' +
+                        '<span class="font-semibold text-gray-900">' + escapeHtml(c.username) + '</span>' +
+                        '<span class="text-gray-500 ml-2">' + formatDate(c.created_at) + '</span>' +
+                    '</div>' +
+                    '<div class="flex items-center gap-2">' +
+                        '<div class="inline-flex rounded overflow-hidden border border-gray-200 text-xs" id="comment-voting-' + c.id + '">' +
+                            '<button type="button" class="comment-vote-btn px-2 py-1 transition bg-white text-green-600 hover:bg-green-50" onclick="voteComment(' + c.id + ', \'up\')" title="Keine Upvotes">' +
+                                '<i class="bi bi-hand-thumbs-up"></i> <span id="comment-up-' + c.id + '">0</span>' +
+                            '</button>' +
+                            '<button type="button" class="comment-vote-btn px-2 py-1 border-l border-gray-200 transition bg-white text-red-600 hover:bg-red-50" onclick="voteComment(' + c.id + ', \'down\')" title="Keine Downvotes">' +
+                                '<i class="bi bi-hand-thumbs-down"></i> <span id="comment-down-' + c.id + '">0</span>' +
+                            '</button>' +
+                        '</div>' +
+                        '<button type="button" onclick="startEditComment(' + c.id + ')" class="text-gray-400 hover:text-brand-500 text-xs p-1" title="Bearbeiten"><i class="bi bi-pencil"></i></button>' +
+                        '<button type="button" onclick="toggleCommentVisibility(' + c.id + ')" class="text-gray-400 hover:text-brand-500 text-xs p-1" title="Ausblenden"><i class="bi bi-eye"></i></button>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="mt-2 text-gray-700 text-sm comment-content" id="comment-text-' + c.id + '" data-raw-content="' + escapeHtml(c.content) + '">' +
+                    c.formatted_content +
+                '</div>' +
+            '</div>';
+            var container = document.getElementById('comments-container');
+            container.insertAdjacentHTML('beforeend', commentHtml);
+            document.getElementById('commentContent').value = '';
+            currentCommentVotes[c.id] = 'none';
+
+            // Update comment count
+            var countEl = container.closest('.bg-white').querySelector('.text-sm.font-normal');
+            if (countEl) {
+                var count = container.querySelectorAll('.comment').length;
+                countEl.textContent = '(' + count + ')';
+            }
+
+            showAlert('success', 'Kommentar hinzugefügt');
         } else {
             showAlert('danger', 'Fehler: ' + (data.message || 'Kommentar konnte nicht gespeichert werden'));
         }
@@ -787,16 +836,26 @@ async function addComment() {
 function startEditComment(commentId) {
     const commentDiv = document.getElementById('comment-text-' + commentId);
     const content = commentDiv.getAttribute('data-raw-content') || commentDiv.textContent.trim();
+    // Save original HTML for cancel
+    commentDiv.setAttribute('data-original-html', commentDiv.innerHTML);
 
     commentDiv.innerHTML =
         '<div class="mb-2">' +
-            '<textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none" id="edit-comment-' + commentId + '" rows="3">' + content + '</textarea>' +
+            '<textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none" id="edit-comment-' + commentId + '" rows="3">' + escapeHtml(content) + '</textarea>' +
         '</div>' +
         '<div class="text-xs text-gray-500 mb-2">**fett**, *kursiv*, [ ] Checkbox leer, [x] Checkbox voll</div>' +
         '<div class="flex gap-2">' +
             '<button class="bg-brand-500 text-white px-3 py-1 rounded text-xs font-medium hover:bg-brand-600" onclick="saveCommentEdit(' + commentId + ')">Speichern</button>' +
-            '<button class="bg-white text-gray-700 border border-gray-300 px-3 py-1 rounded text-xs hover:bg-gray-50" onclick="location.reload()">Abbrechen</button>' +
+            '<button class="bg-white text-gray-700 border border-gray-300 px-3 py-1 rounded text-xs hover:bg-gray-50" onclick="cancelCommentEdit(' + commentId + ')">Abbrechen</button>' +
         '</div>';
+}
+
+function cancelCommentEdit(commentId) {
+    var commentDiv = document.getElementById('comment-text-' + commentId);
+    var originalHtml = commentDiv.getAttribute('data-original-html');
+    if (originalHtml) {
+        commentDiv.innerHTML = originalHtml;
+    }
 }
 
 async function saveCommentEdit(commentId) {
@@ -808,9 +867,22 @@ async function saveCommentEdit(commentId) {
             body: JSON.stringify({ content: content })
         });
         const data = await response.json();
-        if (data.success) {
+        if (data.success && data.data) {
+            var commentDiv = document.getElementById('comment-text-' + commentId);
+            commentDiv.setAttribute('data-raw-content', escapeHtml(data.data.content));
+            commentDiv.innerHTML = data.data.formatted_content;
+
+            // Add/update "bearbeitet" indicator in header
+            var commentEl = document.getElementById('comment-' + commentId);
+            var headerTextDiv = commentEl.querySelector('.text-sm');
+            if (!headerTextDiv.querySelector('.text-gray-400')) {
+                var editedSpan = document.createElement('span');
+                editedSpan.className = 'text-gray-400 ml-1';
+                editedSpan.textContent = '(bearbeitet)';
+                headerTextDiv.appendChild(editedSpan);
+            }
+
             showAlert('success', 'Kommentar wurde aktualisiert');
-            setTimeout(function() { location.reload(); }, 800);
         } else {
             showAlert('danger', 'Fehler: ' + (data.message || ''));
         }
@@ -888,8 +960,28 @@ async function updateStatus() {
             body: JSON.stringify({ status_id: statusId })
         });
         const data = await response.json();
-        if (data.success) {
-            location.reload();
+        if (data.success && data.data) {
+            var ticket = data.data;
+            var status = ticket.status;
+            if (status) {
+                // Update status badge in header
+                var headerBadge = document.querySelector('.text-gray-500.text-sm.mt-1 span[style]');
+                if (headerBadge) {
+                    headerBadge.style.backgroundColor = status.background_color;
+                    headerBadge.textContent = status.name;
+                }
+                // Update status card icon color
+                var statusIcon = document.querySelector('.bi-flag-fill');
+                if (statusIcon) statusIcon.style.color = status.background_color;
+                // Update status card badge
+                var statusCardBadge = statusIcon ? statusIcon.closest('.bg-white').querySelector('span[style]') : null;
+                if (statusCardBadge) {
+                    statusCardBadge.style.backgroundColor = status.background_color;
+                    statusCardBadge.textContent = status.name;
+                }
+            }
+            document.getElementById('status-modal').classList.add('hidden');
+            showAlert('success', 'Status aktualisiert');
         } else {
             showAlert('danger', 'Fehler beim Aktualisieren des Status');
         }
@@ -909,7 +1001,14 @@ async function updateAssignee() {
         });
         const data = await response.json();
         if (data.success) {
-            location.reload();
+            // Update assignee display text
+            var assigneeBtn = document.querySelector('.bi-person-circle').closest('.bg-white').querySelector('button');
+            if (assigneeBtn) {
+                var textNode = assigneeBtn.childNodes[0];
+                textNode.textContent = assignee || 'Nicht zugewiesen';
+            }
+            document.getElementById('assignee-modal').classList.add('hidden');
+            showAlert('success', 'Zuständigkeit aktualisiert');
         } else {
             showAlert('danger', 'Fehler beim Aktualisieren');
         }
@@ -929,7 +1028,20 @@ async function updateFollowUpDate() {
         });
         const data = await response.json();
         if (data.success) {
-            location.reload();
+            // Update follow-up display text
+            var calendarIcon = document.querySelector('.bi-calendar-event');
+            var followUpBtn = calendarIcon ? calendarIcon.closest('.bg-white').querySelector('button') : null;
+            if (followUpBtn) {
+                var textNode = followUpBtn.childNodes[0];
+                if (followUpDate) {
+                    var parts = followUpDate.split('-');
+                    textNode.textContent = parts[2] + '.' + parts[1] + '.' + parts[0];
+                } else {
+                    textNode.textContent = 'Kein Datum gesetzt';
+                }
+            }
+            document.getElementById('followup-modal').classList.add('hidden');
+            showAlert('success', 'Wiedervorlagedatum aktualisiert');
         } else {
             showAlert('danger', 'Fehler: ' + (data.message || ''));
         }
@@ -960,8 +1072,37 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
             body: formData
         });
         var data = await response.json();
-        if (data.success) {
-            location.reload();
+        if (data.success && data.data) {
+            var a = data.data;
+            var isImage = (a.file_type || '').startsWith('image/');
+            var viewUrl = API_BASE.replace('/api', '') + '/api/attachments/' + a.id;
+            var html = '<div class="border border-gray-200 rounded-lg overflow-hidden" id="attachment-' + a.id + '">';
+            if (isImage) {
+                html += '<a href="' + viewUrl + '" target="_blank" class="block"><img src="' + viewUrl + '" loading="lazy" alt="' + escapeHtml(a.original_filename) + '" class="w-full h-32 object-cover"></a>';
+            } else {
+                html += '<a href="' + viewUrl + '" target="_blank" class="flex items-center justify-center h-32 bg-gray-50 text-gray-400"><i class="bi bi-file-earmark text-4xl"></i></a>';
+            }
+            html += '<div class="p-2"><div class="text-xs text-gray-900 truncate" title="' + escapeHtml(a.original_filename) + '">' + escapeHtml(a.original_filename) + '</div>';
+            html += '<div class="flex items-center justify-between mt-1"><span class="text-xs text-gray-500">' + escapeHtml(a.uploaded_by || '') + ' &ndash; ' + formatDate(a.upload_date) + '</span>';
+            html += '<button onclick="deleteAttachment(' + a.id + ')" class="text-red-500 hover:text-red-700 text-xs p-1" title="Löschen"><i class="bi bi-trash"></i></button></div></div></div>';
+
+            var grid = document.getElementById('attachmentGrid');
+            // Remove "Keine Anhänge" placeholder if present
+            var placeholder = grid.querySelector('p.text-gray-500');
+            if (placeholder) placeholder.remove();
+            grid.insertAdjacentHTML('beforeend', html);
+
+            fileInput.value = '';
+            errorDiv.classList.add('hidden');
+
+            // Update attachment count
+            var countEl = grid.closest('.bg-white').querySelector('.text-sm.font-normal');
+            if (countEl) {
+                var count = grid.querySelectorAll('[id^="attachment-"]').length;
+                countEl.textContent = '(' + count + ')';
+            }
+
+            showAlert('success', 'Datei hochgeladen');
         } else {
             errorDiv.textContent = data.message || 'Fehler beim Hochladen';
             errorDiv.classList.remove('hidden');
@@ -997,6 +1138,7 @@ async function deleteAttachment(attachmentId) {
 async function addContactPerson() {
     var select = document.getElementById('contactPersonSelect');
     if (!select || !select.value) { showAlert('warning', 'Bitte wählen Sie einen Ansprechpartner aus.'); return; }
+    var selectedOption = select.options[select.selectedIndex];
     try {
         var response = await fetch(API_BASE + '/tickets/' + TICKET_ID + '/contact-persons', {
             method: 'POST',
@@ -1004,8 +1146,41 @@ async function addContactPerson() {
             body: JSON.stringify({ contact_person_id: select.value })
         });
         var data = await response.json();
-        if (data.success) {
-            location.reload();
+        if (data.success && data.data) {
+            var p = data.data;
+            var contactHtml = '<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg" id="cp-' + p.id + '">' +
+                '<div><span class="font-medium text-gray-900">' + escapeHtml(p.name) + '</span>' +
+                '<div class="text-xs text-gray-500 mt-0.5">' +
+                    (p.email ? '<i class="bi bi-envelope"></i> ' + escapeHtml(p.email) : '') +
+                    (p.phone ? (p.email ? ' | ' : '') + '<i class="bi bi-telephone"></i> ' + escapeHtml(p.phone) : '') +
+                '</div></div>' +
+                '<div class="flex items-center gap-2">' +
+                    '<button type="button" onclick="removeContactPerson(' + p.id + ', \'' + escapeHtml(p.name).replace(/'/g, "\\'") + '\')" class="text-red-500 hover:text-red-700 p-1" title="Entfernen"><i class="bi bi-x-lg"></i></button>' +
+                '</div></div>';
+
+            // Find or create the contact list container
+            var cpSection = document.querySelector('[id^="cp-"]');
+            var container = cpSection ? cpSection.parentElement : null;
+            if (!container) {
+                // No contacts yet — replace the "Keine Ansprechpartner" text
+                var cpCard = document.querySelector('.bi-plus-lg').closest('.bg-white');
+                var pTag = cpCard.querySelector('p.text-gray-500');
+                if (pTag) {
+                    var spaceDiv = document.createElement('div');
+                    spaceDiv.className = 'space-y-2';
+                    pTag.parentElement.insertBefore(spaceDiv, pTag);
+                    pTag.remove();
+                    container = spaceDiv;
+                }
+            }
+            if (container) container.insertAdjacentHTML('beforeend', contactHtml);
+
+            // Remove option from select
+            selectedOption.remove();
+            select.value = '';
+
+            document.getElementById('add-contact-modal').classList.add('hidden');
+            showAlert('success', 'Ansprechpartner hinzugefügt');
         } else {
             showAlert('danger', 'Fehler: ' + (data.message || ''));
         }
@@ -1024,7 +1199,9 @@ async function removeContactPerson(contactId, contactName) {
         });
         var data = await response.json();
         if (data.success) {
-            location.reload();
+            var el = document.getElementById('cp-' + contactId);
+            if (el) el.remove();
+            showAlert('success', 'Ansprechpartner entfernt');
         } else {
             showAlert('danger', 'Fehler: ' + (data.message || ''));
         }
