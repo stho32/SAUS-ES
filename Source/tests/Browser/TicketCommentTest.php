@@ -524,32 +524,43 @@ class TicketCommentTest extends DuskTestCase
         });
     }
 
-    /** T76: Doppelklick entfernt Vote */
+    /** T76: Doppelklick entfernt Vote — gleichen Button zweimal klicken */
     public function test_t76_comment_vote_toggle(): void
     {
-        $this->browse(function (Browser $browser) {
-            $this->loginAs($browser);
+        $ticket = \App\Models\Ticket::whereHas('comments', function ($q) {
+            $q->where('username', '!=', 'System');
+        })->first();
+        $this->assertNotNull($ticket, 'Need a ticket with non-system comments');
 
-            $browser->visit('/saus/tickets/3')
+        // Bestehende Votes dieses Testusers entfernen, damit der Test sauber startet
+        \App\Models\CommentVote::where('username', 'ToggleTester')->delete();
+
+        $this->browse(function (Browser $browser) use ($ticket) {
+            $this->loginAs($browser, 'ToggleTester');
+
+            $browser->visit('/saus/tickets/' . $ticket->id)
                 ->pause(1000);
 
             $upSpans = $browser->elements('[id^="comment-up-"]');
-            $this->assertGreaterThan(0, count($upSpans));
+            $this->assertGreaterThan(0, count($upSpans), 'Should have comment vote count spans');
 
             $firstSpanId = $upSpans[0]->getAttribute('id');
             $countBefore = (int) $upSpans[0]->getText();
             $commentId = str_replace('comment-up-', '', $firstSpanId);
 
-            // Vote
+            // Erster Klick: Vote setzen (up)
             $browser->script("voteComment({$commentId}, 'up')");
             $browser->pause(1500);
 
-            // Remove vote
-            $browser->script("voteComment({$commentId}, 'none')");
+            $countAfterVote = (int) $browser->text('#' . $firstSpanId);
+            $this->assertGreaterThan($countBefore, $countAfterVote, 'Upvote count should increase after first click');
+
+            // Zweiter Klick: Gleichen Button nochmal — Vote muss entfernt werden (Toggle)
+            $browser->script("voteComment({$commentId}, 'up')");
             $browser->pause(1500);
 
-            $countAfter = (int) $browser->text('#' . $firstSpanId);
-            $this->assertEquals($countBefore, $countAfter, 'Count should return to original after toggle');
+            $countAfterToggle = (int) $browser->text('#' . $firstSpanId);
+            $this->assertEquals($countBefore, $countAfterToggle, 'Count should return to original after clicking same vote button again (toggle)');
         });
     }
 

@@ -428,15 +428,15 @@
                         <div class="flex items-center gap-2">
                             {{-- Vote Buttons --}}
                             @if($comment->username !== 'System')
-                                <div class="inline-flex rounded overflow-hidden border border-gray-200 text-xs">
+                                <div class="inline-flex rounded overflow-hidden border border-gray-200 text-xs" id="comment-voting-{{ $comment->id }}">
                                     <button type="button"
-                                            class="px-2 py-1 transition bg-white text-green-600 hover:bg-green-50"
+                                            class="comment-vote-btn px-2 py-1 transition {{ ($userCommentVotes[$comment->id] ?? '') === 'up' ? 'bg-green-500 text-white' : 'bg-white text-green-600 hover:bg-green-50' }}"
                                             onclick="voteComment({{ $comment->id }}, 'up')"
                                             title="{{ $comment->upvoters ?: 'Keine Upvotes' }}">
                                         <i class="bi bi-hand-thumbs-up"></i> <span id="comment-up-{{ $comment->id }}">{{ $comment->up_votes }}</span>
                                     </button>
                                     <button type="button"
-                                            class="px-2 py-1 border-l border-gray-200 transition bg-white text-red-600 hover:bg-red-50"
+                                            class="comment-vote-btn px-2 py-1 border-l border-gray-200 transition {{ ($userCommentVotes[$comment->id] ?? '') === 'down' ? 'bg-red-500 text-white' : 'bg-white text-red-600 hover:bg-red-50' }}"
                                             onclick="voteComment({{ $comment->id }}, 'down')"
                                             title="{{ $comment->downvoters ?: 'Keine Downvotes' }}">
                                         <i class="bi bi-hand-thumbs-down"></i> <span id="comment-down-{{ $comment->id }}">{{ $comment->down_votes }}</span>
@@ -717,13 +717,17 @@ async function voteTicket(value) {
     }
 }
 
-// Comment Voting
+// Comment Voting — toggle: gleichen Vote nochmal klicken entfernt ihn
+var currentCommentVotes = @json($userCommentVotes ?? []);
+
 async function voteComment(commentId, value) {
+    var currentVote = currentCommentVotes[commentId] || 'none';
+    var sendValue = (value === currentVote) ? 'none' : value;
     try {
         const response = await fetch(API_BASE + '/comments/' + commentId + '/vote', {
             method: 'POST',
             headers: apiHeaders(),
-            body: JSON.stringify({ value: value })
+            body: JSON.stringify({ value: sendValue })
         });
         const data = await response.json();
         if (data.success) {
@@ -734,6 +738,18 @@ async function voteComment(commentId, value) {
                 if (downEl && data.data.down_votes !== undefined) downEl.textContent = data.data.down_votes;
                 if (upEl && data.data.upvoters !== undefined) upEl.closest('button').title = data.data.upvoters;
                 if (downEl && data.data.downvoters !== undefined) downEl.closest('button').title = data.data.downvoters;
+                currentCommentVotes[commentId] = sendValue;
+
+                // Update button styles to reflect active vote
+                var buttons = document.querySelectorAll('#comment-voting-' + commentId + ' .comment-vote-btn');
+                if (buttons[0]) {
+                    buttons[0].className = buttons[0].className.replace(/bg-green-500 text-white|bg-white text-green-600 hover:bg-green-50/g, '');
+                    buttons[0].classList.add(...(sendValue === 'up' ? ['bg-green-500', 'text-white'] : ['bg-white', 'text-green-600', 'hover:bg-green-50']));
+                }
+                if (buttons[1]) {
+                    buttons[1].className = buttons[1].className.replace(/bg-red-500 text-white|bg-white text-red-600 hover:bg-red-50/g, '');
+                    buttons[1].classList.add(...(sendValue === 'down' ? ['bg-red-500', 'text-white'] : ['bg-white', 'text-red-600', 'hover:bg-red-50']));
+                }
             } else {
                 location.reload();
             }

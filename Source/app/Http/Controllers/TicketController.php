@@ -151,10 +151,18 @@ class TicketController extends Controller
             $comment->downvoters = $comment->votes()->where('value', 'down')->pluck('username')->implode(', ');
         }
 
+        $userCommentVotes = [];
+        foreach ($ticket->comments as $comment) {
+            $vote = $comment->votes()->where('username', $username)->first();
+            if ($vote) {
+                $userCommentVotes[$comment->id] = $vote->value;
+            }
+        }
+
         $allContactPersons = \App\Models\ContactPerson::active()->orderBy('name')->get();
         $statuses = TicketStatus::active()->orderBy('sort_order')->get();
 
-        return view('tickets.show', compact('ticket', 'formatter', 'username', 'userTicketVote', 'allContactPersons', 'statuses'));
+        return view('tickets.show', compact('ticket', 'formatter', 'username', 'userTicketVote', 'userCommentVotes', 'allContactPersons', 'statuses'));
     }
 
     public function email(Ticket $ticket): View
