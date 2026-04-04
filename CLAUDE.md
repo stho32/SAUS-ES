@@ -142,6 +142,7 @@ The original vanilla PHP code remains in `php/` and `public_php_app/` for refere
 ## Important Notes
 
 - **German language**: UI, domain variables, and database columns are in German
+- **Umlaute in Views**: Alle nach außen sichtbaren Texte (Blade Views, Fehlermeldungen, Flash Messages, Tooltips) müssen korrekte deutsche Umlaute verwenden (ä, ö, ü, ß), nicht die Umschreibungen (ae, oe, ue, ss). Nur in technischen Kontexten (Dateinamen, URLs, PHP-Code, Config-Keys) werden ASCII-Umschreibungen verwendet.
 - **Strict typing**: All custom PHP files use `declare(strict_types=1)`
 - **Windows development**: File paths use backslashes on Windows (Herd)
 - **Docker alternative**: `docker-compose up` for full environment
