@@ -8,44 +8,40 @@
 # Aider
 .aider*
 
-# Laravel
-/vendor/
-/node_modules/
-.env
-.env.backup
-.env.production
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
+# Laravel (inside Source/)
+Source/vendor/
+Source/node_modules/
+Source/.env
+Source/.env.backup
+Source/.env.production
+Source/.env.dusk.local
 
 # Laravel generated
-/storage/*.key
-/storage/framework/cache/data/*
-/storage/framework/sessions/*
-/storage/framework/views/*
-/bootstrap/cache/*
+Source/storage/*.key
+Source/storage/framework/cache/data/*
+Source/storage/framework/sessions/*
+Source/storage/framework/views/*
+Source/bootstrap/cache/*
 
 # SQLite
-database/database.sqlite
-
-# Konfigurationsdateien mit Credentials
-php/config.php
-php/includes/paths_config.php
-public_php_app/includes/config.php
-public_php_app/imageview/paths_config.php
+Source/database/database.sqlite
 
 # Logs
-logs/*.log
-storage/logs/*.log
+Source/storage/logs/*.log
 
-# Uploads (Dateien, nicht Verzeichnisstruktur)
-php/uploads/tickets/*
-!php/uploads/tickets/.htaccess
-php/uploads/news/*
+# Uploads (files, not directory structure)
+Source/uploads/tickets/*
+!Source/uploads/tickets/.htaccess
+Source/uploads/news/*
+!Source/uploads/news/.htaccess
 
-# Docker
-docker/init-db/
+# Dusk
+Source/tests/Browser/screenshots/*
+!Source/tests/Browser/screenshots/.gitignore
+Source/tests/Browser/console/*
+!Source/tests/Browser/console/.gitignore
+Source/tests/Browser/source/*
+!Source/tests/Browser/source/.gitignore
 
 # OS
 .DS_Store

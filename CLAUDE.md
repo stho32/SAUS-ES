@@ -7,30 +7,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Quick Start (Docker)
 ```bash
 docker-compose up -d
-# App available at http://localhost:8000
-# Login with: http://localhost:8000/?master_code=test_master_2025
+# Admin:  http://localhost:8000/saus/?master_code=test_master_2025
+# Public: http://localhost:8000/public_information_saus/
 ```
 
 ### Quick Start (Laravel Herd / local PHP)
 ```bash
+cd Source
 composer install
 cp .env.example .env
 php artisan key:generate
 # Configure DB_* in .env to point to your MariaDB
 php artisan migrate --seed
 php artisan serve
-# App available at http://localhost:8000
+# Admin:  http://localhost:8000/saus/?master_code=test_master_2025
+# Public: http://localhost:8000/public_information_saus/
 ```
 
 ### Tests
 ```bash
-php artisan test                          # All tests (137 tests)
+cd Source
+php artisan test                          # All Pest tests
 php artisan test --filter=TicketTest      # Specific test file
-php artisan test --filter="kann erstellt" # By test name
+php artisan dusk                          # E2E browser tests
 ```
 
 ### Database
 ```bash
+cd Source
 php artisan migrate              # Run pending migrations
 php artisan migrate:fresh --seed # Reset DB with test data
 php artisan db:seed              # Seed data only
@@ -79,33 +83,48 @@ Tickets can have multiple assignees separated by comma or plus sign. `Statistics
 - System comments auto-generated for status changes, follow-up dates, contact person links
 
 #### File Handling
-- Ticket attachments stored in `php/uploads/tickets/{ticketId}/` (compatible with legacy paths)
-- News images stored in `php/uploads/news/`
+- Ticket attachments stored in `Source/uploads/tickets/{ticketId}/`
+- News images stored in `Source/uploads/news/`
 - Image thumbnails generated via GD library (200px width)
-- External image viewing via `/public/imageview/{code}` using SecretString
+- External image viewing via `/public_information_saus/imageview/{code}` using SecretString
 
-### Project Structure (Laravel)
+### Repository Structure
 ```
-app/
-  Http/Controllers/       # 12 page controllers + 6 API controllers
-  Http/Middleware/         # MasterLinkAuth, EnsureUsername, PartnerLinkAuth
-  Models/                 # 10 Eloquent models (existing DB schema)
-  Services/               # CommentFormatter, TicketNumberGenerator, ActivityHelper
-  Providers/              # AppServiceProvider (rate limiting)
-bootstrap/app.php         # Middleware aliases, exception handling
-config/saus.php           # SAUS-specific config (upload paths, vote threshold)
-database/
-  migrations/             # Single migration matching existing DB schema
-  seeders/                # TicketStatusSeeder, TestDataSeeder
-resources/views/
-  layouts/                # app.blade.php (internal), public.blade.php
-  tickets/                # index, show, create, edit, email
-  news/, statistics/, follow-up/, contact-persons/, saus-news/, website-view/
-  public/                 # Public ticket/news views
-  auth/                   # username, error, logout
-routes/web.php            # 49 routes (protected + public + API)
-tests/Feature/            # 8 test files (auth, tickets, comments, votes, news, etc.)
-tests/Unit/               # 2 test files (CommentFormatter, TicketNumberGenerator)
+SAUS-ES/                        # Repository root
+├── Anforderungen/              # Requirements (R00001-R00017)
+├── Dokumentation/              # Style-Guide, architecture docs
+├── Source/                     # Laravel 13 application
+│   ├── app/
+│   │   ├── Http/Controllers/   # 12 page controllers + 6 API controllers
+│   │   ├── Http/Middleware/    # MasterLinkAuth, EnsureUsername, PartnerLinkAuth
+│   │   ├── Models/            # 10 Eloquent models (existing DB schema)
+│   │   ├── Services/          # CommentFormatter, TicketNumberGenerator, ActivityHelper
+│   │   └── Providers/         # AppServiceProvider (rate limiting)
+│   ├── bootstrap/app.php      # Middleware aliases, exception handling
+│   ├── config/saus.php        # SAUS-specific config (upload paths, vote threshold)
+│   ├── database/
+│   │   ├── migrations/        # Single migration matching existing DB schema
+│   │   └── seeders/           # TicketStatusSeeder, TestDataSeeder
+│   ├── docker/                # Dockerfile, apache.conf, entrypoint.sh
+│   ├── public/                # Laravel web root (index.php, .htaccess)
+│   ├── resources/views/
+│   │   ├── layouts/           # app.blade.php (internal), public.blade.php
+│   │   ├── tickets/           # index, show, create, edit, email
+│   │   ├── news/, statistics/, follow-up/, contact-persons/, saus-news/
+│   │   ├── public/            # Public ticket/news views
+│   │   └── auth/              # username, error, logout
+│   ├── routes/web.php         # All routes (admin + public + API)
+│   ├── tests/
+│   │   ├── Feature/           # 8 Pest test files
+│   │   ├── Unit/              # 2 Pest test files
+│   │   └── Browser/           # 7 Dusk E2E test files
+│   ├── uploads/               # Ticket and news file uploads
+│   ├── composer.json
+│   └── phpunit.xml
+├── docker-compose.yml         # Docker orchestration (references Source/)
+├── CLAUDE.md
+├── README.md
+└── LICENSE
 ```
 
 ### Database Compatibility
@@ -136,15 +155,13 @@ All API endpoints under `/api/` require master_link session and return JSON:
 // Error:   {"success": false, "message": "..."}
 ```
 
-### Legacy Code
-The original vanilla PHP code remains in `php/` and `public_php_app/` for reference. The Laravel app (`app/`, `resources/`, `routes/`) is the active codebase.
-
 ## Important Notes
 
+- **Working directory**: All `php artisan` and `composer` commands must be run from `Source/`
 - **German language**: UI, domain variables, and database columns are in German
 - **Umlaute in Views**: Alle nach außen sichtbaren Texte (Blade Views, Fehlermeldungen, Flash Messages, Tooltips) müssen korrekte deutsche Umlaute verwenden (ä, ö, ü, ß), nicht die Umschreibungen (ae, oe, ue, ss). Nur in technischen Kontexten (Dateinamen, URLs, PHP-Code, Config-Keys) werden ASCII-Umschreibungen verwendet.
 - **Strict typing**: All custom PHP files use `declare(strict_types=1)`
 - **Windows development**: File paths use backslashes on Windows (Herd)
-- **Docker alternative**: `docker-compose up` for full environment
+- **Docker**: `docker-compose up` from repo root starts the full environment
 - **Test DB**: SQLite in-memory (phpunit.xml) — MySQL-specific features skipped in tests
-- **Anforderungen**: Requirements documented in `Anforderungen/R00001-R00011`
+- **Anforderungen**: Requirements documented in `Anforderungen/R00001-R00017`
