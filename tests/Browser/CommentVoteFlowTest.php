@@ -9,7 +9,7 @@ class CommentVoteFlowTest extends DuskTestCase
 {
     protected function loginAs(Browser $browser, string $username = 'Tester'): void
     {
-        $browser->visit('/?master_code=test_master_2025')
+        $browser->visit('/saus/?master_code=test_master_2025')
             ->pause(1000);
 
         if ($browser->element('input[name="username"]')) {
@@ -24,7 +24,7 @@ class CommentVoteFlowTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/1')
+            $browser->visit('/saus/tickets/1')
                 ->pause(1000)
                 ->assertPresent('#commentContent')
                 ->assertSee('Neuer Kommentar');
@@ -36,7 +36,7 @@ class CommentVoteFlowTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/1')
+            $browser->visit('/saus/tickets/1')
                 ->pause(1000)
                 ->assertPresent('#ticket-voting');
         });
@@ -47,7 +47,7 @@ class CommentVoteFlowTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/1')
+            $browser->visit('/saus/tickets/1')
                 ->pause(1000)
                 ->assertSee('Beschreibung');
         });

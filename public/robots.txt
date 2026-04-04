@@ -2,5 +2,5 @@
 # The admin tool must remain hidden from search engines.
 User-agent: *
 Disallow: /
-Allow: /public-information/
-Allow: /public-information/news
+Allow: /public_information_saus/
+Allow: /public_information_saus/news

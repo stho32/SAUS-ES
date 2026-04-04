@@ -9,7 +9,7 @@ class CommentFunctionsTest extends DuskTestCase
 {
     protected function loginAs(Browser $browser, string $username = 'Tester'): void
     {
-        $browser->visit('/?master_code=test_master_2025')
+        $browser->visit('/saus/?master_code=test_master_2025')
             ->pause(1000);
 
         if ($browser->element('input[name="username"]')) {
@@ -24,7 +24,7 @@ class CommentFunctionsTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/1')
+            $browser->visit('/saus/tickets/1')
                 ->pause(1000)
                 ->assertPresent('#commentContent')
                 ->assertSee('Neuer Kommentar');
@@ -36,7 +36,7 @@ class CommentFunctionsTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/1')
+            $browser->visit('/saus/tickets/1')
                 ->pause(1000)
                 ->type('#commentContent', 'E2E Kommentar: Dieses Problem wurde geprueft.')
                 ->press('Kommentar speichern')
@@ -51,7 +51,7 @@ class CommentFunctionsTest extends DuskTestCase
             $this->loginAs($browser);
 
             // Visit a ticket that has comments
-            $browser->visit('/tickets/1')
+            $browser->visit('/saus/tickets/1')
                 ->pause(1000);
 
             // Hidden comments should have display:none via CSS class
@@ -69,7 +69,7 @@ class CommentFunctionsTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/1')
+            $browser->visit('/saus/tickets/1')
                 ->pause(1000);
 
             // Check the "Alle anzeigen" checkbox
@@ -90,7 +90,7 @@ class CommentFunctionsTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/1')
+            $browser->visit('/saus/tickets/1')
                 ->pause(1000);
 
             // Visibility toggle buttons should exist (eye icons)
@@ -103,7 +103,7 @@ class CommentFunctionsTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/1')
+            $browser->visit('/saus/tickets/1')
                 ->pause(1000);
 
             // Ticket vote buttons should have title attributes
@@ -119,7 +119,7 @@ class CommentFunctionsTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/1')
+            $browser->visit('/saus/tickets/1')
                 ->pause(1000);
 
             // Comment vote buttons should have title attributes
@@ -138,7 +138,7 @@ class CommentFunctionsTest extends DuskTestCase
             $this->loginAs($browser);
 
             // Create a ticket and change its status to generate a system comment
-            $browser->visit('/tickets/1')
+            $browser->visit('/saus/tickets/1')
                 ->pause(1000);
 
             // After a status change (via seeder data or manual), system comments
@@ -154,14 +154,14 @@ class CommentFunctionsTest extends DuskTestCase
             $this->loginAs($browser, 'Tester');
 
             // First add a comment
-            $browser->visit('/tickets/2')
+            $browser->visit('/saus/tickets/2')
                 ->pause(1000)
                 ->type('#commentContent', 'Mein bearbeitbarer Kommentar')
                 ->press('Kommentar speichern')
                 ->pause(3000);
 
             // Reload and check for edit button
-            $browser->visit('/tickets/2')
+            $browser->visit('/saus/tickets/2')
                 ->pause(1000)
                 ->assertSee('Mein bearbeitbarer Kommentar');
 
@@ -175,14 +175,14 @@ class CommentFunctionsTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/3')
+            $browser->visit('/saus/tickets/3')
                 ->pause(1000)
                 ->type('#commentContent', '**Fett** und *kursiv* und https://1892.de')
                 ->press('Kommentar speichern')
                 ->pause(3000);
 
             // Check that formatted content is rendered
-            $browser->visit('/tickets/3')
+            $browser->visit('/saus/tickets/3')
                 ->pause(1000)
                 ->assertPresent('.comment-content strong')
                 ->assertPresent('.comment-content em')
@@ -195,7 +195,7 @@ class CommentFunctionsTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/')
+            $browser->visit('/saus/')
                 ->pause(1000);
 
             // Navigation should use brand color (#0786c0), not indigo

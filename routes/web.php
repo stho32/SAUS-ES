@@ -19,19 +19,31 @@ use App\Http\Controllers\TicketController;
 use App\Http\Controllers\WebsiteViewController;
 use Illuminate\Support\Facades\Route;
 
-// Auth routes (no middleware)
-Route::get('/login', [AuthController::class, 'login'])->name('login');
-Route::get('/error', [AuthController::class, 'error'])->name('error');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+// Both areas live as sibling subdirectories — just like in production:
+//   /saus/                      → Admin tool (requires master_code)
+//   /public_information_saus/   → Public read-only (no auth)
+// A crawler finding one won't discover the other.
+
+$adminPrefix = config('saus.admin_route_prefix', 'saus');
+$publicPrefix = config('saus.public_route_prefix', 'public_information_saus');
+
+// ─── Admin area ───────────────────────────────────────────────────────────────
+
+// Auth routes (inside admin prefix, no auth middleware)
+Route::prefix($adminPrefix)->group(function () {
+    Route::get('/login', [AuthController::class, 'login'])->name('login');
+    Route::get('/error', [AuthController::class, 'error'])->name('error');
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+});
 
 // Username entry (requires master_link but not username)
-Route::middleware('master_link')->group(function () {
+Route::prefix($adminPrefix)->middleware('master_link')->group(function () {
     Route::get('/username', [AuthController::class, 'usernameForm'])->name('username.form');
     Route::post('/username', [AuthController::class, 'setUsername'])->name('username.store');
 });
 
 // Protected routes (require master_link + username)
-Route::middleware(['master_link', 'ensure_username'])->group(function () {
+Route::prefix($adminPrefix)->middleware(['master_link', 'ensure_username'])->group(function () {
     // Dashboard / Ticket list
     Route::get('/', [TicketController::class, 'index'])->name('tickets.index');
 
@@ -94,10 +106,10 @@ Route::middleware(['master_link', 'ensure_username'])->group(function () {
     });
 });
 
-// Public routes (no auth required)
-// Prefix is configurable to keep admin tool hidden from crawlers
-// that discover the public pages (security by obscurity separation)
-Route::prefix(config('saus.public_route_prefix', 'public-information'))->group(function () {
+// ─── Public area ──────────────────────────────────────────────────────────────
+// Separate prefix, no cross-links to admin. Crawlers can't discover admin.
+
+Route::prefix($publicPrefix)->group(function () {
     Route::get('/', [PublicTicketController::class, 'index'])->name('public.tickets.index');
     Route::get('/news', [PublicNewsController::class, 'index'])->name('public.news.index');
     Route::get('/news/{news}', [PublicNewsController::class, 'show'])->name('public.news.show');

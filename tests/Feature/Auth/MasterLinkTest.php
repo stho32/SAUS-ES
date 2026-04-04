@@ -3,28 +3,25 @@
 use App\Models\MasterLink;
 
 test('unauthenticated user is redirected to error page', function () {
-    $this->get('/')->assertRedirect(route('error', ['type' => 'unauthorized']));
+    $this->get(route('tickets.index'))->assertRedirect(route('error', ['type' => 'unauthorized']));
 });
 
 test('valid master code grants access via middleware', function () {
     MasterLink::create(['link_code' => 'valid_code', 'is_active' => true]);
 
-    // When accessing a protected route with a valid master_code query param,
-    // the middleware stores the code in the session and continues.
-    // Without a username, the EnsureUsername middleware redirects to username form.
-    $this->get('/?master_code=valid_code')
+    $this->get(route('tickets.index', ['master_code' => 'valid_code']))
         ->assertRedirect(route('username.form'));
 });
 
 test('invalid master code is rejected', function () {
-    $this->get('/?master_code=invalid_code')
+    $this->get(route('tickets.index', ['master_code' => 'invalid_code']))
         ->assertRedirect(route('error', ['type' => 'unauthorized']));
 });
 
 test('inactive master code is rejected', function () {
     MasterLink::create(['link_code' => 'inactive', 'is_active' => false]);
 
-    $this->get('/?master_code=inactive')
+    $this->get(route('tickets.index', ['master_code' => 'inactive']))
         ->assertRedirect(route('error', ['type' => 'unauthorized']));
 });
 
@@ -111,7 +108,7 @@ test('master link last_used_at is updated on access', function () {
 
     expect($link->last_used_at)->toBeNull();
 
-    $this->get('/?master_code=track_usage');
+    $this->get(route('tickets.index', ['master_code' => 'track_usage']));
 
     expect($link->fresh()->last_used_at)->not->toBeNull();
 });

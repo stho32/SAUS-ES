@@ -9,7 +9,7 @@ class TicketFlowTest extends DuskTestCase
 {
     protected function loginAs(Browser $browser, string $username = 'Tester'): void
     {
-        $browser->visit('/?master_code=test_master_2025')
+        $browser->visit('/saus/?master_code=test_master_2025')
             ->pause(1000);
 
         if ($browser->element('input[name="username"]')) {
@@ -24,7 +24,7 @@ class TicketFlowTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->assertPathIs('/')
+            $browser->assertPathIs('/saus')
                 ->assertSee('Ticket-Uebersicht')
                 ->assertPresent('table');
         });
@@ -36,7 +36,7 @@ class TicketFlowTest extends DuskTestCase
             $this->loginAs($browser);
 
             // Test the sort dropdown which is always present
-            $browser->visit('/')
+            $browser->visit('/saus/')
                 ->pause(500)
                 ->select('sort', 'title')
                 ->pause(1500)
@@ -49,7 +49,7 @@ class TicketFlowTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/')
+            $browser->visit('/saus/')
                 ->pause(500)
                 ->type('search', 'Feuchtigkeitsschaden')
                 ->keys('input[name="search"]', '{enter}')
@@ -63,7 +63,7 @@ class TicketFlowTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/create')
+            $browser->visit('/saus/tickets/create')
                 ->pause(500)
                 ->assertSee('Neues Ticket erstellen')
                 ->type('title', 'E2E Test Ticket Dachschaden')
@@ -81,7 +81,7 @@ class TicketFlowTest extends DuskTestCase
             $this->loginAs($browser);
 
             // Visit first ticket directly
-            $browser->visit('/tickets/1')
+            $browser->visit('/saus/tickets/1')
                 ->pause(1000)
                 ->assertPresent('h1');
         });
@@ -92,7 +92,7 @@ class TicketFlowTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/1/edit')
+            $browser->visit('/saus/tickets/1/edit')
                 ->pause(1000)
                 ->assertSee('Ticket bearbeiten')
                 ->assertPresent('#title');
@@ -104,7 +104,7 @@ class TicketFlowTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/tickets/1/email')
+            $browser->visit('/saus/tickets/1/email')
                 ->pause(1000)
                 ->assertSee('Betreff');
         });

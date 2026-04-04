@@ -9,7 +9,7 @@ class NewsFlowTest extends DuskTestCase
 {
     protected function loginAs(Browser $browser, string $username = 'Tester'): void
     {
-        $browser->visit('/?master_code=test_master_2025')
+        $browser->visit('/saus/?master_code=test_master_2025')
             ->pause(1000);
 
         if ($browser->element('input[name="username"]')) {
@@ -24,7 +24,7 @@ class NewsFlowTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/news')
+            $browser->visit('/saus/news')
                 ->pause(1000)
                 ->assertSee('News verwalten');
         });
@@ -35,7 +35,7 @@ class NewsFlowTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/news/create')
+            $browser->visit('/saus/news/create')
                 ->pause(1000)
                 ->assertSee('News erstellen')
                 ->assertPresent('#title')
@@ -49,7 +49,7 @@ class NewsFlowTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $this->loginAs($browser);
 
-            $browser->visit('/news')
+            $browser->visit('/saus/news')
                 ->pause(1000)
                 ->assertSee('News-Artikel');
         });
