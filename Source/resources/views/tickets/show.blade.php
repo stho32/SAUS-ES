@@ -17,7 +17,28 @@
     <div class="mb-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">{{ $ticket->title }}</h1>
+                {{-- Inline-editable Title --}}
+                <div id="title-display">
+                    <h1 class="text-2xl font-bold text-gray-900 cursor-pointer hover:text-brand-500 transition inline-flex items-center gap-2"
+                        onclick="startInlineEdit('title')">
+                        <span id="title-text">{{ $ticket->title }}</span>
+                        <i class="bi bi-pencil-square text-sm text-gray-400"></i>
+                    </h1>
+                </div>
+                <div id="title-edit" class="hidden">
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="title-input" value="{{ $ticket->title }}"
+                               class="text-2xl font-bold border border-gray-300 rounded-lg px-3 py-1 flex-1 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                               maxlength="255">
+                        <button onclick="saveInlineEdit('title')" class="bg-brand-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-brand-600 transition">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                        <button onclick="cancelInlineEdit('title')" class="bg-white text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 transition">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div id="title-error" class="text-red-600 text-xs mt-1 hidden"></div>
+                </div>
                 <div class="text-gray-500 text-sm mt-1 flex items-center gap-2">
                     <span>{{ $ticket->ticket_number }}</span>
                     @if($ticket->status)
@@ -133,31 +154,41 @@
             </div>
         </div>
 
-        {{-- Do-Not-Track --}}
+        {{-- Do-Not-Track (Toggle) --}}
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div class="flex items-center">
                 <i class="bi bi-eye-slash text-2xl text-gray-400 flex-shrink-0"></i>
                 <div class="ml-3">
                     <h6 class="text-xs font-medium text-gray-500 uppercase">Nicht verfolgen</h6>
                     <p class="text-sm mt-0.5">
-                        @if($ticket->do_not_track)
-                            <span class="text-orange-600 font-medium">Ja</span>
-                        @else
-                            <span class="text-gray-500">Nein</span>
-                        @endif
+                        <button type="button" onclick="toggleDoNotTrack()"
+                                class="hover:text-brand-500 transition" id="do-not-track-btn">
+                            <span id="do-not-track-text">
+                                @if($ticket->do_not_track)
+                                    <span class="text-orange-600 font-medium">Ja</span>
+                                @else
+                                    <span class="text-gray-500">Nein</span>
+                                @endif
+                            </span>
+                            <i class="bi bi-pencil-square ml-1 text-xs text-gray-400"></i>
+                        </button>
                     </p>
                 </div>
             </div>
         </div>
 
-        {{-- Affected Neighbors --}}
+        {{-- Affected Neighbors (Modal) --}}
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div class="flex items-center">
                 <i class="bi bi-people text-2xl text-gray-400 flex-shrink-0"></i>
                 <div class="ml-3">
                     <h6 class="text-xs font-medium text-gray-500 uppercase">Betroffene Nachbarn</h6>
                     <p class="text-sm mt-0.5">
-                        {{ $ticket->affected_neighbors !== null ? $ticket->affected_neighbors : 'Unbekannt' }}
+                        <button type="button" onclick="document.getElementById('neighbors-modal').classList.remove('hidden')"
+                                class="text-gray-900 hover:text-brand-500 transition">
+                            <span id="neighbors-text">{{ $ticket->affected_neighbors !== null ? $ticket->affected_neighbors : 'Unbekannt' }}</span>
+                            <i class="bi bi-pencil-square ml-1 text-xs text-gray-400"></i>
+                        </button>
                     </p>
                 </div>
             </div>
@@ -175,7 +206,7 @@
         </div>
         <div class="p-4">
             @if($ticket->contactPersons->isEmpty())
-                <p class="text-gray-500 text-sm">Keine Ansprechpartner verknuepft.</p>
+                <p class="text-gray-500 text-sm">Keine Ansprechpartner verknüpft.</p>
             @else
                 <div class="space-y-2">
                     @foreach($ticket->contactPersons as $person)
@@ -239,36 +270,66 @@
         </div>
     @endif
 
-    {{-- Description --}}
+    {{-- Description (Inline-editable) --}}
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
         <h5 class="font-semibold text-gray-900 mb-3">Beschreibung</h5>
-        <div class="text-gray-700 whitespace-pre-line">{{ $ticket->description }}</div>
-    </div>
-
-    {{-- Website Info (Public Comment) --}}
-    @if($ticket->show_on_website)
-        <div class="bg-white rounded-lg shadow-sm border border-blue-300 mb-6">
-            <div class="bg-blue-50 px-4 py-3 rounded-t-lg border-b border-blue-200">
-                <h5 class="font-semibold text-blue-800">
-                    <i class="bi bi-globe"></i> Website-Informationen
-                </h5>
-            </div>
-            <div class="p-4">
-                <h6 class="text-xs font-medium text-gray-500 uppercase mb-2">Öffentlicher Kommentar</h6>
-                @if($ticket->public_comment)
-                    <p class="text-gray-700 whitespace-pre-line">{{ $ticket->public_comment }}</p>
-                @else
-                    <p class="text-gray-400 italic">Kein öffentlicher Kommentar vorhanden</p>
-                @endif
+        <div id="description-display" class="cursor-pointer hover:bg-gray-50 rounded p-1 -m-1 transition" onclick="startInlineEdit('description')">
+            <div class="text-gray-700 whitespace-pre-line" id="description-text">{{ $ticket->description }}</div>
+            <div class="text-xs text-gray-400 mt-2"><i class="bi bi-pencil-square"></i> Klicken zum Bearbeiten</div>
+        </div>
+        <div id="description-edit" class="hidden">
+            <textarea id="description-input" rows="5"
+                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">{{ $ticket->description }}</textarea>
+            <div id="description-error" class="text-red-600 text-xs mt-1 hidden"></div>
+            <div class="flex justify-end gap-2 mt-2">
+                <button onclick="cancelInlineEdit('description')" class="bg-white text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 transition">Abbrechen</button>
+                <button onclick="saveInlineEdit('description')" class="bg-brand-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-brand-600 transition">Speichern</button>
             </div>
         </div>
-    @endif
+    </div>
+
+    {{-- Website Info (Inline-Toggle + Public Comment) --}}
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6" id="website-section">
+        <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg flex items-center justify-between">
+            <h5 class="font-semibold text-gray-900">
+                <i class="bi bi-globe"></i> Website-Sichtbarkeit
+            </h5>
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="showOnWebsiteToggle"
+                       class="rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                       {{ $ticket->show_on_website ? 'checked' : '' }}
+                       onchange="toggleShowOnWebsite()">
+                <span class="text-sm text-gray-600">Auf Website anzeigen</span>
+            </label>
+        </div>
+        <div class="p-4" id="website-details" style="{{ $ticket->show_on_website ? '' : 'display:none' }}">
+            <label for="publicCommentInput" class="block text-xs font-medium text-gray-500 uppercase mb-2">Öffentlicher Kommentar</label>
+            <div id="public-comment-display" class="cursor-pointer hover:bg-gray-50 rounded p-1 -m-1 transition" onclick="startInlineEdit('publicComment')">
+                @if($ticket->public_comment)
+                    <p class="text-gray-700 whitespace-pre-line" id="public-comment-text">{{ $ticket->public_comment }}</p>
+                @else
+                    <p class="text-gray-400 italic" id="public-comment-text">Kein öffentlicher Kommentar vorhanden</p>
+                @endif
+                <div class="text-xs text-gray-400 mt-1"><i class="bi bi-pencil-square"></i> Klicken zum Bearbeiten</div>
+            </div>
+            <div id="publicComment-edit" class="hidden">
+                <textarea id="publicComment-input" rows="3"
+                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                          placeholder="Dieser Kommentar wird auf der Website angezeigt">{{ $ticket->public_comment ?? '' }}</textarea>
+                <p class="text-xs text-gray-500 mt-1">Dieser Text wird auf der Website neben dem Ticket-Titel angezeigt.</p>
+                <div class="flex justify-end gap-2 mt-2">
+                    <button onclick="cancelInlineEdit('publicComment')" class="bg-white text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 transition">Abbrechen</button>
+                    <button onclick="saveInlineEdit('publicComment')" class="bg-brand-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-brand-600 transition">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {{-- Attachments Section --}}
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
         <div class="px-4 py-3 border-b border-gray-200">
             <h5 class="font-semibold text-gray-900">
-                Anhaenge
+                Anhänge
                 <span class="text-sm font-normal text-gray-500">({{ $ticket->attachments->count() }})</span>
             </h5>
         </div>
@@ -320,7 +381,7 @@
                         </div>
                     </div>
                 @empty
-                    <p class="text-gray-500 text-sm col-span-full">Keine Anhaenge vorhanden.</p>
+                    <p class="text-gray-500 text-sm col-span-full">Keine Anhänge vorhanden.</p>
                 @endforelse
             </div>
         </div>
@@ -555,6 +616,32 @@
                     class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">Abbrechen</button>
             <button type="button" onclick="addContactPerson()"
                     class="px-4 py-2 text-sm text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition">Hinzufügen</button>
+        </div>
+    </div>
+</div>
+
+{{-- Affected Neighbors Modal --}}
+<div id="neighbors-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+            <h5 class="font-semibold text-gray-900">Betroffene Nachbarn bearbeiten</h5>
+            <button type="button" onclick="document.getElementById('neighbors-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="p-4">
+            <label for="neighborsInput" class="block text-sm font-medium text-gray-700 mb-1">Anzahl betroffener Nachbarn</label>
+            <input type="number" id="neighborsInput" min="0"
+                   value="{{ $ticket->affected_neighbors !== null ? $ticket->affected_neighbors : '' }}"
+                   placeholder="Leer lassen wenn unbekannt"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
+            <p class="text-xs text-gray-500 mt-1">Leer lassen wenn unbekannt.</p>
+        </div>
+        <div class="flex justify-end gap-2 px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+            <button type="button" onclick="document.getElementById('neighbors-modal').classList.add('hidden')"
+                    class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">Abbrechen</button>
+            <button type="button" onclick="updateNeighbors()"
+                    class="px-4 py-2 text-sm text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition">Speichern</button>
         </div>
     </div>
 </div>
@@ -882,11 +969,162 @@ document.querySelectorAll('[id$="-modal"]').forEach(function(modal) {
     });
 });
 
-// Close modals on Escape
+// Close modals on Escape and cancel inline edits
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         document.querySelectorAll('[id$="-modal"]').forEach(function(m) { m.classList.add('hidden'); });
+        // Cancel any active inline edits
+        ['title', 'description', 'publicComment'].forEach(function(field) {
+            cancelInlineEdit(field);
+        });
     }
 });
+
+// ============= Inline Editing =============
+
+var doNotTrackValue = {{ $ticket->do_not_track ? 'true' : 'false' }};
+
+function startInlineEdit(field) {
+    var display = document.getElementById(field + '-display');
+    var edit = document.getElementById(field + '-edit');
+    if (display) display.classList.add('hidden');
+    if (edit) edit.classList.remove('hidden');
+    var input = document.getElementById(field + '-input');
+    if (input) input.focus();
+}
+
+function cancelInlineEdit(field) {
+    var display = document.getElementById(field + '-display');
+    var edit = document.getElementById(field + '-edit');
+    var error = document.getElementById(field + '-error');
+    if (display) display.classList.remove('hidden');
+    if (edit) edit.classList.add('hidden');
+    if (error) error.classList.add('hidden');
+}
+
+async function saveInlineEdit(field) {
+    var input = document.getElementById(field + '-input');
+    var value = input.tagName === 'TEXTAREA' ? input.value : input.value.trim();
+    var error = document.getElementById(field + '-error');
+
+    // Validate required fields
+    if ((field === 'title' || field === 'description') && !value) {
+        if (error) {
+            error.textContent = field === 'title' ? 'Titel darf nicht leer sein.' : 'Beschreibung darf nicht leer sein.';
+            error.classList.remove('hidden');
+        }
+        return;
+    }
+
+    var data = {};
+    if (field === 'title') data.title = value;
+    else if (field === 'description') data.description = value;
+    else if (field === 'publicComment') data.publicComment = value;
+
+    try {
+        var response = await fetch(API_BASE + '/tickets/' + TICKET_ID, {
+            method: 'PUT',
+            headers: apiHeaders(),
+            body: JSON.stringify(data)
+        });
+        var result = await response.json();
+        if (result.success) {
+            // Update display text
+            if (field === 'title') {
+                document.getElementById('title-text').textContent = value;
+            } else if (field === 'description') {
+                document.getElementById('description-text').textContent = value;
+            } else if (field === 'publicComment') {
+                var textEl = document.getElementById('public-comment-text');
+                textEl.textContent = value || 'Kein öffentlicher Kommentar vorhanden';
+                textEl.className = value ? 'text-gray-700 whitespace-pre-line' : 'text-gray-400 italic';
+            }
+            cancelInlineEdit(field);
+            showAlert('success', 'Gespeichert');
+        } else {
+            if (error) {
+                error.textContent = result.message || 'Fehler beim Speichern';
+                error.classList.remove('hidden');
+            }
+        }
+    } catch (err) {
+        if (error) {
+            error.textContent = 'Fehler: ' + err.message;
+            error.classList.remove('hidden');
+        }
+    }
+}
+
+// Toggle Do-Not-Track
+async function toggleDoNotTrack() {
+    doNotTrackValue = !doNotTrackValue;
+    try {
+        var response = await fetch(API_BASE + '/tickets/' + TICKET_ID, {
+            method: 'PUT',
+            headers: apiHeaders(),
+            body: JSON.stringify({ doNotTrack: doNotTrackValue })
+        });
+        var result = await response.json();
+        if (result.success) {
+            var textEl = document.getElementById('do-not-track-text');
+            textEl.innerHTML = doNotTrackValue
+                ? '<span class="text-orange-600 font-medium">Ja</span>'
+                : '<span class="text-gray-500">Nein</span>';
+            showAlert('success', 'Gespeichert');
+        } else {
+            doNotTrackValue = !doNotTrackValue; // revert
+            showAlert('danger', result.message || 'Fehler beim Speichern');
+        }
+    } catch (err) {
+        doNotTrackValue = !doNotTrackValue; // revert
+        showAlert('danger', 'Fehler: ' + err.message);
+    }
+}
+
+// Update Affected Neighbors
+async function updateNeighbors() {
+    var input = document.getElementById('neighborsInput');
+    var value = input.value === '' ? null : parseInt(input.value);
+    try {
+        var response = await fetch(API_BASE + '/tickets/' + TICKET_ID, {
+            method: 'PUT',
+            headers: apiHeaders(),
+            body: JSON.stringify({ affectedNeighbors: value })
+        });
+        var result = await response.json();
+        if (result.success) {
+            document.getElementById('neighbors-text').textContent = value !== null ? value : 'Unbekannt';
+            document.getElementById('neighbors-modal').classList.add('hidden');
+            showAlert('success', 'Gespeichert');
+        } else {
+            showAlert('danger', result.message || 'Fehler beim Speichern');
+        }
+    } catch (err) {
+        showAlert('danger', 'Fehler: ' + err.message);
+    }
+}
+
+// Toggle Show-on-Website
+async function toggleShowOnWebsite() {
+    var checked = document.getElementById('showOnWebsiteToggle').checked;
+    try {
+        var response = await fetch(API_BASE + '/tickets/' + TICKET_ID, {
+            method: 'PUT',
+            headers: apiHeaders(),
+            body: JSON.stringify({ showOnWebsite: checked })
+        });
+        var result = await response.json();
+        if (result.success) {
+            document.getElementById('website-details').style.display = checked ? '' : 'none';
+            showAlert('success', 'Gespeichert');
+        } else {
+            document.getElementById('showOnWebsiteToggle').checked = !checked; // revert
+            showAlert('danger', result.message || 'Fehler beim Speichern');
+        }
+    } catch (err) {
+        document.getElementById('showOnWebsiteToggle').checked = !checked; // revert
+        showAlert('danger', 'Fehler: ' + err.message);
+    }
+}
 </script>
 @endsection
