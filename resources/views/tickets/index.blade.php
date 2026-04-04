@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Ticket-Uebersicht')
+@section('title', 'Ticket-Übersicht')
 
 @section('content')
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">Ticket-Uebersicht</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Ticket-Übersicht</h1>
         <p class="text-gray-500 text-sm mt-1">
             Brauchen Sie Hilfe?
             <a href="https://chatgpt.com/g/g-AYCDjxFTR-saus" target="_blank" class="text-brand-500 hover:underline">
@@ -47,7 +47,7 @@
                 @php
                     $categoryLabels = [
                         'in_bearbeitung' => 'In Bearbeitung',
-                        'zurueckgestellt' => 'Zurueckgestellt',
+                        'zurückgestellt' => 'Zurückgestellt',
                         'ready' => 'Bereit zur Vorstellung',
                         'geschlossen' => 'Geschlossen',
                         'archiviert' => 'Archiviert',
@@ -97,7 +97,7 @@
             @endforeach
             <a href="{{ route('tickets.index', ['filter_applied' => '1', 'category' => ['in_bearbeitung']]) }}"
                class="text-sm text-gray-500 hover:text-brand-500 transition">
-                <i class="bi bi-x-lg"></i> Filter zuruecksetzen
+                <i class="bi bi-x-lg"></i> Filter zurücksetzen
             </a>
         </div>
     </form>
@@ -142,7 +142,7 @@
                         {{-- Website Icon --}}
                         <td class="px-2 py-3 text-center {{ $activityClass }}">
                             @if($ticket['show_on_website'] ?? false)
-                                <i class="bi bi-globe text-brand-400" title="Oeffentlich auf der Website sichtbar"></i>
+                                <i class="bi bi-globe text-brand-400" title="Öffentlich auf der Website sichtbar"></i>
                             @endif
                         </td>
 
@@ -155,7 +155,7 @@
                             </div>
                             <div class="text-xs mt-1 space-y-0.5">
                                 @if(!empty($ticket['assignee']))
-                                    <div class="text-gray-700">Zustaendig: <span class="font-semibold">{{ $ticket['assignee'] }}</span></div>
+                                    <div class="text-gray-700">Zuständig: <span class="font-semibold">{{ $ticket['assignee'] }}</span></div>
                                 @endif
                                 @php
                                     $participants = [];

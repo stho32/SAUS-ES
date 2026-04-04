@@ -4,7 +4,7 @@
 
 @section('content')
 <a href="{{ route('public.news.index') }}" class="inline-flex items-center text-brand-500 hover:text-brand-800 text-sm mb-6 transition">
-    <i class="bi bi-arrow-left mr-1"></i> Zurueck zur Uebersicht
+    <i class="bi bi-arrow-left mr-1"></i> Zurück zur Übersicht
 </a>
 
 <article class="bg-white rounded-lg shadow overflow-hidden">
@@ -37,7 +37,7 @@
         {{-- Meta --}}
         <div class="mt-8 pt-4 border-t border-gray-200 text-sm text-gray-500">
             <i class="bi bi-clock mr-1"></i>
-            Veroeffentlicht: {{ $news->created_at?->format('d.m.Y') }}
+            Veröffentlicht: {{ $news->created_at?->format('d.m.Y') }}
         </div>
     </div>
 </article>

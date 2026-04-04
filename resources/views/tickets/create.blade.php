@@ -52,7 +52,7 @@
                     name="status_id"
                     required
                     class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition @error('status_id') border-red-500 @enderror">
-                <option value="">Bitte waehlen...</option>
+                <option value="">Bitte wählen...</option>
                 @foreach($statuses ?? [] as $status)
                     <option value="{{ $status['id'] }}" {{ old('status_id') == $status['id'] ? 'selected' : '' }}>
                         {{ $status['name'] }}
@@ -72,7 +72,7 @@
                    name="assignee"
                    value="{{ old('assignee') }}"
                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition"
-                   placeholder="Name des zustaendigen Bearbeiters (optional)">
+                   placeholder="Name des zuständigen Bearbeiters (optional)">
         </div>
 
         {{-- Submit --}}

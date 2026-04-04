@@ -60,7 +60,7 @@
                 </a>
                 <a href="{{ route('tickets.index') }}"
                    class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
-                    <i class="bi bi-arrow-left"></i> Zurueck
+                    <i class="bi bi-arrow-left"></i> Zurück
                 </a>
             </div>
         </div>
@@ -75,7 +75,7 @@
                     <i class="bi bi-person-circle text-3xl text-gray-400"></i>
                 </div>
                 <div class="ml-4">
-                    <h6 class="text-xs font-medium text-gray-500 uppercase">Zustaendig</h6>
+                    <h6 class="text-xs font-medium text-gray-500 uppercase">Zuständig</h6>
                     <p class="text-lg mt-0.5">
                         <button type="button" onclick="document.getElementById('assignee-modal').classList.remove('hidden')"
                                 class="text-gray-900 hover:text-brand-500 transition">
@@ -174,7 +174,7 @@
             <h5 class="font-semibold text-gray-900">Ansprechpartner bei der Genossenschaft</h5>
             <button type="button" onclick="document.getElementById('add-contact-modal').classList.remove('hidden')"
                     class="bg-brand-500 text-white text-xs px-3 py-1.5 rounded font-medium hover:bg-brand-600 transition">
-                <i class="bi bi-plus-lg"></i> Hinzufuegen
+                <i class="bi bi-plus-lg"></i> Hinzufügen
             </button>
         </div>
         <div class="p-4">
@@ -258,11 +258,11 @@
                 </h5>
             </div>
             <div class="p-4">
-                <h6 class="text-xs font-medium text-gray-500 uppercase mb-2">Oeffentlicher Kommentar</h6>
+                <h6 class="text-xs font-medium text-gray-500 uppercase mb-2">Öffentlicher Kommentar</h6>
                 @if($ticket->public_comment)
                     <p class="text-gray-700 whitespace-pre-line">{{ $ticket->public_comment }}</p>
                 @else
-                    <p class="text-gray-400 italic">Kein oeffentlicher Kommentar vorhanden</p>
+                    <p class="text-gray-400 italic">Kein öffentlicher Kommentar vorhanden</p>
                 @endif
             </div>
         </div>
@@ -317,7 +317,7 @@
                                     {{ $attachment->upload_date ? $attachment->upload_date->format('d.m.Y H:i') : '' }}
                                 </span>
                                 <button onclick="deleteAttachment({{ $attachment->id }})"
-                                        class="text-red-500 hover:text-red-700 text-xs p-1" title="Loeschen">
+                                        class="text-red-500 hover:text-red-700 text-xs p-1" title="Löschen">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>
@@ -447,18 +447,18 @@
 <div id="assignee-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
         <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            <h5 class="font-semibold text-gray-900">Zustaendigkeit bearbeiten</h5>
+            <h5 class="font-semibold text-gray-900">Zuständigkeit bearbeiten</h5>
             <button type="button" onclick="document.getElementById('assignee-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
         <div class="p-4">
-            <label for="assigneeInput" class="block text-sm font-medium text-gray-700 mb-1">Zustaendig</label>
+            <label for="assigneeInput" class="block text-sm font-medium text-gray-700 mb-1">Zuständig</label>
             <input type="text" id="assigneeInput"
                    value="{{ $ticket->assignee ?? '' }}"
                    placeholder="Name oder Gruppe eingeben"
                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
-            <p class="text-xs text-gray-500 mt-1">Mehrere Zustaendige koennen durch Komma getrennt werden.</p>
+            <p class="text-xs text-gray-500 mt-1">Mehrere Zuständige können durch Komma getrennt werden.</p>
         </div>
         <div class="flex justify-end gap-2 px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
             <button type="button" onclick="document.getElementById('assignee-modal').classList.add('hidden')"
@@ -473,7 +473,7 @@
 <div id="status-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
         <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            <h5 class="font-semibold text-gray-900">Status aendern</h5>
+            <h5 class="font-semibold text-gray-900">Status ändern</h5>
             <button type="button" onclick="document.getElementById('status-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
                 <i class="bi bi-x-lg"></i>
             </button>
@@ -526,7 +526,7 @@
 <div id="add-contact-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
         <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            <h5 class="font-semibold text-gray-900">Ansprechpartner hinzufuegen</h5>
+            <h5 class="font-semibold text-gray-900">Ansprechpartner hinzufügen</h5>
             <button type="button" onclick="document.getElementById('add-contact-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
                 <i class="bi bi-x-lg"></i>
             </button>
@@ -542,10 +542,10 @@
                     <a href="{{ route('contact-persons.index') }}" class="underline font-medium">Neuen anlegen</a>
                 </div>
             @else
-                <label for="contactPersonSelect" class="block text-sm font-medium text-gray-700 mb-1">Ansprechpartner auswaehlen</label>
+                <label for="contactPersonSelect" class="block text-sm font-medium text-gray-700 mb-1">Ansprechpartner auswählen</label>
                 <select id="contactPersonSelect"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
-                    <option value="">-- Bitte waehlen --</option>
+                    <option value="">-- Bitte wählen --</option>
                     @foreach($allContactPersons as $person)
                         @if(!in_array($person->id, $linkedIds))
                             <option value="{{ $person->id }}">{{ $person->name }}{{ $person->email ? ' (' . $person->email . ')' : '' }}</option>
@@ -558,7 +558,7 @@
             <button type="button" onclick="document.getElementById('add-contact-modal').classList.add('hidden')"
                     class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">Abbrechen</button>
             <button type="button" onclick="addContactPerson()"
-                    class="px-4 py-2 text-sm text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition">Hinzufuegen</button>
+                    class="px-4 py-2 text-sm text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition">Hinzufügen</button>
         </div>
     </div>
 </div>
@@ -781,7 +781,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     var errorDiv = document.getElementById('uploadError');
 
     if (!fileInput.files.length) {
-        errorDiv.textContent = 'Bitte waehlen Sie eine Datei aus.';
+        errorDiv.textContent = 'Bitte wählen Sie eine Datei aus.';
         errorDiv.classList.remove('hidden');
         return;
     }
@@ -810,7 +810,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
 
 // Delete Attachment
 async function deleteAttachment(attachmentId) {
-    if (!confirm('Anhang wirklich loeschen?')) return;
+    if (!confirm('Anhang wirklich löschen?')) return;
     try {
         var response = await fetch('/api/attachments/' + attachmentId, {
             method: 'DELETE',
@@ -820,7 +820,7 @@ async function deleteAttachment(attachmentId) {
         if (data.success) {
             var el = document.getElementById('attachment-' + attachmentId);
             if (el) el.remove();
-            showAlert('success', 'Anhang geloescht');
+            showAlert('success', 'Anhang gelöscht');
         } else {
             showAlert('danger', 'Fehler: ' + (data.message || ''));
         }
@@ -832,7 +832,7 @@ async function deleteAttachment(attachmentId) {
 // Add Contact Person
 async function addContactPerson() {
     var select = document.getElementById('contactPersonSelect');
-    if (!select || !select.value) { showAlert('warning', 'Bitte waehlen Sie einen Ansprechpartner aus.'); return; }
+    if (!select || !select.value) { showAlert('warning', 'Bitte wählen Sie einen Ansprechpartner aus.'); return; }
     try {
         var response = await fetch('/api/tickets/' + TICKET_ID + '/contact-persons', {
             method: 'POST',

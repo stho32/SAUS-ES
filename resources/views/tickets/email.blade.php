@@ -42,7 +42,7 @@
     <div class="no-print bg-white shadow-sm border-b border-gray-200 py-3">
         <div class="max-w-4xl mx-auto px-4 flex items-center justify-between">
             <a href="{{ route('tickets.show', $ticket) }}" class="text-brand-500 hover:text-brand-800 text-sm font-medium">
-                <i class="bi bi-arrow-left"></i> Zurueck zum Ticket
+                <i class="bi bi-arrow-left"></i> Zurück zum Ticket
             </a>
             <button onclick="window.print()" class="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition">
                 <i class="bi bi-printer"></i> Drucken
@@ -72,7 +72,7 @@
                             <p><strong>Betroffene Nachbarn:</strong> {{ $ticket->affected_neighbors }}</p>
                         @endif
                         @if($ticket->assignee)
-                            <p><strong>Zustaendig:</strong> {{ $ticket->assignee }}</p>
+                            <p><strong>Zuständig:</strong> {{ $ticket->assignee }}</p>
                         @endif
                         <p><strong>Erstellt am:</strong> {{ $ticket->created_at->format('d.m.Y H:i') }}</p>
 

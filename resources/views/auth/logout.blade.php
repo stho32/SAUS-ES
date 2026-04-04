@@ -45,7 +45,7 @@
 
             <a href="{{ url('/') }}"
                class="inline-block bg-brand-500 text-white py-2 px-6 rounded-lg font-semibold hover:bg-brand-600 transition">
-                <i class="bi bi-house-door mr-1"></i> Zurueck zur Startseite
+                <i class="bi bi-house-door mr-1"></i> Zurück zur Startseite
             </a>
         </div>
     </div>

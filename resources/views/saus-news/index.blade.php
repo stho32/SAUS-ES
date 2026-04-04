@@ -8,11 +8,11 @@
         <h1 class="text-2xl font-bold text-gray-900">SAUS-News</h1>
         <p class="text-sm text-gray-500">
             <i class="bi bi-info-circle mr-1"></i>
-            Dieser Bericht dient als Datengrundlage fuer die SAUS-News und zeigt alle Ticket-Aktivitaeten im gewaehlten Zeitraum.
+            Dieser Bericht dient als Datengrundlage für die SAUS-News und zeigt alle Ticket-Aktivitaeten im gewaehlten Zeitraum.
         </p>
     </div>
     <a href="{{ url('/') }}" class="inline-flex items-center border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition text-sm">
-        <i class="bi bi-arrow-left mr-2"></i> Zurueck
+        <i class="bi bi-arrow-left mr-2"></i> Zurück
     </a>
 </div>
 

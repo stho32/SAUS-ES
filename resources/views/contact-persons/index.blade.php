@@ -10,7 +10,7 @@
 
 {{-- Add Form --}}
 <div class="bg-white rounded-lg shadow p-6 mb-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">Neuen Ansprechpartner hinzufuegen</h2>
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Neuen Ansprechpartner hinzufügen</h2>
     <form id="addContactForm" onsubmit="return createContactPerson(event)" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -46,13 +46,13 @@
                       placeholder="Weitere Kontaktinformationen..."></textarea>
         </div>
         <div>
-            <label for="responsibility_notes" class="block text-sm font-medium text-gray-700 mb-1">Zustaendigkeit</label>
+            <label for="responsibility_notes" class="block text-sm font-medium text-gray-700 mb-1">Zuständigkeit</label>
             <textarea id="responsibility_notes" name="responsibility_notes" rows="2"
                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-                      placeholder="Zustaendigkeitsbereiche..."></textarea>
+                      placeholder="Zuständigkeitsbereiche..."></textarea>
         </div>
         <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-brand-600 transition text-sm">
-            <i class="bi bi-plus-lg mr-1"></i> Hinzufuegen
+            <i class="bi bi-plus-lg mr-1"></i> Hinzufügen
         </button>
     </form>
 </div>
@@ -77,7 +77,7 @@
                         <th class="px-4 py-3 text-left font-semibold">E-Mail</th>
                         <th class="px-4 py-3 text-left font-semibold">Telefon</th>
                         <th class="px-4 py-3 text-left font-semibold">Notizen</th>
-                        <th class="px-4 py-3 text-left font-semibold">Zustaendigkeit</th>
+                        <th class="px-4 py-3 text-left font-semibold">Zuständigkeit</th>
                         <th class="px-4 py-3 text-center font-semibold w-20">Status</th>
                         <th class="px-4 py-3 text-center font-semibold w-40">Aktionen</th>
                     </tr>
@@ -159,7 +159,7 @@
                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"></textarea>
             </div>
             <div>
-                <label for="edit-responsibility_notes" class="block text-sm font-medium text-gray-700 mb-1">Zustaendigkeit</label>
+                <label for="edit-responsibility_notes" class="block text-sm font-medium text-gray-700 mb-1">Zuständigkeit</label>
                 <textarea id="edit-responsibility_notes" rows="3"
                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"></textarea>
             </div>
@@ -287,7 +287,7 @@ async function updateContactPerson(event) {
 
 async function toggleStatus(id, currentlyActive) {
     const action = currentlyActive ? 'deaktivieren' : 'aktivieren';
-    if (!confirm(`Moechten Sie diesen Ansprechpartner wirklich ${action}?`)) return;
+    if (!confirm(`Möchten Sie diesen Ansprechpartner wirklich ${action}?`)) return;
 
     try {
         const response = await fetch('/contact-persons/' + id + '/toggle', {
@@ -303,7 +303,7 @@ async function toggleStatus(id, currentlyActive) {
             showFlash(`Ansprechpartner erfolgreich ${action === 'deaktivieren' ? 'deaktiviert' : 'aktiviert'}.`);
             window.location.reload();
         } else {
-            showFlash('Fehler beim Aendern des Status.', 'error');
+            showFlash('Fehler beim Ändern des Status.', 'error');
         }
     } catch (error) {
         showFlash('Fehler: ' + error.message, 'error');

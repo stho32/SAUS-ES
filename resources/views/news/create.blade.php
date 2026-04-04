@@ -86,7 +86,7 @@
 
 <div class="mb-6">
     <a href="{{ route('news.index') }}" class="text-brand-500 hover:text-brand-800 text-sm">
-        <i class="bi bi-arrow-left mr-1"></i> Zurueck zur Uebersicht
+        <i class="bi bi-arrow-left mr-1"></i> Zurück zur Übersicht
     </a>
 </div>
 @endsection

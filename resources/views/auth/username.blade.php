@@ -38,7 +38,7 @@
                     <i class="bi bi-person-circle text-3xl text-brand-500"></i>
                 </div>
                 <h1 class="text-2xl font-bold text-gray-900">Willkommen bei SAUS-i</h1>
-                <p class="text-gray-600 mt-2">Bitte geben Sie Ihr Namenskuerzel ein</p>
+                <p class="text-gray-600 mt-2">Bitte geben Sie Ihr Namenskürzel ein</p>
             </div>
 
             @if($errors->any())
@@ -56,7 +56,7 @@
                 @csrf
                 <div class="mb-4">
                     <label for="username" class="block text-sm font-medium text-gray-700 mb-1">
-                        Namenskuerzel
+                        Namenskürzel
                     </label>
                     <input type="text"
                            id="username"

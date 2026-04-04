@@ -1,9 +1,9 @@
 @extends('layouts.public')
 
-@section('title', 'Aktuelle Vorgaenge')
+@section('title', 'Aktuelle Vorgänge')
 
 @section('content')
-<h1 class="text-2xl font-bold text-gray-900 mb-6">Aktuelle Vorgaenge</h1>
+<h1 class="text-2xl font-bold text-gray-900 mb-6">Aktuelle Vorgänge</h1>
 
 {{-- Search and Filter --}}
 <div class="bg-white rounded-lg shadow p-4 mb-6">
@@ -68,7 +68,7 @@
         <i class="bi bi-info-circle mr-1"></i>
         Suchergebnisse fuer: <strong>{{ $search }}</strong>
         <a href="{{ route('public.tickets.index', array_filter(['sort' => $sortBy, 'show_all' => $showAll ? '1' : null])) }}"
-           class="ml-2 text-blue-600 hover:underline">Zuruecksetzen</a>
+           class="ml-2 text-blue-600 hover:underline">Zurücksetzen</a>
     </div>
 @endif
 
@@ -76,11 +76,11 @@
 @if($tickets->isEmpty())
     <div class="bg-white rounded-lg shadow text-center py-12">
         <i class="bi bi-info-circle text-5xl text-gray-300"></i>
-        <h3 class="text-gray-600 mt-3 font-medium">Keine Vorgaenge gefunden</h3>
+        <h3 class="text-gray-600 mt-3 font-medium">Keine Vorgänge gefunden</h3>
         @if($search)
             <p class="text-gray-400 text-sm mt-1">Versuchen Sie es mit einem anderen Suchbegriff.</p>
         @else
-            <p class="text-gray-400 text-sm mt-1">Aktuell sind keine oeffentlichen Vorgaenge verfuegbar.</p>
+            <p class="text-gray-400 text-sm mt-1">Aktuell sind keine öffentlichen Vorgänge verfügbar.</p>
         @endif
     </div>
 @else
@@ -92,7 +92,7 @@
                         <th class="px-4 py-3 text-left font-semibold w-24">Nr</th>
                         <th class="px-4 py-3 text-left font-semibold">Titel</th>
                         <th class="px-4 py-3 text-left font-semibold w-28">Status</th>
-                        <th class="px-4 py-3 text-left font-semibold w-28">Zustaendig</th>
+                        <th class="px-4 py-3 text-left font-semibold w-28">Zuständig</th>
                         <th class="px-4 py-3 text-center font-semibold w-20">Stimmen</th>
                         <th class="px-4 py-3 text-left font-semibold">Oeffentl. Kommentar</th>
                     </tr>

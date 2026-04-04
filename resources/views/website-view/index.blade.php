@@ -18,9 +18,9 @@
     @if($tickets->isEmpty())
         <div class="text-center py-12">
             <i class="bi bi-globe text-5xl text-gray-300"></i>
-            <p class="text-gray-500 mt-3">Keine Tickets fuer die Website-Anzeige gefunden.</p>
+            <p class="text-gray-500 mt-3">Keine Tickets für die Website-Anzeige gefunden.</p>
             <p class="text-gray-400 text-sm mt-1">
-                Markieren Sie Tickets fuer die Website-Anzeige in der Ticket-Bearbeitung.
+                Markieren Sie Tickets für die Website-Anzeige in der Ticket-Bearbeitung.
             </p>
         </div>
     @else
@@ -33,7 +33,7 @@
                         <th class="px-4 py-3 text-center font-semibold w-24">
                             <i class="bi bi-hand-thumbs-up"></i> Stimmen
                         </th>
-                        <th class="px-4 py-3 text-left font-semibold">Oeffentlicher Kommentar</th>
+                        <th class="px-4 py-3 text-left font-semibold">Öffentlicher Kommentar</th>
                         <th class="px-4 py-3 text-left font-semibold w-40">Letzte Aktivitaet</th>
                     </tr>
                 </thead>
@@ -53,7 +53,7 @@
                                     #{{ $ticket->ticket_number ?? $ticket->id }}: {{ $ticket->title }}
                                 </a>
                                 @if($ticket->assignee)
-                                    <p class="text-xs text-gray-500 mt-0.5">Zustaendig: <strong>{{ $ticket->assignee }}</strong></p>
+                                    <p class="text-xs text-gray-500 mt-0.5">Zuständig: <strong>{{ $ticket->assignee }}</strong></p>
                                 @endif
                                 @if($ticket->comments_count > 0)
                                     <p class="text-xs text-gray-400 mt-0.5">
@@ -88,7 +88,7 @@
                                 @if($ticket->public_comment)
                                     <p class="text-gray-600 text-xs line-clamp-2">{{ Str::limit(strip_tags($ticket->public_comment), 120) }}</p>
                                 @else
-                                    <span class="text-gray-400 text-xs">Kein oeffentlicher Kommentar</span>
+                                    <span class="text-gray-400 text-xs">Kein öffentlicher Kommentar</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 {{ $activityClass }} text-gray-600 text-xs">

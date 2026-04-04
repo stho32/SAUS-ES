@@ -31,7 +31,7 @@
 @if($search)
     <div class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-lg mb-4 text-sm">
         <i class="bi bi-info-circle mr-1"></i>
-        {{ $news->total() }} Ergebnis{{ $news->total() !== 1 ? 'se' : '' }} fuer "<strong>{{ $search }}</strong>"
+        {{ $news->total() }} Ergebnis{{ $news->total() !== 1 ? 'se' : '' }} für "<strong>{{ $search }}</strong>"
     </div>
 @endif
 
@@ -43,7 +43,7 @@
         @if($search)
             <p class="text-gray-400 text-sm mt-1">Versuchen Sie es mit einem anderen Suchbegriff.</p>
         @else
-            <p class="text-gray-400 text-sm mt-1">Derzeit sind keine News-Artikel verfuegbar.</p>
+            <p class="text-gray-400 text-sm mt-1">Derzeit sind keine News-Artikel verfügbar.</p>
         @endif
     </div>
 @else
@@ -69,7 +69,7 @@
 
                             <p class="text-xs text-gray-400 mt-3">
                                 <i class="bi bi-clock mr-1"></i>
-                                Veroeffentlicht: {{ $article->created_at?->format('d.m.Y') }}
+                                Veröffentlicht: {{ $article->created_at?->format('d.m.Y') }}
                             </p>
                         </div>
 
@@ -94,7 +94,7 @@
                 @if($news->previousPageUrl())
                     <a href="{{ $news->previousPageUrl() }}"
                        class="inline-flex items-center border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition text-sm">
-                        <i class="bi bi-chevron-left mr-1"></i> Zurueck
+                        <i class="bi bi-chevron-left mr-1"></i> Zurück
                     </a>
                 @endif
             </div>

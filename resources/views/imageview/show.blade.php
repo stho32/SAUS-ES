@@ -38,14 +38,14 @@
                 Bilder zu Ticket #{{ $ticket->ticket_number ?? $ticket->id }}
             </h1>
             <p class="text-gray-600 mt-1">{{ $ticket->title }}</p>
-            <p class="text-sm text-gray-500 mt-2">Bilder anklicken fuer Vollansicht</p>
+            <p class="text-sm text-gray-500 mt-2">Bilder anklicken für Vollansicht</p>
         </div>
 
         @if($attachments->isEmpty())
             <div class="bg-white rounded-lg shadow text-center py-16">
                 <i class="bi bi-images text-5xl text-gray-300"></i>
                 <h3 class="text-gray-600 mt-3 font-medium">Keine Bilder vorhanden</h3>
-                <p class="text-gray-400 text-sm mt-1">Fuer dieses Ticket wurden bisher keine Bilder hochgeladen.</p>
+                <p class="text-gray-400 text-sm mt-1">Für dieses Ticket wurden bisher keine Bilder hochgeladen.</p>
             </div>
         @else
             {{-- Image Grid --}}

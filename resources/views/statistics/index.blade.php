@@ -20,7 +20,7 @@
 <div class="bg-white rounded-lg shadow p-6 mb-6">
     <h2 class="text-lg font-semibold text-gray-900 mb-4">
         <i class="bi bi-person-fill-gear text-amber-500 mr-2"></i>
-        Zustaendige &mdash; In Bearbeitung
+        Zuständige &mdash; In Bearbeitung
     </h2>
     @if(count($assigneeWorkload) === 0)
         <p class="text-gray-500 text-sm">Keine Tickets in Bearbeitung.</p>
@@ -35,7 +35,7 @@
 <div class="bg-white rounded-lg shadow p-6 mb-6">
     <h2 class="text-lg font-semibold text-gray-900 mb-4">
         <i class="bi bi-person-check-fill text-green-600 mr-2"></i>
-        Abgeschlossene Aufgaben pro Zustaendiger
+        Abgeschlossene Aufgaben pro Zuständiger
     </h2>
     @if(count($completedPerAssignee) === 0)
         <p class="text-gray-500 text-sm">Keine abgeschlossenen Tickets vorhanden.</p>

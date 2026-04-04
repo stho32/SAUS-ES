@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="theme-color" content="#0786c0">
-    <title>@yield('title', 'Oeffentliche Informationen') - Siedlungsausschuss</title>
+    <title>@yield('title', 'Öffentliche Informationen') - Siedlungsausschuss</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
     tailwind.config = {
@@ -42,7 +42,7 @@
                 <nav class="flex items-center space-x-4">
                     <a href="{{ route('public.tickets.index') }}"
                        class="text-gray-700 hover:text-brand-500 px-3 py-2 text-sm font-medium transition {{ request()->routeIs('public.tickets.*') ? 'text-brand-500 border-b-2 border-brand-500' : '' }}">
-                        <i class="bi bi-list-ul"></i> Aktuelle Vorgaenge
+                        <i class="bi bi-list-ul"></i> Aktuelle Vorgänge
                     </a>
                     <a href="{{ route('public.news.index') }}"
                        class="text-gray-700 hover:text-brand-500 px-3 py-2 text-sm font-medium transition {{ request()->routeIs('public.news.*') ? 'text-brand-500 border-b-2 border-brand-500' : '' }}">
@@ -63,7 +63,7 @@
     {{-- Footer — no links to admin area --}}
     <footer class="bg-white border-t border-gray-200 py-4 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
-            Siedlungsausschuss &mdash; Informationen fuer Mitglieder
+            Siedlungsausschuss &mdash; Informationen für Mitglieder
         </div>
     </footer>
 

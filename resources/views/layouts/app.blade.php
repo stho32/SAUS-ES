@@ -80,7 +80,7 @@
 
                     <a href="{{ route('tickets.index') }}"
                        class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->routeIs('tickets.index') ? 'bg-brand-600 rounded' : '' }}">
-                        <i class="bi bi-list-ul"></i> Uebersicht
+                        <i class="bi bi-list-ul"></i> Übersicht
                     </a>
                     <a href="{{ route('follow-up.index') }}"
                        class="text-white px-3 py-2 text-sm font-medium hover:bg-brand-600 rounded transition {{ request()->routeIs('follow-up.*') ? 'bg-brand-600 rounded' : '' }}">
@@ -98,7 +98,7 @@
                              class="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                             <a href="{{ route('website-view.index') }}"
                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('website-view.*') ? 'bg-gray-100 font-semibold' : '' }}">
-                                <i class="bi bi-eye"></i> Oeffentliche Tickets
+                                <i class="bi bi-eye"></i> Öffentliche Tickets
                             </a>
                             <a href="{{ route('news.index') }}"
                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('news.*') ? 'bg-gray-100 font-semibold' : '' }}">
@@ -153,7 +153,7 @@
                 </a>
                 <a href="{{ route('tickets.index') }}"
                    class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->routeIs('tickets.index') ? 'bg-brand-800' : '' }}">
-                    <i class="bi bi-list-ul"></i> Uebersicht
+                    <i class="bi bi-list-ul"></i> Übersicht
                 </a>
                 <a href="{{ route('follow-up.index') }}"
                    class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 {{ request()->routeIs('follow-up.*') ? 'bg-brand-800' : '' }}">
@@ -162,7 +162,7 @@
                 <div class="text-white/60 text-xs px-3 pt-2 uppercase tracking-wider">Webseite</div>
                 <a href="{{ route('website-view.index') }}"
                    class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 pl-6 {{ request()->routeIs('website-view.*') ? 'bg-brand-800' : '' }}">
-                    <i class="bi bi-eye"></i> Oeffentliche Tickets
+                    <i class="bi bi-eye"></i> Öffentliche Tickets
                 </a>
                 <a href="{{ route('news.index') }}"
                    class="block text-white px-3 py-2 text-sm rounded hover:bg-brand-800 pl-6 {{ request()->routeIs('news.*') ? 'bg-brand-800' : '' }}">

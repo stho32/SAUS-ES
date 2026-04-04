@@ -33,7 +33,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Ticket-Nummer</label>
                 <input type="text" value="{{ $ticket->ticket_number }}" readonly
                        class="w-full border border-gray-200 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-500 cursor-not-allowed">
-                <p class="text-xs text-gray-500 mt-1">Die Ticket-Nummer kann nicht geaendert werden.</p>
+                <p class="text-xs text-gray-500 mt-1">Die Ticket-Nummer kann nicht geändert werden.</p>
             </div>
 
             {{-- Title --}}
@@ -52,9 +52,9 @@
 
             {{-- Assignee --}}
             <div class="mb-4">
-                <label for="assignee" class="block text-sm font-medium text-gray-700 mb-1">Zustaendige Bearbeiter</label>
+                <label for="assignee" class="block text-sm font-medium text-gray-700 mb-1">Zuständige Bearbeiter</label>
                 <input type="text" id="assignee" value="{{ $ticket->assignee ?? '' }}" maxlength="200"
-                       placeholder="Namen der zustaendigen Bearbeiter"
+                       placeholder="Namen der zuständigen Bearbeiter"
                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
             </div>
 
@@ -116,7 +116,7 @@
                            value="{{ $ticket->follow_up_date ? $ticket->follow_up_date->format('Y-m-d') : '' }}"
                            class="flex-1 border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
                     <button type="button" id="clearFollowUpDate"
-                            class="text-gray-500 hover:text-gray-700 border border-gray-300 px-3 py-2 rounded-lg transition" title="Datum loeschen">
+                            class="text-gray-500 hover:text-gray-700 border border-gray-300 px-3 py-2 rounded-lg transition" title="Datum löschen">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
@@ -130,7 +130,7 @@
                            {{ $ticket->do_not_track ? 'checked' : '' }}>
                     <span class="text-sm text-gray-700">Nicht verfolgen</span>
                 </label>
-                <p class="text-xs text-gray-500 mt-1 ml-6">Ticket wird in der Wiedervorlage-Uebersicht nicht angezeigt.</p>
+                <p class="text-xs text-gray-500 mt-1 ml-6">Ticket wird in der Wiedervorlage-Übersicht nicht angezeigt.</p>
             </div>
 
             {{-- Show on Website --}}
@@ -144,7 +144,7 @@
 
             {{-- Public Comment --}}
             <div class="mb-4">
-                <label for="publicComment" class="block text-sm font-medium text-gray-700 mb-1">Oeffentlicher Kommentar</label>
+                <label for="publicComment" class="block text-sm font-medium text-gray-700 mb-1">Öffentlicher Kommentar</label>
                 <textarea id="publicComment" rows="3"
                           placeholder="Dieser Kommentar wird auf der Website angezeigt"
                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">{{ $ticket->public_comment ?? '' }}</textarea>
@@ -156,7 +156,7 @@
 
 <div class="mt-6 mb-6">
     <a href="{{ route('tickets.show', $ticket) }}" class="text-brand-500 hover:text-brand-800 text-sm">
-        <i class="bi bi-arrow-left mr-1"></i> Zurueck zum Ticket
+        <i class="bi bi-arrow-left mr-1"></i> Zurück zum Ticket
     </a>
 </div>
 @endsection

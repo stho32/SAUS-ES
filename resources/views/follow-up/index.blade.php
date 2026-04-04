@@ -72,7 +72,7 @@
                         <th class="px-4 py-3 text-left font-semibold w-28">Ticket Nr</th>
                         <th class="px-4 py-3 text-left font-semibold">Titel</th>
                         <th class="px-4 py-3 text-left font-semibold w-28">Status</th>
-                        <th class="px-4 py-3 text-left font-semibold w-32">Zustaendig</th>
+                        <th class="px-4 py-3 text-left font-semibold w-32">Zuständig</th>
                         <th class="px-4 py-3 text-center font-semibold w-36">Wiedervorlage</th>
                         <th class="px-4 py-3 text-left font-semibold w-40">Letzte Aktivitaet</th>
                     </tr>
@@ -123,7 +123,7 @@
                                     </a>
                                 </div>
                                 @if($ticket->assignee)
-                                    <p class="text-xs text-gray-500 mt-0.5">Zustaendig: <strong>{{ $ticket->assignee }}</strong></p>
+                                    <p class="text-xs text-gray-500 mt-0.5">Zuständig: <strong>{{ $ticket->assignee }}</strong></p>
                                 @endif
                             </td>
                             <td class="px-4 py-3 {{ $activityClass }}">

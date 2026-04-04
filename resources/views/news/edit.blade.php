@@ -97,11 +97,11 @@
                     <button type="button"
                             onclick="showFullImage({{ $news->id }})"
                             class="absolute top-2 right-2 bg-white/80 hover:bg-white text-gray-700 w-8 h-8 rounded-lg flex items-center justify-center shadow transition"
-                            title="In voller Groesse anzeigen">
+                            title="In voller Größe anzeigen">
                         <i class="bi bi-arrows-fullscreen"></i>
                     </button>
                 </div>
-                <p class="text-xs text-gray-500 mt-2">Klicken Sie auf das Bild, um es in voller Groesse anzuzeigen</p>
+                <p class="text-xs text-gray-500 mt-2">Klicken Sie auf das Bild, um es in voller Größe anzuzeigen</p>
             </div>
         @endif
 
@@ -136,7 +136,7 @@
 <div id="imageModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onclick="closeImageModal(event)">
     <div class="bg-white rounded-lg shadow-xl max-w-4xl max-h-[90vh] overflow-auto">
         <div class="flex items-center justify-between p-4 border-b">
-            <h3 class="font-semibold text-gray-900">Bild in voller Groesse</h3>
+            <h3 class="font-semibold text-gray-900">Bild in voller Größe</h3>
             <button onclick="closeImageModal()" class="text-gray-400 hover:text-gray-600 transition">
                 <i class="bi bi-x-lg text-xl"></i>
             </button>
@@ -149,7 +149,7 @@
 
 <div class="mb-6">
     <a href="{{ route('news.index') }}" class="text-brand-500 hover:text-brand-800 text-sm">
-        <i class="bi bi-arrow-left mr-1"></i> Zurueck zur Uebersicht
+        <i class="bi bi-arrow-left mr-1"></i> Zurück zur Übersicht
     </a>
 </div>
 @endsection

@@ -64,7 +64,7 @@
     <div>
         <strong>{{ $news->total() }}</strong> News-Artikel gefunden
         @if($search)
-            <span class="text-gray-400">fuer "{{ $search }}"</span>
+            <span class="text-gray-400">für "{{ $search }}"</span>
         @endif
     </div>
     @if($news->lastPage() > 1)
@@ -136,7 +136,7 @@
                                     <button type="button"
                                             onclick="deleteNews({{ $article->id }}, '{{ addslashes($article->title) }}')"
                                             class="inline-flex items-center justify-center w-8 h-8 border border-red-300 text-red-600 rounded hover:bg-red-50 transition"
-                                            title="Loeschen">
+                                            title="Löschen">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -160,7 +160,7 @@
 @section('scripts')
 <script>
 async function deleteNews(newsId, title) {
-    if (!confirm(`Moechten Sie die News "${title}" wirklich loeschen?\n\nDiese Aktion kann nicht rueckgaengig gemacht werden.`)) {
+    if (!confirm(`Möchten Sie die News "${title}" wirklich löschen?\n\nDiese Aktion kann nicht rueckgaengig gemacht werden.`)) {
         return;
     }
 
@@ -178,10 +178,10 @@ async function deleteNews(newsId, title) {
         if (result.success) {
             window.location.reload();
         } else {
-            alert('Fehler beim Loeschen: ' + (result.message || 'Unbekannter Fehler'));
+            alert('Fehler beim Löschen: ' + (result.message || 'Unbekannter Fehler'));
         }
     } catch (error) {
-        alert('Fehler beim Loeschen: ' + error.message);
+        alert('Fehler beim Löschen: ' + error.message);
     }
 }
 </script>

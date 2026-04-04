@@ -44,7 +44,7 @@
                         Kein gueltiger Zugangslink. Bitte verwenden Sie einen gueltigen Master-Link.
                         @break
                     @case('invalid_partner')
-                        Ungueltiger Partner-Link. Der angegebene Link ist nicht gueltig oder abgelaufen.
+                        Ungültiger Partner-Link. Der angegebene Link ist nicht gueltig oder abgelaufen.
                         @break
                     @default
                         Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.
