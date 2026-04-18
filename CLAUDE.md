@@ -6,6 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Quick Start (Docker)
 ```bash
+# Einmalig: .env am Repo-Root anlegen und einen APP_KEY erzeugen
+cp .env.example .env
+php -r "echo 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL;" >> .env
+# falls lokal kein PHP: openssl rand -base64 32 und manuell mit "base64:" Prefix eintragen
+
 docker-compose up -d
 # Admin:  http://localhost:8000/saus/?master_code=test_master_2025
 # Public: http://localhost:8000/public_information_saus/

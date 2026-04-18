@@ -8,11 +8,14 @@ services:
     volumes:
       - ./Source:/var/www/html
       - vendor_data:/var/www/html/vendor
+      - ./docker-compose.yml:/repo-root/docker-compose.yml:ro
+      - ./README.md:/repo-root/README.md:ro
+      - ./CLAUDE.md:/repo-root/CLAUDE.md:ro
     environment:
       - APP_NAME=SAUS-i
       - APP_ENV=local
       - APP_DEBUG=true
-      - APP_KEY=${APP_KEY:-base64:REP7MlRSUjsyk6kNFPjcWKc5qVZEEs98TN892ZJO0tQ=}
+      - APP_KEY=${APP_KEY:?APP_KEY is not set — copy .env.example to .env and set APP_KEY (see README)}
       - APP_URL=http://localhost:8000
       - APP_TIMEZONE=Europe/Berlin
       - APP_LOCALE=de

@@ -8,6 +8,9 @@
 # Aider
 .aider*
 
+# docker-compose reads this at repo root — never commit it
+/.env
+
 # Laravel (inside Source/)
 Source/vendor/
 Source/node_modules/
